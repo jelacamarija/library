@@ -1,62 +1,68 @@
 package com.library.service;
 
+import com.library.dto.RegisterRequestDto;
 import com.library.entity.User;
-import com.library.entity.VerificationToken;
+import com.library.mapper.RegisterMapper;
 import com.library.repository.UserRepository;
-import com.library.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private final UserRepository userRepository;
-    private final VerificationTokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+     private final UserRepository userRepository;
+     private final EmailService emailService;
 
-    public void register(UserRegisterDto dto) {
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already registered!");
-        }
+     private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setRole("USER");
-        user.setEnabled(false);
-        userRepository.save(user);
+     public String registerUser(RegisterRequestDto dto, String appBaseUrl){
+         Optional<User> existing=userRepository.findByEmail(dto.getEmail());
+         if(existing.isPresent()){
+             throw new RuntimeException("Korisnik sa ovim mejlom vec postoji");
+         }
 
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(token);
-        verificationToken.setUser(user);
-        verificationToken.setExpiryDate(LocalDateTime.now().plusDays(1));
-        tokenRepository.save(verificationToken);
+         String verifyCode= UUID.randomUUID().toString();
 
-        String link = "http://localhost:4200/verify?token=" + token;
-        emailService.send(user.getEmail(), "Verify your account",
-                "Click here to verify: " + link);
-    }
+         User user= RegisterMapper.toEntity(dto);
+         user.setPassword(passwordEncoder.encode(dto.getPassword()));
+         user.setVerifyCode(verifyCode);
+         user.setVerifyCodeExpiry(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
+         user.setIsVerified(false);
+         user.setRole("client");
 
-    public String verifyAccount(String token) {
-        VerificationToken vt = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+         userRepository.save(user);
+         String verificationLink = appBaseUrl + "/api/register/verify?code=" + verifyCode;
+         emailService.sendVerificationEmail(user.getEmail(), verificationLink);
 
-        if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Token expired");
-        }
+         return "Registracija uspesna! Proverite mejl da potvrdite nalog!";
+     }
 
-        User user = vt.getUser();
-        user.setEnabled(true);
-        userRepository.save(user);
-        tokenRepository.delete(vt);
-        return "Account verified!";
-    }
+     public  String verifyRegistration(String code){
+         Optional<User> optionalUser = userRepository.findByVerifyCode(code);
+
+         if (optionalUser.isEmpty()) {
+             return "Nevažeći verifikacioni kod.";
+         }
+
+         User user=optionalUser.get();
+
+         if (user.getVerifyCodeExpiry().before(new Date())) {
+             return "Verifikacioni link je istekao.";
+         }
+         user.setIsVerified(true);
+         user.setVerifyCode(null);
+         user.setVerifyCodeExpiry(null);
+         userRepository.save(user);
+
+         return "Vaš nalog je uspešno verifikovan!";
+
+
+     }
+
+
 }

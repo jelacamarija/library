@@ -1,30 +1,43 @@
 package com.library.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import java.util.Date;
 
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "user")
+@Table(name = "users")
+@Builder
+@ToString
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userID;
 
-    private String email;
-    private String password;
+    @Column(nullable = false)
     private String name;
-    private String surname;
-    private String role; // "USER" ili "LIBRARIAN"
-    private boolean enabled = false;
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(length = 64)
+    private String verifyCode;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date verifyCodeExpiry;
+
+    private Boolean isVerified;
+
+    @Column(nullable = false)
+    private String role;
+
+
 
 }
