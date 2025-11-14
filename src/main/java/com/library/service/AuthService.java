@@ -1,9 +1,12 @@
 package com.library.service;
 
+import com.library.dto.LoginRequestDto;
+import com.library.dto.LoginResponseDto;
 import com.library.dto.RegisterRequestDto;
 import com.library.entity.User;
 import com.library.mapper.RegisterMapper;
 import com.library.repository.UserRepository;
+import com.library.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import java.util.UUID;
 public class AuthService {
      private final UserRepository userRepository;
      private final EmailService emailService;
+    private final JwtUtil jwtUtil;
 
      private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
@@ -62,6 +66,27 @@ public class AuthService {
          return "Vaš nalog je uspešno verifikovan!";
 
 
+     }
+
+     public LoginResponseDto loginUser(LoginRequestDto request){
+         User user = userRepository.findByEmail(request.getEmail())
+                 .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa datim emailom"));
+
+         if (!user.getIsVerified()) {
+             throw new RuntimeException("Nalog nije verifikovan. Proverite mejl.");
+         }
+
+         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+             throw new RuntimeException("Pogrešna lozinka");
+         }
+
+         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
+         return LoginResponseDto.builder()
+                 .token(token)
+                 .email(user.getEmail())
+                 .role(user.getRole())
+                 .build();
      }
 
 
