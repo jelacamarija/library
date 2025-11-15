@@ -40,6 +40,18 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    public String getRoleFromToken(String token) {
+        return (String) getAllClaimsFromToken(token).get("role");
+    }
+
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()

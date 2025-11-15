@@ -37,7 +37,7 @@ public class AuthService {
          user.setVerifyCode(verifyCode);
          user.setVerifyCodeExpiry(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
          user.setIsVerified(false);
-         user.setRole("client");
+         user.setRole("LIBRARIAN");
 
          userRepository.save(user);
          String verificationLink = appBaseUrl + "/api/register/verify?code=" + verifyCode;
