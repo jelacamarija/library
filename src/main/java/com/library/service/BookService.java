@@ -71,4 +71,17 @@ public class BookService {
         return BookMapper.toDto(book);
     }
 
+    public Page<BookResponseDto> searchBooks(String query, int page, int size){
+
+        Pageable pageable=PageRequest.of(page,size);
+
+        Page<Book> books=bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(
+                query,
+                query,
+                pageable
+        );
+
+        return books.map(BookMapper::toDto);
+    }
+
 }

@@ -63,4 +63,12 @@ public class BookController {
         }
         return bookService.updateBookDescription(id, dto.getDescription());
     }
+
+    @GetMapping("/search")
+    public Page<BookResponseDto> searchBooks( @RequestParam String query,
+                                              @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size,
+                                              HttpServletRequest request){
+        return bookService.searchBooks(query,page,size);
+    }
 }
