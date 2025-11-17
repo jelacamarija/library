@@ -80,7 +80,7 @@ public class AuthService {
              throw new RuntimeException("Pogrešna lozinka");
          }
 
-         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+         String token = jwtUtil.generateToken(user.getUserID(),user.getEmail(), user.getRole());
 
          return LoginResponseDto.builder()
                  .token(token)

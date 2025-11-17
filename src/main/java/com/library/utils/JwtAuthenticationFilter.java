@@ -58,10 +58,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Ako je token OK → vadimo podatke:
         String email = jwtUtil.getEmailFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
+        Long userId=jwtUtil.getUserIdFromToken(token);
 
         // Spremimo ih u request, da ih kontroleri mogu koristiti
         request.setAttribute("userEmail", email);
         request.setAttribute("userRole", role);
+        request.setAttribute("userId",userId);
 
         // Pusti dalje request
         filterChain.doFilter(request, response);
