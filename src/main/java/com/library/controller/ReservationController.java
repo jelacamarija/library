@@ -24,9 +24,14 @@ public class ReservationController {
             HttpServletRequest request
     ){
         Long userID= (Long) request.getAttribute("userId");
+        String role= (String) request.getAttribute("userRole");
 
         if(userID==null){
             throw new RuntimeException("Niste ulogovani");
+        }
+
+        if(!"CLIENT".equalsIgnoreCase(role)){
+            throw new RuntimeException("Samo klijent moze kreirati rezervaciju");
         }
 
         return resevationService.createReservation(userID,dto.getBookID());
