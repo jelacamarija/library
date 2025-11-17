@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -83,5 +84,42 @@ public class BookService {
 
         return books.map(BookMapper::toDto);
     }
+
+    public Page<BookResponseDto> filterByCategory(String category, int page,int size){
+        Pageable pageable=PageRequest.of(page,size);
+
+        Page<Book> books=bookRepository.findByCategoryIgnoreCase(category,pageable);
+
+        return books.map(BookMapper::toDto);
+    }
+
+    public Page<BookResponseDto> sortByYear(String direction, int page, int size) {
+
+        Sort sort = direction.equalsIgnoreCase("desc") ?
+                Sort.by("publishedYear").descending() :
+                Sort.by("publishedYear").ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Book> books = bookRepository.findAll(pageable);
+
+        return books.map(BookMapper::toDto);
+    }
+
+    public Page<BookResponseDto> filterByCategoryAndSort(
+            String category, String direction, int page, int size) {
+
+        Sort sort = direction.equalsIgnoreCase("desc") ?
+                Sort.by("publishedYear").descending() :
+                Sort.by("publishedYear").ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Book> books = bookRepository.findByCategoryIgnoreCase(category, pageable);
+
+        return books.map(BookMapper::toDto);
+    }
+
+
 
 }

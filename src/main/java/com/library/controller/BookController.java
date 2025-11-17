@@ -71,4 +71,32 @@ public class BookController {
                                               HttpServletRequest request){
         return bookService.searchBooks(query,page,size);
     }
+
+    @GetMapping("/filter")
+    public Page<BookResponseDto> filterByCategory(@RequestParam String category,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "10") int size){
+        return bookService.filterByCategory(category,page,size);
+    }
+
+    @GetMapping("/sort")
+    public Page<BookResponseDto> sortBooksByYear(
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return bookService.sortByYear(direction, page, size);
+    }
+
+    @GetMapping("/filter-sort")
+    public Page<BookResponseDto> filterByCategoryAndSort(
+            @RequestParam String category,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.filterByCategoryAndSort(category, direction, page, size);
+    }
+
+
 }
