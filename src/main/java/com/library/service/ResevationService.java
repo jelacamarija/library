@@ -41,11 +41,7 @@ public class ResevationService {
 
         }
 
-        Reservation reservation= ReservationMapper.toEntity(user,book);
-
-        reservation.setReservedAt(new Date());
-        reservation.setExpiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000)); // 3 dana
-        reservation.setStatus("PENDING");
+        Reservation reservation = ReservationMapper.toEntity(user, book);
 
         reservationRespository.save(reservation);
 

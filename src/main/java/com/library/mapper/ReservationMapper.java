@@ -5,6 +5,8 @@ import com.library.entity.Book;
 import com.library.entity.Reservation;
 import com.library.entity.User;
 
+import java.util.Date;
+
 public class ReservationMapper {
     public static ReservationResponseDto toDto(Reservation reservation) {
         return ReservationResponseDto.builder()
@@ -23,6 +25,9 @@ public class ReservationMapper {
         return Reservation.builder()
                 .user(user)
                 .book(book)
+                .reservedAt(new Date())
+                .expiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000)) // 3 dana
+                .status("PENDING")
                 .build();
     }
 
