@@ -37,4 +37,9 @@ public class Reservation {
     @Column(nullable = false)
     private String status;
 
+    @Column(nullable = false)
+    private boolean used;
+
+    @OneToOne(mappedBy = "reservation")
+    private Loan loan;
 }

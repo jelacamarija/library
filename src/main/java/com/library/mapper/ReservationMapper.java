@@ -17,6 +17,11 @@ public class ReservationMapper {
                 .reservedAt(reservation.getReservedAt())
                 .expiresAt(reservation.getExpiresAt())
                 .status(reservation.getStatus())
+                .loanID(reservation.getLoan() != null ? reservation.getLoan().getLoanId() : null
+
+
+        )
+
                 .build();
     }
 
@@ -28,6 +33,7 @@ public class ReservationMapper {
                 .reservedAt(new Date())
                 .expiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000)) // 3 dana
                 .status("PENDING")
+                .used(false)
                 .build();
     }
 

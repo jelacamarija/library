@@ -21,4 +21,5 @@ public class ReservationResponseDto {
     private Date reservedAt;
     private Date expiresAt;
     private String status;
+    private Long loanID;
 }

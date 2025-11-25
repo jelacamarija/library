@@ -1,6 +1,7 @@
 package com.library.controller;
 
 
+import com.library.dto.ReservationActiveDto;
 import com.library.dto.ReservationCreateDto;
 import com.library.dto.ReservationResponseDto;
 import com.library.service.ReservationService;
@@ -83,4 +84,19 @@ public class ReservationController {
         }
         return reservationService.getReservationsForUserLibrarian(userId, page, size);
     }
+
+    @PostMapping("/activate")
+    public ReservationResponseDto activateReservation(@RequestBody ReservationActiveDto dto,
+                                                      HttpServletRequest request){
+        String role= (String) request.getAttribute("userRole");
+        if(role==null){
+            throw new RuntimeException("Niste ulogovani");
+        }
+        if(!"LIBRARIAN".equalsIgnoreCase(role)){
+            throw  new RuntimeException("Samo bibliotekar moze da aktivira rezervaciju");
+        }
+
+        return reservationService.activateReservation(dto);
+    }
+
 }
