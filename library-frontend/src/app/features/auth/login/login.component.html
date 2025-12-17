@@ -1,0 +1,22 @@
+<div class="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+  <div class="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm">
+    <h1 class="text-2xl font-bold">Prijava</h1>
+    <p class="text-sm text-gray-600 mt-1">Uloguj se na svoj nalog</p>
+
+ <form [formGroup]="form" class="mt-6 space-y-4" (ngSubmit)="submit()">
+  <div>
+    <label class="text-sm font-medium">Email</label>
+    <input class="mt-1 w-full rounded-xl border p-3" type="email" formControlName="email" />
+  </div>
+
+  <div>
+    <label class="text-sm font-medium">Lozinka</label>
+    <input class="mt-1 w-full rounded-xl border p-3" type="password" formControlName="password" />
+  </div>
+
+  <button class="w-full rounded-xl bg-black text-white p-3 font-semibold" type="submit">
+    Prijavi se
+  </button>
+</form>
+  </div>
+</div>
