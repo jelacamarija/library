@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
     Optional<Loan> findById(Long id);
-    Page<Loan> findByUser_FirstNameContainingIgnoreCaseOrUser_LastNameContainingIgnoreCase(
-            String firstName,
-            String lastName,
+    Page<Loan> findByUser_NameContainingIgnoreCaseOrUser_EmailContainingIgnoreCase(
+            String name,
+            String email,
             Pageable pageable
     );
     Page<Loan> findByStatus(String status, Pageable pageable);

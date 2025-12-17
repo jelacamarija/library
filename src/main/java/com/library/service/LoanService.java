@@ -90,7 +90,7 @@ public class LoanService {
     public Page<LoanResponseDto> searchLoansByUserName(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Loan> loans =
-                loanRepository.findByUser_FirstNameContainingIgnoreCaseOrUser_LastNameContainingIgnoreCase(
+                loanRepository.findByUser_NameContainingIgnoreCaseOrUser_EmailContainingIgnoreCase(
                         query, query, pageable
                 );
         return loans.map(LoanMapper::toDto);
