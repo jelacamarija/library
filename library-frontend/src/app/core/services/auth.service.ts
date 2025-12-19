@@ -24,29 +24,29 @@ export class AuthService {
   login(body: LoginRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>('/api/login', body).pipe(
       tap((res) => {
-        localStorage.setItem(this.TOKEN_KEY, res.token);
-        localStorage.setItem(this.ROLE_KEY, res.role);
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('role', res.role);
         localStorage.setItem(this.EMAIL_KEY, res.email);
       })
     );
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.ROLE_KEY);
-    localStorage.removeItem(this.EMAIL_KEY);
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('email');
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem('token');
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return !!localStorage.getItem('token');
   }
 
-  getRole(): string | null {
-    return localStorage.getItem(this.ROLE_KEY);
+  getRole(): 'CLIENT' | 'LIBRARIAN' | null {
+    return localStorage.getItem('role') as any;
   }
 
   hasRole(required: string | string[]): boolean {
