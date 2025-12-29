@@ -13,6 +13,14 @@ export type LoginResponseDto = {
   token: string;
 };
 
+type RegisterRequest = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
@@ -55,4 +63,9 @@ export class AuthService {
     const req = Array.isArray(required) ? required : [required];
     return req.includes(role);
   }
+
+  register(body: RegisterRequest) {
+  return this.http.post('/api/register', body);
+  }
+  
 }
