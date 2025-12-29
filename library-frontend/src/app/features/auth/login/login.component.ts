@@ -36,7 +36,7 @@ export class LoginComponent {
         this.loading = false;
         const role = this.auth.getRole();
       if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian');
-        else this.router.navigateByUrl('/client');
+        else this.router.navigateByUrl('/client/books');
       },
       error: (err) => {
         this.loading = false;

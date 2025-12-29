@@ -8,25 +8,23 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
-    <header class="w-full border-b bg-white">
-      <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="h-9 w-9 rounded-xl bg-black"></div>
-          <div>
-            <div class="font-bold leading-5">Biblioteka</div>
-            <div class="text-xs text-gray-500" *ngIf="role()">
-              Uloga: {{ role() }}
-            </div>
-          </div>
-        </div>
+ <header class="bg-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
 
-        <nav class="flex items-center gap-2">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a routerLink="/" class="text-xl font-bold text-blue-600">
+          Biblioteka
+        </a>
+
+        <!-- Nav (uvijek vidljiv, nema burger menija) -->
+        <nav class="flex items-center space-x-8 ml-10">
           <a
             *ngFor="let item of navItems()"
             [routerLink]="item.path"
-            routerLinkActive="bg-black text-white"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="px-3 py-2 rounded-xl text-sm font-medium hover:bg-gray-100"
+            routerLinkActive="text-blue-600 font-medium"
+            class="text-gray-600 hover:text-gray-900 transition-colors"
           >
             {{ item.label }}
           </a>
@@ -34,13 +32,19 @@ import { AuthService } from '../../core/services/auth.service';
           <button
             *ngIf="loggedIn()"
             (click)="onLogout()"
-            class="ml-2 px-3 py-2 rounded-xl text-sm font-semibold bg-black text-white hover:opacity-90"
+            class="text-gray-600 hover:text-red-600 transition-colors"
+            type="button"
           >
-            Logout
+            Odjava
           </button>
         </nav>
       </div>
-    </header>
+
+    </div>
+  </div>
+</header>
+
+
   `,
 })
 export class NavbarComponent {

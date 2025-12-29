@@ -1,0 +1,39 @@
+<div class="mx-auto max-w-6xl px-4 py-6">
+  <h1 class="text-2xl font-bold mb-6">Knjige</h1>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
+
+  <!-- ERROR -->
+  <div *ngIf="isError()" class="p-4 rounded bg-red-50 text-red-700">
+    {{ errorMessage() }}
+  </div>
+
+  <!-- LISTA -->
+  <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow p-5">
+      <div class="mb-3">
+        <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
+        <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
+        <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
+        <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button
+          (click)="goDetails(b)"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+        >
+          Detalji
+        </button>
+
+        <button
+          (click)="goReserve(b)"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Rezerviši
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
