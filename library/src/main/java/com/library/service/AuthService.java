@@ -8,8 +8,12 @@ import com.library.mapper.RegisterMapper;
 import com.library.repository.UserRepository;
 import com.library.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+
 
 import java.util.Date;
 import java.util.Optional;
@@ -21,6 +25,9 @@ public class AuthService {
      private final UserRepository userRepository;
      private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    @Value("${app.frontend.base.url:http://localhost:4200}")
+    private String frontendBaseUrl;
+
 
      private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
@@ -30,6 +37,7 @@ public class AuthService {
              throw new RuntimeException("Korisnik sa ovim mejlom vec postoji");
          }
 
+
          String verifyCode= UUID.randomUUID().toString();
 
          User user= RegisterMapper.toEntity(dto);
@@ -37,13 +45,14 @@ public class AuthService {
          user.setVerifyCode(verifyCode);
          user.setVerifyCodeExpiry(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
          user.setIsVerified(false);
-         user.setRole("LIBRARIAN");
+         user.setRole("CLIENT");
 
          userRepository.save(user);
-         String verificationLink = appBaseUrl + "/api/register/verify?code=" + verifyCode;
+         String verificationLink = frontendBaseUrl + "/verify?code=" + verifyCode;
          emailService.sendVerificationEmail(user.getEmail(), verificationLink);
-
          return "Registracija uspesna! Proverite mejl da potvrdite nalog!";
+
+
      }
 
      public  String verifyRegistration(String code){

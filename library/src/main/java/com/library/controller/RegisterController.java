@@ -14,12 +14,16 @@ public class RegisterController {
 
     private final AuthService authService;
 
-    @Value("${app.base.url:http://localhost:8080}")
-    private String appBaseUrl;
+    @Value("${app.backend.base.url:http://localhost:8080}")
+    private String backendBaseUrl;
+
+    @Value("${app.frontend.base.url:http://localhost:4200}")
+    private String frontendBaseUrl;
+
 
     @PostMapping
     public String registerUser(@RequestBody RegisterRequestDto dto){
-        return authService.registerUser(dto,appBaseUrl);
+        return authService.registerUser(dto,frontendBaseUrl);
     }
 
     @GetMapping("/verify")
