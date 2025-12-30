@@ -4,6 +4,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { landingGuard} from './core/guards/landing.guard';
 import { roleGuard } from './core/guards/role.guard';
 
+
 export const routes: Routes = [
   // landing: / -> login ili role home
  { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -17,6 +18,13 @@ export const routes: Routes = [
       import('./features/auth/register/register.component')
         .then(m => m.RegisterComponent),
   },
+  {
+  path: 'verify',
+  loadComponent: () =>
+    import('./features/auth/verify/verify.component')
+      .then(m => m.VerifyComponent),
+  },
+
 
   {
     path: '',

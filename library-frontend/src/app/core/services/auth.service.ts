@@ -32,29 +32,29 @@ export class AuthService {
   login(body: LoginRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>('/api/login', body).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.role);
-        localStorage.setItem(this.EMAIL_KEY, res.email);
+        localStorage.setItem(this.TOKEN_KEY, res.token);
+      localStorage.setItem(this.ROLE_KEY, res.role);
+      localStorage.setItem(this.EMAIL_KEY, res.email);
       })
     );
   }
 
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('email');
-  }
+ logout(): void {
+  localStorage.removeItem(this.TOKEN_KEY);
+  localStorage.removeItem(this.ROLE_KEY);
+  localStorage.removeItem(this.EMAIL_KEY);
+}
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem(this.TOKEN_KEY);
   }
 
   getRole(): 'CLIENT' | 'LIBRARIAN' | null {
-    return localStorage.getItem('role') as any;
+    return localStorage.getItem(this.ROLE_KEY) as any;
   }
 
   hasRole(required: string | string[]): boolean {
