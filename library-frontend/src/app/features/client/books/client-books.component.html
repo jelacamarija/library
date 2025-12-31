@@ -17,23 +17,94 @@
         <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
         <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
         <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
+        <p class="text-sm text-gray-600">
+          Dostupno: <span class="font-medium">{{ b.copiesAvailable }}</span> / {{ b.copiesTotal }}
+        </p>
       </div>
 
       <div class="flex gap-2 mt-4">
         <button
-          (click)="goDetails(b)"
+          (click)="openDetails(b)"
           class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
         >
           Detalji
         </button>
 
+        <!-- OVO dugme možeš ostaviti ili ukloniti; ako ga ostaviš - disable kad je 0 -->
         <button
-          (click)="goReserve(b)"
-          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
+          [disabled]="b.copiesAvailable === 0"
+          (click)="openDetails(b)"
         >
           Rezerviši
         </button>
       </div>
+
+      <p *ngIf="b.copiesAvailable === 0" class="mt-2 text-sm text-red-600">
+        Nema dostupnih knjiga.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
+  <!-- overlay -->
+  <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
+
+  <!-- modal box -->
+  <div class="relative mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">
+          {{ selectedBook()?.title }}
+        </h2>
+        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.author }}</p>
+      </div>
+
+      <button
+        (click)="closeDetails()"
+        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
+        aria-label="Zatvori"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div class="mt-4 space-y-2 text-sm text-gray-700">
+      <p><span class="font-medium">ISBN:</span> {{ selectedBook()?.isbn }}</p>
+      <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
+      <p><span class="font-medium">Godina:</span> {{ selectedBook()?.publishedYear }}</p>
+      <p>
+        <span class="font-medium">Kopije:</span>
+        {{ selectedBook()?.copiesAvailable }} dostupno / {{ selectedBook()?.copiesTotal }} ukupno
+      </p>
+
+      <p class="pt-2 text-gray-800">
+        <span class="font-medium">Opis:</span><br />
+        {{ selectedBook()?.description }}
+      </p>
+    </div>
+
+    <div *ngIf="noCopiesMessage()" class="mt-4 p-3 rounded bg-red-50 text-red-700 text-sm">
+      {{ noCopiesMessage() }}
+    </div>
+
+    <div class="mt-6 flex gap-2">
+      <button
+        (click)="closeDetails()"
+        class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+      >
+        Zatvori
+      </button>
+
+      <button
+        (click)="clickReserveFromDetails()"
+        class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
+        [disabled]="(selectedBook()?.copiesAvailable ?? 0) === 0"
+      >
+        Rezerviši
+      </button>
     </div>
   </div>
 </div>

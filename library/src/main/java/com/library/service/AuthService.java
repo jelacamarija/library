@@ -82,7 +82,7 @@ public class AuthService {
                  .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa datim emailom"));
 
          if (!user.getIsVerified()) {
-             throw new RuntimeException("Nalog nije verifikovan. Proverite mejl.");
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Morate da verifikujete svoj nalog");
          }
 
          if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

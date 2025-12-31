@@ -15,6 +15,9 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  toastMessage = '';
+  showToast = false;
+
   loading = false;
   errorMsg = '';
 
@@ -23,6 +26,15 @@ export class LoginComponent {
     password: ['', [Validators.required]],
   });
 
+  private openToast(message: string) {
+  this.toastMessage = message;
+  this.showToast = true;
+
+  setTimeout(() => {
+    this.showToast = false;
+    this.toastMessage = '';
+  }, 3500);
+}
   submit(): void {
     this.errorMsg = '';
     if (this.form.invalid) {
@@ -39,9 +51,21 @@ export class LoginComponent {
         else this.router.navigateByUrl('/client/books');
       },
       error: (err) => {
-        this.loading = false;
-        this.errorMsg = err?.error?.message ?? 'Pogrešan email ili lozinka.';
-      },
+  this.loading = false;
+
+  const backendMsg =
+    err?.error?.message ??
+    err?.error?.error ??
+    (typeof err?.error === 'string' ? err.error : null);
+
+  // ako je 403 (neverifikovan)
+  if (err?.status === 403) {
+    this.errorMsg = backendMsg ?? 'Morate da verifikujete svoj nalog.';
+    return;
+  }
+
+  this.errorMsg = backendMsg ?? 'Pogrešan email ili lozinka.';
+  },
     });
   }
 }

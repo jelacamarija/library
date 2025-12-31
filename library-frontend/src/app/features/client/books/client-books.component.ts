@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { BookService } from '../../../core/services/book.service';
 import { BookDto } from '../../../core/models/book.model';
 
@@ -17,9 +16,15 @@ type UiState =
 })
 export class ClientBooksComponent {
   private bookService = inject(BookService);
-  private router = inject(Router);
 
   state = signal<UiState>({ status: 'loading' });
+
+  // MODAL STATE
+  selectedBook = signal<BookDto | null>(null);
+  showDetailsModal = computed(() => this.selectedBook() !== null);
+
+  // poruka kad nema dostupnih
+  noCopiesMessage = signal<string>('');
 
   isLoading = computed(() => this.state().status === 'loading');
   isError = computed(() => this.state().status === 'error');
@@ -34,22 +39,38 @@ export class ClientBooksComponent {
     return s.status === 'ready' ? s.books : [];
   });
 
-ngOnInit() {
-  this.bookService.getPage(0, 12).subscribe({
-    next: (page) => this.state.set({ status: 'ready', books: page.content }),
-    error: (err) => {
-      const msg = err?.error?.message ?? 'Greška pri učitavanju knjiga.';
-      this.state.set({ status: 'error', message: msg });
-    },
-  });
-}
-
-
-  goDetails(book: BookDto) {
-    this.router.navigate(['/client/books', book.bookID]);
+  ngOnInit() {
+    this.bookService.getPage(0, 12).subscribe({
+      next: (page) => this.state.set({ status: 'ready', books: page.content }),
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Greška pri učitavanju knjiga.';
+        this.state.set({ status: 'error', message: msg });
+      },
+    });
   }
 
-  goReserve(book: BookDto) {
-    this.router.navigate(['/client/books', book.bookID, 'reserve']);
+  openDetails(book: BookDto) {
+    this.noCopiesMessage.set('');
+    this.selectedBook.set(book);
+  }
+
+  closeDetails() {
+    this.selectedBook.set(null);
+    this.noCopiesMessage.set('');
+  }
+
+  // Za sada ne radi rezervaciju — samo validacija i placeholder
+  clickReserveFromDetails() {
+    const b = this.selectedBook();
+    if (!b) return;
+
+    if (b.copiesAvailable <= 0) {
+      this.noCopiesMessage.set('Nema dostupnih knjiga.');
+      return;
+    }
+
+    // TODO: ovde kasnije otvaraš drugi modal za zakazivanje termina
+    // npr. this.openReserveModal(b);
+    console.log('Reserve modal placeholder for:', b.bookID);
   }
 }

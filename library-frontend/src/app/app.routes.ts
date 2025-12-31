@@ -49,5 +49,6 @@ export const routes: Routes = [
     ],
   },
 
+
   { path: '**', redirectTo: '' }, // nek ide na landing
 ];
