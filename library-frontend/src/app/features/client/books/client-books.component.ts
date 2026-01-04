@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../../../core/services/book.service';
 import { BookDto } from '../../../core/models/book.model';
+import { ReservationService } from '../../../core/services/reservation.service';
 
 type UiState =
   | { status: 'loading' }
@@ -16,15 +17,25 @@ type UiState =
 })
 export class ClientBooksComponent {
   private bookService = inject(BookService);
+  private reservationService = inject(ReservationService);
 
   state = signal<UiState>({ status: 'loading' });
 
-  // MODAL STATE
+  // DETAILS MODAL
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
-  // poruka kad nema dostupnih
-  noCopiesMessage = signal<string>('');
+  // CONFIRM MODAL (Da li ste sigurni?)
+  showConfirmReserve = signal(false);
+
+  // MESSAGE MODAL (za sve poruke)
+  messageOpen = signal(false);
+  messageTitle = signal('');
+  messageText = signal('');
+  messageType = signal<'success' | 'error' | 'info'>('info');
+
+  // optional: loading tokom rezervacije da disable dugmad
+  reserving = signal(false);
 
   isLoading = computed(() => this.state().status === 'loading');
   isError = computed(() => this.state().status === 'error');
@@ -40,6 +51,11 @@ export class ClientBooksComponent {
   });
 
   ngOnInit() {
+    this.loadBooks();
+  }
+
+  private loadBooks() {
+    this.state.set({ status: 'loading' });
     this.bookService.getPage(0, 12).subscribe({
       next: (page) => this.state.set({ status: 'ready', books: page.content }),
       error: (err) => {
@@ -50,27 +66,79 @@ export class ClientBooksComponent {
   }
 
   openDetails(book: BookDto) {
-    this.noCopiesMessage.set('');
     this.selectedBook.set(book);
+    this.showConfirmReserve.set(false);
   }
 
   closeDetails() {
     this.selectedBook.set(null);
-    this.noCopiesMessage.set('');
+    this.showConfirmReserve.set(false);
   }
 
-  // Za sada ne radi rezervaciju — samo validacija i placeholder
+  // === MESSAGE MODAL HELPERS ===
+  private openMessage(type: 'success' | 'error' | 'info', title: string, text: string) {
+    this.messageType.set(type);
+    this.messageTitle.set(title);
+    this.messageText.set(text);
+    this.messageOpen.set(true);
+  }
+
+  closeMessage() {
+    this.messageOpen.set(false);
+    this.messageTitle.set('');
+    this.messageText.set('');
+    this.messageType.set('info');
+  }
+
+  // === RESERVE FLOW ===
   clickReserveFromDetails() {
     const b = this.selectedBook();
     if (!b) return;
 
     if (b.copiesAvailable <= 0) {
-      this.noCopiesMessage.set('Nema dostupnih knjiga.');
+      this.openMessage('error', 'Rezervacija nije moguća', 'Nema dostupnih primjeraka ove knjige.');
       return;
     }
 
-    // TODO: ovde kasnije otvaraš drugi modal za zakazivanje termina
-    // npr. this.openReserveModal(b);
-    console.log('Reserve modal placeholder for:', b.bookID);
+    // Otvori confirm modal
+    this.showConfirmReserve.set(true);
+  }
+
+  cancelReserveConfirm() {
+    this.showConfirmReserve.set(false);
+  }
+
+  confirmReserve() {
+    const b = this.selectedBook();
+    if (!b) return;
+
+    this.reserving.set(true);
+    this.showConfirmReserve.set(false);
+
+    this.reservationService.reserve({ bookID: b.bookID }).subscribe({
+      next: (res) => {
+        this.reserving.set(false);
+
+        // backend vraća expiresAt (ReservationResponseDto)
+        const expiresAt = res?.expiresAt ? new Date(res.expiresAt) : null;
+        const fmt = (d: Date) => d.toLocaleDateString('sr-RS');
+
+        const msg = expiresAt
+          ? `Rezervacija je uspješna! Rok za preuzimanje je do ${fmt(expiresAt)} (3 dana od rezervacije).`
+          : `Rezervacija je uspješna! Imate 3 dana od rezervacije da preuzmete knjigu.`;
+
+        // zatvori details i pokaži poruku
+        this.closeDetails();
+        this.openMessage('success', 'Uspješno', msg);
+
+        // refresh lista da se osvježi copiesAvailable
+        this.loadBooks();
+      },
+      error: (err) => {
+        this.reserving.set(false);
+        const msg = err?.error?.message ?? 'Greška pri rezervaciji.';
+        this.openMessage('error', 'Greška', msg);
+      },
+    });
   }
 }
