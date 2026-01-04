@@ -17,16 +17,21 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+
     private final JwtUtil jwtUtil;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         String path = request.getRequestURI();
 
         // Ovdje su rute koje NE TRAŽE token:
         return path.startsWith("/api/login")
-                || path.startsWith("/api/register");
-        // Ako imaš verifikaciju mejla: || path.startsWith("/api/register/verify")
+                || path.startsWith("/api/register")
+        || path.startsWith("/api/register/verify");
     }
 
     @Override
@@ -36,6 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
         String authHeader = request.getHeader("Authorization");
 
         // Ako nema Authorization header → odbijamo (401)
