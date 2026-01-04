@@ -43,6 +43,12 @@ export const routes: Routes = [
               import('./features/client/books/client-books.component')
                 .then(m => m.ClientBooksComponent),
           },
+          {
+      path: 'search',
+      loadComponent: () =>
+        import('./features/client/books/client-search.component')
+          .then(m => m.ClientSearchComponent),
+    },
           { path: '', redirectTo: 'books', pathMatch: 'full' }, // default za client
         ],
       },
