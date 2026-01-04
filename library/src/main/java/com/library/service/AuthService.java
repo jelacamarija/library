@@ -9,10 +9,12 @@ import com.library.repository.UserRepository;
 import com.library.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.Date;
@@ -81,9 +83,10 @@ public class AuthService {
          User user = userRepository.findByEmail(request.getEmail())
                  .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa datim emailom"));
 
-         if (!user.getIsVerified()) {
-             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Morate da verifikujete svoj nalog");
+         if (Boolean.FALSE.equals(user.getIsVerified())) {
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Morate da verifikujete svoj nalog. Proverite mejl.");
          }
+
 
          if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
              throw new RuntimeException("Pogrešna lozinka");
