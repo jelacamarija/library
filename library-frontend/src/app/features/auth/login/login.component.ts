@@ -29,43 +29,48 @@ export class LoginComponent {
   private openToast(message: string) {
   this.toastMessage = message;
   this.showToast = true;
-
-  setTimeout(() => {
-    this.showToast = false;
-    this.toastMessage = '';
-  }, 3500);
+}
+closeToast() {
+  this.showToast = false;
+  this.toastMessage = '';
 }
   submit(): void {
-    this.errorMsg = '';
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.loading = true;
-    this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.loading = false;
-        const role = this.auth.getRole();
-      if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian');
-        else this.router.navigateByUrl('/client/books');
-      },
-      error: (err) => {
-  this.loading = false;
-
-  const backendMsg =
-    err?.error?.message ??
-    err?.error?.error ??
-    (typeof err?.error === 'string' ? err.error : null);
-
-  // ako je 403 (neverifikovan)
-  if (err?.status === 403) {
-    this.errorMsg = backendMsg ?? 'Morate da verifikujete svoj nalog.';
+  this.errorMsg = '';
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
     return;
   }
 
-  this.errorMsg = backendMsg ?? 'Pogrešan email ili lozinka.';
-  },
-    });
-  }
+  this.loading = true;
+  this.auth.login(this.form.getRawValue()).subscribe({
+    next: () => {
+      this.loading = false;
+      const role = this.auth.getRole();
+      if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian');
+      else this.router.navigateByUrl('/client/books');
+    },
+    error: (err) => {
+      this.loading = false;
+
+      const backendMsg =
+        err?.error?.message ??
+        err?.error?.error ??
+        (typeof err?.error === 'string' ? err.error : null);
+
+      // ako je 403 (neverifikovan)
+      if (err?.status === 403) {
+        this.openToast(
+            'Morate da verifikujete svoj nalog prije prijave'
+        );
+        
+
+        return;
+      }
+  
+
+
+      this.errorMsg = backendMsg ?? 'Pogrešan email ili lozinka.';
+    },
+  });
+}
 }
