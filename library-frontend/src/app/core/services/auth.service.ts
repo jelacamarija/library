@@ -8,6 +8,7 @@ export type LoginRequest = {
 };
 
 export type LoginResponseDto = {
+  name:string,
   email: string;
   role: string;
   token: string;
@@ -26,6 +27,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
   private readonly ROLE_KEY = 'user_role';
   private readonly EMAIL_KEY = 'user_email';
+  private readonly NAME_KEY='user_name';
 
   constructor(private http: HttpClient) {}
 
@@ -35,6 +37,7 @@ export class AuthService {
         localStorage.setItem(this.TOKEN_KEY, res.token);
       localStorage.setItem(this.ROLE_KEY, res.role);
       localStorage.setItem(this.EMAIL_KEY, res.email);
+      localStorage.setItem(this.NAME_KEY,res.name);
       })
     );
   }
@@ -43,6 +46,7 @@ export class AuthService {
   localStorage.removeItem(this.TOKEN_KEY);
   localStorage.removeItem(this.ROLE_KEY);
   localStorage.removeItem(this.EMAIL_KEY);
+  localStorage.removeItem(this.NAME_KEY);
 }
 
   getToken(): string | null {
@@ -56,6 +60,14 @@ export class AuthService {
   getRole(): 'CLIENT' | 'LIBRARIAN' | null {
     return localStorage.getItem(this.ROLE_KEY) as any;
   }
+
+  getName(): string | null {
+  return localStorage.getItem(this.NAME_KEY);
+}
+
+getEmail(): string | null {
+  return localStorage.getItem(this.EMAIL_KEY);
+}
 
   hasRole(required: string | string[]): boolean {
     const role = this.getRole();
