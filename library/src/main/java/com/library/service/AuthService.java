@@ -96,6 +96,7 @@ public class AuthService {
 
          return LoginResponseDto.builder()
                  .token(token)
+                 .name(user.getName())
                  .email(user.getEmail())
                  .role(user.getRole())
                  .build();

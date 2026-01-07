@@ -27,6 +27,7 @@ public class User{
     @Column(nullable = false)
     private String password;
 
+
     @Column(length = 64)
     private String verifyCode;
 
