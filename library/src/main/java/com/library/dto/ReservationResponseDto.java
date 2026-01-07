@@ -18,6 +18,7 @@ public class ReservationResponseDto {
     private Long userID;
     private Long bookID;
     private String bookTitle;
+    private String bookAuthor;
     private Date reservedAt;
     private Date expiresAt;
     private String status;

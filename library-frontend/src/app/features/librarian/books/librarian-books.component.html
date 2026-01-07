@@ -1,0 +1,89 @@
+<div class="mx-auto max-w-6xl px-4 py-6">
+  <h1 class="text-2xl font-bold mb-6">Knjige</h1>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
+
+  <!-- ERROR -->
+  <div *ngIf="isError()" class="p-4 rounded bg-red-50 text-red-700">
+    {{ errorMessage() }}
+  </div>
+
+  <!-- LISTA -->
+  <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow p-5">
+      <div class="mb-3">
+        <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
+        <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
+        <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
+        <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
+        <p class="text-sm text-gray-600">
+          Dostupno: <span class="font-medium">{{ b.copiesAvailable }}</span> / {{ b.copiesTotal }}
+        </p>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button
+          (click)="openDetails(b)"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+        >
+          Detalji
+        </button>
+      </div>
+
+      <p *ngIf="b.copiesAvailable === 0" class="mt-2 text-sm text-red-600">
+        Nema dostupnih knjiga.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
+  <!-- overlay -->
+  <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
+
+  <!-- modal box -->
+  <div class="relative mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">
+          {{ selectedBook()?.title }}
+        </h2>
+        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.author }}</p>
+      </div>
+
+      <button
+        (click)="closeDetails()"
+        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
+        aria-label="Zatvori"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div class="mt-4 space-y-2 text-sm text-gray-700">
+      <p><span class="font-medium">ISBN:</span> {{ selectedBook()?.isbn }}</p>
+      <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
+      <p><span class="font-medium">Godina:</span> {{ selectedBook()?.publishedYear }}</p>
+      <p>
+        <span class="font-medium">Kopije:</span>
+        {{ selectedBook()?.copiesAvailable }} dostupno / {{ selectedBook()?.copiesTotal }} ukupno
+      </p>
+
+      <p class="pt-2 text-gray-800">
+        <span class="font-medium">Opis:</span><br />
+        {{ selectedBook()?.description }}
+      </p>
+    </div>
+
+    <div class="mt-6">
+      <button
+        (click)="closeDetails()"
+        class="w-full px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+      >
+        Zatvori
+      </button>
+    </div>
+  </div>
+</div>

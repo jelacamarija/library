@@ -4,7 +4,9 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  // landing
+  // =======================
+  // LANDING
+  // =======================
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   { path: 'login', component: LoginComponent },
@@ -57,7 +59,6 @@ export const routes: Routes = [
                 .then(m => m.ClientSearchComponent),
           },
 
-          // ===== MOJ PROFIL =====
           {
             path: 'profile',
             loadComponent: () =>
@@ -87,13 +88,49 @@ export const routes: Routes = [
             ],
           },
 
-          // default client route
           { path: '', redirectTo: 'books', pathMatch: 'full' },
+        ],
+      },
+
+      // =======================
+      // LIBRARIAN ROUTES
+      // =======================
+      {
+        path: 'librarian',
+        canActivate: [roleGuard],
+        data: { roles: ['LIBRARIAN'] },
+        children: [
+
+          {
+            path: 'books',
+            loadComponent: () =>
+              import('./features/librarian/books/librarian-books.component')
+                .then(m => m.LibrarianBooksComponent),
+          },
+
+          {
+            path: 'search',
+            loadComponent: () =>
+              import('./features/librarian/books/librarian-search.component')
+                .then(m => m.LibrarianSearchComponent),
+          },
+
+         /* {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./features/librarian/dashboard/librarian-dashboard.component')
+                .then(m => m.LibrarianDashboardComponent),
+          },*/
+
+          // default librarian route
+          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
       },
     ],
   },
 
-  // fallback
+  // =======================
+  // FALLBACK
+  // =======================
   { path: '**', redirectTo: '' },
 ];

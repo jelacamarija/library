@@ -58,13 +58,14 @@ public class ReservationService {
     }
 
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
-        List<Reservation> reservations = reservationRepository.findByUser_UserID(userID);
+        List<Reservation> reservations = reservationRepository.findByUserIdWithBook(userID);
         return reservations.stream()
                 .map(r -> ReservationResponseDto.builder()
                         .reservationID(r.getReservationID())
                         .userID(r.getUser().getUserID())
                         .bookID(r.getBook().getBookID())
                         .bookTitle(r.getBook().getTitle())
+                        .bookAuthor(r.getBook().getAuthor())
                         .reservedAt(r.getReservedAt())
                         .expiresAt(r.getExpiresAt())
                         .status(r.getStatus())

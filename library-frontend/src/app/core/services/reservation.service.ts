@@ -1,28 +1,51 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
+
+export type ReservationResponseDto = {
+  reservationID: number;
+  userID: number;
+  bookID: number;
+
+  bookTitle: string;
+  bookAuthor: string;
+
+  reservedAt: string; 
+  expiresAt: string;
+  status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | string;
+  loanID: number | null;
+};
 
 @Injectable({ providedIn: 'root' })
 export class ReservationService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private baseUrl = 'http://localhost:8080/api/reservations';
 
-  private baseUrl = 'http://localhost:8080/api/reservations'; // prilagodi ako treba
+  private getHeaders(): { headers: HttpHeaders } {
+    const token = this.authService.getToken();
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      }),
+    };
+  }
 
+  // Kreiranje rezervacije
   reserve(payload: { bookID: number }): Observable<ReservationResponseDto> {
     return this.http.post<ReservationResponseDto>(
       `${this.baseUrl}/reserve`,
-      payload
+      payload,
+      this.getHeaders()
     );
   }
-}
 
-export interface ReservationResponseDto {
-  reservationID: number;
-  userID: number;
-  bookID: number;
-  bookTitle: string;
-  reservedAt: string;
-  expiresAt: string;
-  status: string;
-  loanID?: number;
+  // Moje rezervacije
+  getMyReservations(): Observable<ReservationResponseDto[]> {
+    return this.http.get<ReservationResponseDto[]>(
+      `${this.baseUrl}/my`,
+      this.getHeaders()
+    );
+  }
 }
