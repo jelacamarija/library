@@ -135,4 +135,102 @@ export class LibrarianBooksComponent {
       },
     });
   }
+
+    // EDIT MODAL
+  showEditModal = signal(false);
+  editLoading = signal(false);
+  editError = signal('');
+  editMode = signal<'description' | 'copies'>('description');
+
+    editDescriptionForm = this.fb.nonNullable.group({
+    description: ['', [Validators.required, Validators.minLength(3)]],
+  });
+
+  editCopiesForm = this.fb.nonNullable.group({
+    copiesToAdd: [1, [Validators.required, Validators.min(1)]],
+  });
+
+  //EDIT modal handlers
+  openEdit(mode: 'description' | 'copies') {
+  this.editError.set('');
+  this.editMode.set(mode);
+
+  const b = this.selectedBook();
+  if (!b) return;
+
+  if (mode === 'description') {
+    this.editDescriptionForm.reset({ description: b.description ?? '' });
+  } else {
+    this.editCopiesForm.reset({ copiesToAdd: 1 });
+  }
+
+  this.showEditModal.set(true);
+}
+
+closeEdit() {
+  if (this.editLoading()) return;
+  this.showEditModal.set(false);
+}
+
+submitEditDescription() {
+  this.editError.set('');
+  const b = this.selectedBook();
+  if (!b) return;
+
+  if (this.editDescriptionForm.invalid) {
+    this.editDescriptionForm.markAllAsTouched();
+    return;
+  }
+
+  const ok = window.confirm('Da li ste sigurni da želite da izmijenite opis?');
+  if (!ok) return;
+
+  this.editLoading.set(true);
+
+  const { description } = this.editDescriptionForm.getRawValue();
+
+  this.bookService.updateDescription(b.bookID as any, description).subscribe({
+    next: (updated) => {
+      this.editLoading.set(false);
+      this.showEditModal.set(false);
+      this.selectedBook.set(updated); // odmah osvježi detalje
+      this.loadBooks(); // osvježi listu
+    },
+    error: (err) => {
+      this.editLoading.set(false);
+      this.editError.set(err?.error?.message ?? 'Greška pri izmjeni opisa.');
+    }
+  });
+}
+
+submitEditCopies() {
+  this.editError.set('');
+  const b = this.selectedBook();
+  if (!b) return;
+
+  if (this.editCopiesForm.invalid) {
+    this.editCopiesForm.markAllAsTouched();
+    return;
+  }
+
+  const ok = window.confirm('Da li ste sigurni da želite da dodate kopije?');
+  if (!ok) return;
+
+  this.editLoading.set(true);
+
+  const { copiesToAdd } = this.editCopiesForm.getRawValue();
+
+  this.bookService.updateCopies(b.bookID as any, copiesToAdd).subscribe({
+    next: (updated) => {
+      this.editLoading.set(false);
+      this.showEditModal.set(false);
+      this.selectedBook.set(updated); // odmah osvježi detalje
+      this.loadBooks(); // osvježi listu
+    },
+    error: (err) => {
+      this.editLoading.set(false);
+      this.editError.set(err?.error?.message ?? 'Greška pri dodavanju kopija.');
+    }
+  });
+}
 }

@@ -40,5 +40,12 @@ export class BookService {
   return this.http.post<BookDto>('/api/books', payload);
   }
 
+  updateDescription(id: number, description: string) {
+    return this.http.put<BookDto>('/api/books/' + id + '/description', { description });
+}
+
+  updateCopies(id: number, copiesToAdd: number) {
+    return this.http.put<BookDto>('/api/books/' + id + '/copies', { copiesToAdd });
+  }
 
 }

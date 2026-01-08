@@ -61,6 +61,22 @@
         <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.author }}</p>
       </div>
 
+      <div class="mt-6 flex gap-3">
+        <button
+          (click)="openEdit('description')"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+        >
+          Izmeni opis
+        </button>
+
+        <button
+          (click)="openEdit('copies')"
+          class="flex-1 px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800"
+        >
+          Dodaj kopije
+        </button>
+    </div>
+
       <button
         (click)="closeDetails()"
         class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
@@ -218,6 +234,117 @@
           [disabled]="addLoading()"
         >
           {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div *ngIf="showEditModal()" class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
+
+  <div class="relative mx-auto mt-20 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">
+          {{ editMode() === 'description' ? 'Izmijeni opis' : 'Dodaj kopije' }}
+        </h2>
+        <p class="text-sm text-gray-600">{{ selectedBook()?.title }}</p>
+      </div>
+
+      <button
+        (click)="closeEdit()"
+        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
+        aria-label="Zatvori"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div *ngIf="editError()" class="mt-4 p-3 rounded bg-red-50 text-red-700 text-sm">
+      {{ editError() }}
+    </div>
+
+    <!-- DESCRIPTION FORM -->
+    <form
+      *ngIf="editMode() === 'description'"
+      [formGroup]="editDescriptionForm"
+      (ngSubmit)="submitEditDescription()"
+      class="mt-5 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Opis *</label>
+        <textarea
+          class="w-full border rounded-xl px-3 py-2"
+          rows="5"
+          formControlName="description"
+        ></textarea>
+
+        <p *ngIf="editDescriptionForm.controls.description.touched && editDescriptionForm.controls.description.invalid"
+           class="text-xs text-red-600 mt-1">
+          Opis ne može biti prazan.
+        </p>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button
+          type="button"
+          (click)="closeEdit()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="editLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-60"
+          [disabled]="editLoading()"
+        >
+          {{ editLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- COPIES FORM -->
+    <form
+      *ngIf="editMode() === 'copies'"
+      [formGroup]="editCopiesForm"
+      (ngSubmit)="submitEditCopies()"
+      class="mt-5 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Broj kopija za dodavanje *</label>
+        <input
+          class="w-full border rounded-xl px-3 py-2"
+          type="number"
+          min="1"
+          formControlName="copiesToAdd"
+        />
+
+        <p *ngIf="editCopiesForm.controls.copiesToAdd.touched && editCopiesForm.controls.copiesToAdd.invalid"
+           class="text-xs text-red-600 mt-1">
+          Broj kopija mora biti veći od 0.
+        </p>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button
+          type="button"
+          (click)="closeEdit()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="editLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-60"
+          [disabled]="editLoading()"
+        >
+          {{ editLoading() ? 'Čuvanje...' : 'Dodaj' }}
         </button>
       </div>
     </form>

@@ -123,7 +123,7 @@ export const routes: Routes = [
           },*/
 
           // default librarian route
-          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+          { path: '', redirectTo: 'books', pathMatch: 'full' },
         ],
       },
     ],

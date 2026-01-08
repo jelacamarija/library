@@ -46,7 +46,7 @@ closeToast() {
     next: () => {
       this.loading = false;
       const role = this.auth.getRole();
-      if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian');
+      if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian/books');
       else this.router.navigateByUrl('/client/books');
     },
     error: (err) => {
