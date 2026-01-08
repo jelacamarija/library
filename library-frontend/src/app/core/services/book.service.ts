@@ -25,7 +25,20 @@ export class BookService {
    return this.http.get<PageDto<BookDto>>('/api/books/search', {
       params: {query, page, size },
     });
-}
+  }
+
+  create(payload: {
+    title: string;
+    author: string;
+    isbn: string;
+    category: string;
+    publishedYear: number;
+    copiesTotal: number;
+    copiesAvailable: number;
+    description: string;
+  }) {
+  return this.http.post<BookDto>('/api/books', payload);
+  }
 
 
 }
