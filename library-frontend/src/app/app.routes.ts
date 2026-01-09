@@ -1,13 +1,14 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { landingGuard } from './core/guards/landing.guard';
+import { roleGuard, roleChildGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // =======================
-  // LANDING
+  // LANDING (root)
   // =======================
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', canActivate: [landingGuard], children: [] },
 
   { path: 'login', component: LoginComponent },
 
@@ -26,7 +27,17 @@ export const routes: Routes = [
   },
 
   // =======================
-  // AUTHENTICATED LAYOUT
+  // FORBIDDEN
+  // =======================
+  {
+    path: 'forbidden',
+    loadComponent: () =>
+      import('./features/forbidden/forbidden.component')
+        .then(m => m.ForbiddenComponent),
+  },
+
+  // =======================
+  // AUTHENTICATED LAYOUT (common shell)
   // =======================
   {
     path: '',
@@ -35,30 +46,27 @@ export const routes: Routes = [
       import('./layout/app-layout.component')
         .then(m => m.AppLayoutComponent),
     children: [
-
       // =======================
-      // CLIENT ROUTES
+      // CLIENT
       // =======================
       {
         path: 'client',
         canActivate: [roleGuard],
+        canActivateChild: [roleChildGuard],
         data: { roles: ['CLIENT'] },
         children: [
-
           {
             path: 'books',
             loadComponent: () =>
               import('./features/client/books/client-books.component')
                 .then(m => m.ClientBooksComponent),
           },
-
           {
             path: 'search',
             loadComponent: () =>
               import('./features/client/books/client-search.component')
                 .then(m => m.ClientSearchComponent),
           },
-
           {
             path: 'profile',
             loadComponent: () =>
@@ -66,7 +74,6 @@ export const routes: Routes = [
                 .then(m => m.ClientProfileLayoutComponent),
             children: [
               { path: '', redirectTo: 'info', pathMatch: 'full' },
-
               {
                 path: 'info',
                 loadComponent: () =>
@@ -93,28 +100,26 @@ export const routes: Routes = [
       },
 
       // =======================
-      // LIBRARIAN ROUTES
+      // LIBRARIAN
       // =======================
       {
         path: 'librarian',
         canActivate: [roleGuard],
+        canActivateChild: [roleChildGuard],
         data: { roles: ['LIBRARIAN'] },
         children: [
-
           {
             path: 'books',
             loadComponent: () =>
               import('./features/librarian/books/librarian-books.component')
                 .then(m => m.LibrarianBooksComponent),
           },
-
           {
             path: 'search',
             loadComponent: () =>
               import('./features/librarian/books/librarian-search.component')
                 .then(m => m.LibrarianSearchComponent),
           },
-
           {
             path: 'dashboard',
             loadComponent: () =>
@@ -122,7 +127,6 @@ export const routes: Routes = [
                 .then(m => m.LibrarianDashboardLayoutComponent),
             children: [
               { path: '', redirectTo: 'users', pathMatch: 'full' },
-
               {
                 path: 'users',
                 loadComponent: () =>
@@ -144,7 +148,6 @@ export const routes: Routes = [
             ],
           },
 
-          // default librarian route
           { path: '', redirectTo: 'books', pathMatch: 'full' },
         ],
       },

@@ -8,9 +8,9 @@ export type LoginRequest = {
 };
 
 export type LoginResponseDto = {
-  name:string,
+  name: string;
   email: string;
-  role: string;
+  role: 'CLIENT' | 'LIBRARIAN';
   token: string;
 };
 
@@ -20,54 +20,56 @@ type RegisterRequest = {
   password: string;
 };
 
-
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
   private readonly ROLE_KEY = 'user_role';
   private readonly EMAIL_KEY = 'user_email';
-  private readonly NAME_KEY='user_name';
+  private readonly NAME_KEY = 'user_name';
+
+  // ✅ sessionStorage je po TABU (neće se miješati admin/klijent u različitim tabovima)
+  private storage: Storage = sessionStorage;
 
   constructor(private http: HttpClient) {}
 
   login(body: LoginRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>('/api/login', body).pipe(
       tap((res) => {
-        localStorage.setItem(this.TOKEN_KEY, res.token);
-      localStorage.setItem(this.ROLE_KEY, res.role);
-      localStorage.setItem(this.EMAIL_KEY, res.email);
-      localStorage.setItem(this.NAME_KEY,res.name);
+        this.storage.setItem(this.TOKEN_KEY, res.token);
+        this.storage.setItem(this.ROLE_KEY, res.role);
+        this.storage.setItem(this.EMAIL_KEY, res.email);
+        this.storage.setItem(this.NAME_KEY, res.name);
       })
     );
   }
 
- logout(): void {
-  localStorage.removeItem(this.TOKEN_KEY);
-  localStorage.removeItem(this.ROLE_KEY);
-  localStorage.removeItem(this.EMAIL_KEY);
-  localStorage.removeItem(this.NAME_KEY);
-}
+  logout(): void {
+    this.storage.removeItem(this.TOKEN_KEY);
+    this.storage.removeItem(this.ROLE_KEY);
+    this.storage.removeItem(this.EMAIL_KEY);
+    this.storage.removeItem(this.NAME_KEY);
+  }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.storage.getItem(this.TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.TOKEN_KEY);
+    return !!this.storage.getItem(this.TOKEN_KEY);
   }
 
   getRole(): 'CLIENT' | 'LIBRARIAN' | null {
-    return localStorage.getItem(this.ROLE_KEY) as any;
+    const r = this.storage.getItem(this.ROLE_KEY);
+    return (r === 'CLIENT' || r === 'LIBRARIAN') ? r : null;
   }
 
   getName(): string | null {
-  return localStorage.getItem(this.NAME_KEY);
-}
+    return this.storage.getItem(this.NAME_KEY);
+  }
 
-getEmail(): string | null {
-  return localStorage.getItem(this.EMAIL_KEY);
-}
+  getEmail(): string | null {
+    return this.storage.getItem(this.EMAIL_KEY);
+  }
 
   hasRole(required: string | string[]): boolean {
     const role = this.getRole();
@@ -77,7 +79,14 @@ getEmail(): string | null {
   }
 
   register(body: RegisterRequest) {
-  return this.http.post('/api/register', body);
+    return this.http.post('/api/register', body);
   }
-  
+
+  // ✅ samo jednom pozovi nakon deploy-a / promjene: čisti stari localStorage da ne pravi konfuziju
+  clearLegacyLocalStorage(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.ROLE_KEY);
+    localStorage.removeItem(this.EMAIL_KEY);
+    localStorage.removeItem(this.NAME_KEY);
+  }
 }

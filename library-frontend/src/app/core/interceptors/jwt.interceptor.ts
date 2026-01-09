@@ -6,8 +6,13 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getToken();
 
-  // ne dodaj token na login/register
-  if (!token || req.url.includes('/api/login') || req.url.includes('/api/register')) {
+  // ne dodaj token na login/register/verify
+  if (
+    !token ||
+    req.url.includes('/api/login') ||
+    req.url.includes('/api/register') ||
+    req.url.includes('/api/verify')
+  ) {
     return next(req);
   }
 

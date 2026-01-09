@@ -8,17 +8,15 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
- <header class="bg-white shadow-md">
+<header class="bg-white shadow-md">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
-
-      <!-- Logo -->
       <div class="flex items-center">
-        <a routerLink="/" class="text-xl font-bold text-blue-600">
+        <!-- ✅ logo vodi na home po roli -->
+        <a [routerLink]="homePath()" class="text-xl font-bold text-blue-600">
           Biblioteka
         </a>
 
-        <!-- Nav (uvijek vidljiv, nema burger menija) -->
         <nav class="flex items-center space-x-8 ml-10">
           <a
             *ngFor="let item of navItems()"
@@ -39,12 +37,9 @@ import { AuthService } from '../../core/services/auth.service';
           </button>
         </nav>
       </div>
-
     </div>
   </div>
 </header>
-
-
   `,
 })
 export class NavbarComponent {
@@ -54,9 +49,15 @@ export class NavbarComponent {
   loggedIn = computed(() => this.auth.isLoggedIn());
   role = computed(() => this.auth.getRole());
 
+  homePath = computed(() => {
+    const role = this.role();
+    if (role === 'CLIENT') return '/client/books';
+    if (role === 'LIBRARIAN') return '/librarian/books'; // ili '/librarian/dashboard'
+    return '/login';
+  });
+
   navItems = computed(() => {
     const role = this.role();
-
     if (!role) return [];
 
     if (role === 'CLIENT') {
