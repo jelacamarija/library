@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/loans")
 @RequiredArgsConstructor
@@ -80,5 +82,10 @@ public class LoanController {
             throw new RuntimeException("Pristup zabranjen: samo bibliotekar može videti aktivna iznajmljivanja.");
         }
         return loanService.getActiveLoans(page, size);
+    }
+
+    @GetMapping("/my")
+    public List<LoanResponseDto> getMyLoans(HttpServletRequest request) {
+        return loanService.getMyLoans(request);
     }
 }

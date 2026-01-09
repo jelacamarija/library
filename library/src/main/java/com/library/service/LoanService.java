@@ -12,6 +12,7 @@ import com.library.repository.BookRepository;
 import com.library.repository.LoanRepository;
 import com.library.repository.ReservationRepository;
 import com.library.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -118,5 +120,22 @@ public class LoanService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Loan> loans = loanRepository.findByStatus("ACTIVE", pageable);
         return loans.map(LoanMapper::toDto);
+    }
+
+    public List<LoanResponseDto> getMyLoans(HttpServletRequest request) {
+        String role = (String) request.getAttribute("userRole");
+        if (!"CLIENT".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Pristup zabranjen: samo klijent može vidjeti svoja iznajmljivanja.");
+        }
+
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            throw new RuntimeException("Nedostaje userId u request-u.");
+        }
+
+        return loanRepository.findByUser_UserIDOrderByLoanedAtDesc(userId)
+                .stream()
+                .map(LoanMapper::toDto)
+                .toList();
     }
 }
