@@ -22,6 +22,13 @@ export class RegisterComponent {
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
+     phoneNumber: [
+    '',
+    [
+      Validators.required,
+      Validators.pattern(/^[+0-9\s\-()]{6,20}$/),
+    ],
+  ],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
@@ -46,16 +53,16 @@ export class RegisterComponent {
       error: (err) => {
         this.loading = false;
 
-        // Angular može dobiti: string, {message}, ili Spring "detail"
+        
         const msg =
           err?.error?.message ||
           err?.error?.detail ||
           (typeof err?.error === 'string' ? err.error : '') ||
           'Greška prilikom registracije.';
 
-        // Ako je 409 (mejl postoji) - pokaži specifičnu poruku
+        
         if (err?.status === 409) {
-          this.snack.open('Korisnik sa tim mejlom već postoji ❌', 'OK', {
+          this.snack.open('Korisnik sa tim mejlom već postoji!', 'OK', {
             duration: 3500,
             horizontalPosition: 'center',
             verticalPosition: 'top',

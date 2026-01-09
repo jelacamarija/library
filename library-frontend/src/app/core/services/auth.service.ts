@@ -14,9 +14,25 @@ export type LoginResponseDto = {
   token: string;
 };
 
+export type UserProfileDto = {
+  userID: number;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+  membershipNumber: string | null;
+  membershipDate: string | null; // ISO
+  isVerified: boolean;
+  active: boolean;
+  createdAt: string;             // ISO
+  role: 'CLIENT' | 'LIBRARIAN';
+}
+
+
+
 type RegisterRequest = {
   name: string;
   email: string;
+  phoneNumber:string;
   password: string;
 };
 
@@ -27,7 +43,7 @@ export class AuthService {
   private readonly EMAIL_KEY = 'user_email';
   private readonly NAME_KEY = 'user_name';
 
-  // ✅ sessionStorage je po TABU (neće se miješati admin/klijent u različitim tabovima)
+  
   private storage: Storage = sessionStorage;
 
   constructor(private http: HttpClient) {}
@@ -41,6 +57,10 @@ export class AuthService {
         this.storage.setItem(this.NAME_KEY, res.name);
       })
     );
+  }
+
+    getMyProfile() {
+  return this.http.get<UserProfileDto>('/api/users/me');
   }
 
   logout(): void {
@@ -79,10 +99,13 @@ export class AuthService {
   }
 
   register(body: RegisterRequest) {
-    return this.http.post('/api/register', body);
-  }
+  return this.http.post('/api/register', body, {
+    responseType: 'text' as const,
+  });
+}
 
-  // ✅ samo jednom pozovi nakon deploy-a / promjene: čisti stari localStorage da ne pravi konfuziju
+
+  
   clearLegacyLocalStorage(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.ROLE_KEY);
