@@ -52,6 +52,7 @@ import {
               <th class="p-3">Rezervisano</th>
               <th class="p-3">Rok</th>
               <th class="p-3">Status</th>
+              <th class="p-3"></th>
             </tr>
           </thead>
 
@@ -78,6 +79,17 @@ import {
                   {{ statusLabel(r.status) }}
                 </span>
               </td>
+
+              <td class="p-3 text-right">
+                <button
+                  *ngIf="canCancel(r)"
+                  (click)="cancel(r)"
+                  class="px-3 py-1.5 rounded-lg border text-sm hover:bg-gray-50"
+                >
+                  Otkaži
+                </button>
+                <span *ngIf="!canCancel(r)" class="text-gray-400 text-sm">—</span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -97,14 +109,36 @@ export class ClientProfileReservationsComponent implements OnInit {
   ngOnInit(): void {
     this.service.getMyReservations().subscribe({
       next: (res) => {
-        console.log('Rezervacije došle sa servera:', res);
-        this.items = res;
+        this.items = (res ?? []).filter((r) =>
+          ['PENDING', 'ACTIVE'].includes((r.status || '').toUpperCase())
+        );
         this.loading = false;
         this.cd.detectChanges();
       },
       error: () => {
         this.error = true;
         this.loading = false;
+      },
+    });
+  }
+
+  canCancel(r: ReservationResponseDto): boolean {
+    return (r.status || '').toUpperCase() === 'PENDING'; 
+  }
+
+  cancel(r: ReservationResponseDto): void {
+    const ok = window.confirm(
+      'Da li si siguran/na da želiš da otkažeš ovu rezervaciju?'
+    );
+    if (!ok) return;
+
+    this.service.cancelReservation(r.reservationID).subscribe({
+      next: () => {
+        this.items = this.items.filter((x) => x.reservationID !== r.reservationID);
+        this.cd.detectChanges();
+      },
+      error: () => {
+        alert('Ne mogu da otkažem rezervaciju. Pokušaj ponovo.');
       },
     });
   }
@@ -121,6 +155,7 @@ export class ClientProfileReservationsComponent implements OnInit {
     if (s === 'ACTIVE') return 'Aktivna';
     if (s === 'PENDING') return 'Na čekanju';
     if (s === 'EXPIRED') return 'Istekla';
+    if (s === 'CANCELED') return 'Otkazana';
     return status || '—';
   }
 
@@ -135,7 +170,8 @@ export class ClientProfileReservationsComponent implements OnInit {
       return `${base} bg-yellow-50 text-yellow-700 border-yellow-200`;
     if (s === 'EXPIRED')
       return `${base} bg-gray-100 text-gray-700 border-gray-200`;
-
+    if (s === 'CANCELED')
+      return `${base} bg-red-50 text-red-700 border-red-200`;
     return `${base} bg-gray-50 text-gray-700 border-gray-200`;
   }
 }

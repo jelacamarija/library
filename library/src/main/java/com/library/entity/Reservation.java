@@ -32,7 +32,7 @@ public class Reservation {
     private Date reservedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date expiresAt; // npr. +3 dana
+    private Date expiresAt;
 
     @Column(nullable = false)
     private String status;

@@ -13,7 +13,7 @@ export type ReservationResponseDto = {
 
   reservedAt: string; 
   expiresAt: string;
-  status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | string;
+  status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | 'CANCELED' | string;
   loanID: number | null;
 };
 
@@ -47,5 +47,9 @@ export class ReservationService {
       `${this.baseUrl}/my`,
       this.getHeaders()
     );
+  }
+
+  cancelReservation(reservationID: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${reservationID}/cancel`, {});
   }
 }

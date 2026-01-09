@@ -115,12 +115,34 @@ export const routes: Routes = [
                 .then(m => m.LibrarianSearchComponent),
           },
 
-         /* {
+          {
             path: 'dashboard',
             loadComponent: () =>
-              import('./features/librarian/dashboard/librarian-dashboard.component')
-                .then(m => m.LibrarianDashboardComponent),
-          },*/
+              import('./features/librarian/dashboard/librarian-dashboard-layout.component')
+                .then(m => m.LibrarianDashboardLayoutComponent),
+            children: [
+              { path: '', redirectTo: 'users', pathMatch: 'full' },
+
+              {
+                path: 'users',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-users.component')
+                    .then(m => m.LibrarianDashboardUsersComponent),
+              },
+              {
+                path: 'reservations',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-reservations.component')
+                    .then(m => m.LibrarianDashboardReservationsComponent),
+              },
+              {
+                path: 'loans',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-loans.component')
+                    .then(m => m.LibrarianDashboardLoansComponent),
+              },
+            ],
+          },
 
           // default librarian route
           { path: '', redirectTo: 'books', pathMatch: 'full' },

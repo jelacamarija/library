@@ -1,6 +1,5 @@
 package com.library.controller;
 
-
 import com.library.dto.ReservationActiveDto;
 import com.library.dto.ReservationCreateDto;
 import com.library.dto.ReservationResponseDto;
@@ -24,31 +23,33 @@ public class ReservationController {
     public ReservationResponseDto reserveBook(
             @RequestBody ReservationCreateDto dto,
             HttpServletRequest request
-    ){
-        Long userID= (Long) request.getAttribute("userId");
-        String role= (String) request.getAttribute("userRole");
+    ) {
+        Long userID = (Long) request.getAttribute("userId");
+        String role = (String) request.getAttribute("userRole");
 
-        if(userID==null){
+        if (userID == null) {
             throw new RuntimeException("Niste ulogovani");
         }
 
-        if(!"CLIENT".equalsIgnoreCase(role)){
-            throw new RuntimeException("Samo klijent moze kreirati rezervaciju");
+        if (!"CLIENT".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Samo klijent može kreirati rezervaciju");
         }
 
-        return reservationService.createReservation(userID,dto.getBookID());
+        return reservationService.createReservation(userID, dto.getBookID());
     }
 
     @GetMapping("/my")
     public List<ReservationResponseDto> getMyReservations(HttpServletRequest request) {
         Long userID = (Long) request.getAttribute("userId");
         String role = (String) request.getAttribute("userRole");
+
         if (userID == null) {
             throw new RuntimeException("Niste ulogovani");
         }
         if (!"CLIENT".equalsIgnoreCase(role)) {
             throw new RuntimeException("Samo klijent može vidjeti svoje rezervacije");
         }
+
         return reservationService.getReservationsForUser(userID);
     }
 
@@ -60,12 +61,14 @@ public class ReservationController {
             HttpServletRequest request
     ) {
         String role = (String) request.getAttribute("userRole");
+
         if (role == null) {
             throw new RuntimeException("Niste ulogovani");
         }
         if (!role.equalsIgnoreCase("LIBRARIAN")) {
             throw new RuntimeException("Nemate ovlaštenje za pregled svih rezervacija");
         }
+
         return reservationService.getAllReservations(page, size, sort);
     }
 
@@ -77,27 +80,49 @@ public class ReservationController {
             HttpServletRequest request
     ) {
         String role = (String) request.getAttribute("userRole");
+
         if (role == null) {
             throw new RuntimeException("Niste ulogovani");
         }
         if (!role.equalsIgnoreCase("LIBRARIAN")) {
             throw new RuntimeException("Nemate ovlaštenje za pregled rezervacija korisnika");
         }
+
         return reservationService.getReservationsForUserLibrarian(userId, page, size);
     }
 
     @PostMapping("/activate")
-    public ReservationResponseDto activateReservation(@RequestBody ReservationActiveDto dto,
-                                                      HttpServletRequest request){
-        String role= (String) request.getAttribute("userRole");
-        if(role==null){
+    public ReservationResponseDto activateReservation(
+            @RequestBody ReservationActiveDto dto,
+            HttpServletRequest request
+    ) {
+        String role = (String) request.getAttribute("userRole");
+
+        if (role == null) {
             throw new RuntimeException("Niste ulogovani");
         }
-        if(!"LIBRARIAN".equalsIgnoreCase(role)){
-            throw  new RuntimeException("Samo bibliotekar moze da aktivira rezervaciju");
+        if (!"LIBRARIAN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Samo bibliotekar može aktivirati rezervaciju");
         }
 
         return reservationService.activateReservation(dto);
     }
+    
+    @PutMapping("/{id}/cancel")
+    public ReservationResponseDto cancelMyReservation(
+            @PathVariable Long id,
+            HttpServletRequest request
+    ) {
+        Long userID = (Long) request.getAttribute("userId");
+        String role = (String) request.getAttribute("userRole");
 
+        if (userID == null) {
+            throw new RuntimeException("Niste ulogovani");
+        }
+        if (!"CLIENT".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Samo klijent može otkazati rezervaciju");
+        }
+
+        return reservationService.cancelReservation(userID, id);
+    }
 }

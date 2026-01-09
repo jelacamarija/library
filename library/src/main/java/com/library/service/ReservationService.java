@@ -1,6 +1,5 @@
 package com.library.service;
 
-
 import com.library.dto.ReservationActiveDto;
 import com.library.dto.ReservationResponseDto;
 import com.library.entity.Book;
@@ -13,16 +12,10 @@ import com.library.repository.LoanRepository;
 import com.library.repository.ReservationRepository;
 import com.library.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,25 +26,29 @@ public class ReservationService {
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
 
-    public ReservationResponseDto createReservation(Long userID,Long bookID){
+    public ReservationResponseDto createReservation(Long userID, Long bookID){
 
-        User user=userRepository.findById(userID).orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
 
-        Book book=bookRepository.findById(bookID).orElseThrow(()-> new RuntimeException("Knjiga ne postoji"));
+        Book book = bookRepository.findById(bookID)
+                .orElseThrow(() -> new RuntimeException("Knjiga ne postoji"));
 
-        if(book.getCopiesAvailable()<=0){
+        if (book.getCopiesAvailable() <= 0) {
             throw new RuntimeException("Knjiga trenutno nije dostupna za rezervaciju");
         }
 
-        Optional<Reservation> existing=reservationRepository.findByUserAndBookAndStatusIn(user,book, List.of("PENDING"));
+        // ✅ provjeri i PENDING i ACTIVE
+        Optional<Reservation> existing =
+                reservationRepository.findByUserAndBookAndStatusIn(
+                        user, book, List.of(ReservationMapper.STATUS_PENDING, ReservationMapper.STATUS_ACTIVE)
+                );
 
-        if(existing.isPresent()){
-            throw new RuntimeException("Vec imate aktivnu rezervaciju za ovu knjigu");
-
+        if (existing.isPresent()) {
+            throw new RuntimeException("Već imate rezervaciju za ovu knjigu (na čekanju ili aktivnu).");
         }
 
         Reservation reservation = ReservationMapper.toEntity(user, book);
-
         reservationRepository.save(reservation);
 
         return ReservationMapper.toDto(reservation);
@@ -60,18 +57,8 @@ public class ReservationService {
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
         List<Reservation> reservations = reservationRepository.findByUserIdWithBook(userID);
         return reservations.stream()
-                .map(r -> ReservationResponseDto.builder()
-                        .reservationID(r.getReservationID())
-                        .userID(r.getUser().getUserID())
-                        .bookID(r.getBook().getBookID())
-                        .bookTitle(r.getBook().getTitle())
-                        .bookAuthor(r.getBook().getAuthor())
-                        .reservedAt(r.getReservedAt())
-                        .expiresAt(r.getExpiresAt())
-                        .status(r.getStatus())
-                        .loanID(r.getLoan()!=null ? r.getLoan().getLoanId():null)
-                        .build()
-                ).toList();
+                .map(ReservationMapper::toDto)
+                .toList();
     }
 
     public Page<ReservationResponseDto> getAllReservations(int page, int size, String sort) {
@@ -81,6 +68,7 @@ public class ReservationService {
                 (sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc"))
                         ? Sort.Direction.ASC
                         : Sort.Direction.DESC;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         Page<Reservation> reservationPage = reservationRepository.findAll(pageable);
         return reservationPage.map(ReservationMapper::toDto);
@@ -88,40 +76,40 @@ public class ReservationService {
 
     public Page<ReservationResponseDto> getReservationsForUserLibrarian(Long userID, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Reservation> reservations =
-                reservationRepository.findByUser_UserID(userID, pageable);
+        Page<Reservation> reservations = reservationRepository.findByUser_UserID(userID, pageable);
         return reservations.map(ReservationMapper::toDto);
     }
 
     public ReservationResponseDto activateReservation(ReservationActiveDto dto){
 
-        Reservation reservation=reservationRepository.findById(dto.getReservationID()).orElseThrow(()-> new RuntimeException("Rezervacija ne postoji"));
+        Reservation reservation = reservationRepository.findById(dto.getReservationID())
+                .orElseThrow(() -> new RuntimeException("Rezervacija ne postoji"));
 
-        if(!"PENDING".equalsIgnoreCase(reservation.getStatus())){
-            throw  new RuntimeException("Rezervacija je vec istekla ili je aktivirana");
-
+        if (!ReservationMapper.STATUS_PENDING.equalsIgnoreCase(reservation.getStatus())) {
+            throw new RuntimeException("Rezervacija nije na čekanju (možda je aktivirana, istekla ili otkazana).");
         }
 
-        //aktiviranje reyervacije
-        reservation.setStatus("ACTIVE");
+        // aktiviranje rezervacije
+        reservation.setStatus(ReservationMapper.STATUS_ACTIVE);
         reservation.setUsed(true);
-        reservation.setExpiresAt(null); //vise nema roka isteka
+        reservation.setExpiresAt(null); // više nema roka isteka
         reservationRepository.save(reservation);
 
-        //kreiranje loan jer je rez preuzeta
-        Book book=reservation.getBook();
-        User user=reservation.getUser();
+        // kreiranje loan jer je rez preuzeta
+        Book book = reservation.getBook();
+        User user = reservation.getUser();
 
-        if(book.getCopiesAvailable() <= 0){
+        if (book.getCopiesAvailable() <= 0) {
             throw new RuntimeException("Nema dostupnih kopija knjige za pozajmicu");
         }
-        Date now = new Date();
-        Calendar calendar=Calendar.getInstance();
-        calendar.setTime(now);
-        calendar.add(Calendar.DAY_OF_MONTH,dto.getDays());
-        Date dueDate=calendar.getTime();
 
-        Loan loan=Loan.builder()
+        Date now = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.add(Calendar.DAY_OF_MONTH, dto.getDays());
+        Date dueDate = calendar.getTime();
+
+        Loan loan = Loan.builder()
                 .user(user)
                 .book(book)
                 .reservation(reservation)
@@ -132,8 +120,24 @@ public class ReservationService {
 
         loanRepository.save(loan);
 
-        book.setCopiesAvailable(book.getCopiesAvailable()-1);
+        book.setCopiesAvailable(book.getCopiesAvailable() - 1);
         bookRepository.save(book);
+
+        return ReservationMapper.toDto(reservation);
+    }
+
+    public ReservationResponseDto cancelReservation(Long userID, Long reservationID) {
+
+        Reservation reservation = reservationRepository
+                .findByReservationIDAndUser_UserID(reservationID, userID)
+                .orElseThrow(() -> new RuntimeException("Rezervacija ne postoji"));
+
+        if (!ReservationMapper.STATUS_PENDING.equalsIgnoreCase(reservation.getStatus())) {
+            throw new RuntimeException("Možeš otkazati samo rezervaciju koja je na čekanju.");
+        }
+
+        reservation.setStatus(ReservationMapper.STATUS_CANCELED);
+        reservationRepository.save(reservation);
 
         return ReservationMapper.toDto(reservation);
     }
