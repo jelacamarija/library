@@ -38,7 +38,7 @@ public class ReservationService {
             throw new RuntimeException("Knjiga trenutno nije dostupna za rezervaciju");
         }
 
-        // ✅ provjeri i PENDING i ACTIVE
+
         Optional<Reservation> existing =
                 reservationRepository.findByUserAndBookAndStatusIn(
                         user, book, List.of(ReservationMapper.STATUS_PENDING, ReservationMapper.STATUS_ACTIVE)
