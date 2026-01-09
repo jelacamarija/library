@@ -26,12 +26,12 @@ import java.util.UUID;
 public class AuthService {
      private final UserRepository userRepository;
      private final EmailService emailService;
-    private final JwtUtil jwtUtil;
-    @Value("${app.frontend.base.url:http://localhost:4200}")
-    private String frontendBaseUrl;
-
-
+     private final JwtUtil jwtUtil;
      private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
+
+     @Value("${app.frontend.base.url:http://localhost:4200}")
+     private String frontendBaseUrl;
+
 
      public String registerUser(RegisterRequestDto dto, String appBaseUrl){
          Optional<User> existing=userRepository.findByEmail(dto.getEmail());
@@ -49,6 +49,13 @@ public class AuthService {
          user.setIsVerified(false);
          user.setRole("CLIENT");
 
+         user.setMembershipDate(new Date());
+
+
+
+         userRepository.save(user);
+
+         user.setMembershipNumber(generateMembershipNumber(user.getUserID()));
          userRepository.save(user);
          String verificationLink = frontendBaseUrl + "/verify?code=" + verifyCode;
          emailService.sendVerificationEmail(user.getEmail(), verificationLink);
@@ -57,7 +64,11 @@ public class AuthService {
 
      }
 
-     public  String verifyRegistration(String code){
+    private String generateMembershipNumber(Long userID) {
+         return "LIB" + String.format("%06d", userID);
+    }
+
+    public  String verifyRegistration(String code){
          Optional<User> optionalUser = userRepository.findByVerifyCode(code);
 
          if (optionalUser.isEmpty()) {

@@ -27,6 +27,8 @@ public class User{
     @Column(nullable = false)
     private String password;
 
+    @Column(length = 20)
+    private String phoneNumber;
 
     @Column(length = 64)
     private String verifyCode;
@@ -36,9 +38,27 @@ public class User{
 
     private Boolean isVerified;
 
+    private Boolean active;
+
     @Column(nullable = false)
     private String role;
 
+    @Column(unique = true)
+    private String membershipNumber;
 
+
+    @Temporal(TemporalType.DATE)
+    private Date membershipDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Date createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = new Date();
+        if (active == null) active = true;
+        if (isVerified == null) isVerified = false;
+    }
 
 }

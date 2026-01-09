@@ -18,6 +18,7 @@ public class ReservationMapper {
         return ReservationResponseDto.builder()
                 .reservationID(reservation.getReservationID())
                 .userID(reservation.getUser().getUserID())
+                .userName(reservation.getUser().getName())
                 .bookID(reservation.getBook().getBookID())
                 .bookTitle(reservation.getBook().getTitle())
                 .bookAuthor(reservation.getBook().getAuthor())

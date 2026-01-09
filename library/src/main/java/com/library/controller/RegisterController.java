@@ -2,6 +2,7 @@ package com.library.controller;
 
 import com.library.dto.RegisterRequestDto;
 import com.library.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,7 @@ public class RegisterController {
 
 
     @PostMapping
-    public String registerUser(@RequestBody RegisterRequestDto dto){
+    public String registerUser(@Valid @RequestBody RegisterRequestDto dto){
         return authService.registerUser(dto,frontendBaseUrl);
     }
 

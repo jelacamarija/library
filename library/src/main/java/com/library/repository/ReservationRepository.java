@@ -5,6 +5,7 @@ import com.library.entity.Reservation;
 import com.library.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +31,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByUserIdWithBook(@Param("userId") Long userId);
 
     Optional<Reservation> findByReservationIDAndUser_UserID(Long reservationID, Long userID);
+    @EntityGraph(attributePaths = {"user", "book", "loan"})
+    Page<Reservation> findAll(Pageable pageable);
+
 }

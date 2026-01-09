@@ -16,6 +16,7 @@ public class ReservationResponseDto {
 
     private Long reservationID;
     private Long userID;
+    private String userName;
     private Long bookID;
     private String bookTitle;
     private String bookAuthor;
