@@ -10,7 +10,6 @@ import {
   imports: [CommonModule],
   template: `
     <div class="space-y-4">
-
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Moje rezervacije</h2>
         <span class="text-sm text-gray-500" *ngIf="items">
@@ -19,9 +18,7 @@ import {
       </div>
 
       <!-- Loading -->
-      <div *ngIf="loading" class="text-gray-600">
-        Učitavanje...
-      </div>
+      <div *ngIf="loading" class="text-gray-600">Učitavanje...</div>
 
       <!-- Error -->
       <div
@@ -52,7 +49,7 @@ import {
               <th class="p-3">Rezervisano</th>
               <th class="p-3">Rok</th>
               <th class="p-3">Status</th>
-              <th class="p-3"></th>
+              <th class="p-3 text-right">Akcija</th>
             </tr>
           </thead>
 
@@ -83,7 +80,7 @@ import {
               <td class="p-3 text-right">
                 <button
                   *ngIf="canCancel(r)"
-                  (click)="cancel(r)"
+                  (click)="openCancelConfirm(r)"
                   class="px-3 py-1.5 rounded-lg border text-sm hover:bg-gray-50"
                 >
                   Otkaži
@@ -95,6 +92,43 @@ import {
         </table>
       </div>
 
+      <!-- CONFIRM CANCEL MODAL (isti stil kao za rezervaciju) -->
+      <div
+        *ngIf="confirmOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      >
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl p-8">
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Da li ste sigurni?
+          </h3>
+
+          <div class="text-sm text-gray-700 space-y-1">
+            <p>
+              Želite da otkažete rezervaciju za knjigu
+              <span class="font-semibold">{{ selectedReservation?.bookTitle }}</span
+              >?
+            </p>
+          </div>
+
+          <div class="mt-8 flex justify-end gap-3">
+            <button
+              (click)="closeConfirm()"
+              class="px-6 py-2 rounded-xl border text-sm hover:bg-gray-50 disabled:opacity-50"
+              [disabled]="cancelLoading"
+            >
+              Ne
+            </button>
+
+            <button
+              (click)="confirmCancel()"
+              class="px-6 py-2 rounded-xl bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+              [disabled]="cancelLoading"
+            >
+              {{ cancelLoading ? 'Otkazujem...' : 'Da, otkaži' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -106,9 +140,15 @@ export class ClientProfileReservationsComponent implements OnInit {
   loading = true;
   error = false;
 
+  // modal state
+  confirmOpen = false;
+  selectedReservation: ReservationResponseDto | null = null;
+  cancelLoading = false;
+
   ngOnInit(): void {
     this.service.getMyReservations().subscribe({
       next: (res) => {
+        // Opcija A: prikaži samo PENDING i ACTIVE
         this.items = (res ?? []).filter((r) =>
           ['PENDING', 'ACTIVE'].includes((r.status || '').toUpperCase())
         );
@@ -122,22 +162,38 @@ export class ClientProfileReservationsComponent implements OnInit {
     });
   }
 
+  // samo PENDING može da se otkaže
   canCancel(r: ReservationResponseDto): boolean {
-    return (r.status || '').toUpperCase() === 'PENDING'; 
+    return (r.status || '').toUpperCase() === 'PENDING';
   }
 
-  cancel(r: ReservationResponseDto): void {
-    const ok = window.confirm(
-      'Da li si siguran/na da želiš da otkažeš ovu rezervaciju?'
-    );
-    if (!ok) return;
+  openCancelConfirm(r: ReservationResponseDto): void {
+    this.selectedReservation = r;
+    this.confirmOpen = true;
+  }
 
-    this.service.cancelReservation(r.reservationID).subscribe({
+  closeConfirm(): void {
+    this.confirmOpen = false;
+    this.selectedReservation = null;
+    this.cancelLoading = false;
+  }
+
+  confirmCancel(): void {
+    if (!this.selectedReservation) return;
+
+    this.cancelLoading = true;
+
+    this.service.cancelReservation(this.selectedReservation.reservationID).subscribe({
       next: () => {
-        this.items = this.items.filter((x) => x.reservationID !== r.reservationID);
+        // pošto prikazujemo samo PENDING/ACTIVE, nakon cancel ukloni iz liste
+        const id = this.selectedReservation!.reservationID;
+        this.items = this.items.filter((x) => x.reservationID !== id);
+
+        this.closeConfirm();
         this.cd.detectChanges();
       },
       error: () => {
+        this.cancelLoading = false;
         alert('Ne mogu da otkažem rezervaciju. Pokušaj ponovo.');
       },
     });
@@ -172,6 +228,7 @@ export class ClientProfileReservationsComponent implements OnInit {
       return `${base} bg-gray-100 text-gray-700 border-gray-200`;
     if (s === 'CANCELED')
       return `${base} bg-red-50 text-red-700 border-red-200`;
+
     return `${base} bg-gray-50 text-gray-700 border-gray-200`;
   }
 }
