@@ -30,8 +30,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Ovdje su rute koje NE TRAŽE token:
         return path.startsWith("/api/login")
-                || path.startsWith("/api/register")
-        || path.startsWith("/api/register/verify");
+        || path.startsWith("/api/register")
+        || path.startsWith("/api/register/verify")
+                || path.startsWith("/api/register/set-password");
     }
 
     @Override

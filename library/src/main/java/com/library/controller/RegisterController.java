@@ -1,6 +1,7 @@
 package com.library.controller;
 
 import com.library.dto.RegisterRequestDto;
+import com.library.dto.SetPasswordDto;
 import com.library.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,10 @@ public class RegisterController {
     @GetMapping("/verify")
     public String verifyUser(@RequestParam("code") String code){
         return authService.verifyRegistration(code);
+    }
+
+    @PostMapping("/set-password")
+    public String setPassword(@Valid @RequestBody SetPasswordDto dto) {
+        return authService.setPasswordAndVerify(dto);
     }
 }

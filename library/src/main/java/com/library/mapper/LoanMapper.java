@@ -9,6 +9,7 @@ public class LoanMapper {
         return LoanResponseDto.builder()
                 .loanId(loan.getLoanId())
                 .userId(loan.getUser().getUserID())
+                .membershipNumber(loan.getUser().getMembershipNumber())
                 .bookId(loan.getBook().getBookID())
                 .bookTitle(loan.getBook().getTitle())
                 .bookAuthor(loan.getBook().getAuthor())

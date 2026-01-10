@@ -88,4 +88,20 @@ public class LoanController {
     public List<LoanResponseDto> getMyLoans(HttpServletRequest request) {
         return loanService.getMyLoans(request);
     }
+
+    @GetMapping("/search-by-membership")
+    public Page<LoanResponseDto> searchLoansByMembership(
+            HttpServletRequest request,
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "loanedAt,desc") String sort
+    ) {
+        String role = (String) request.getAttribute("userRole");
+        if (!"LIBRARIAN".equals(role)) {
+            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može vidjeti iznajmljivanja.");
+        }
+
+        return loanService.searchLoansByMembershipNumber(page, size, sort, q);
+    }
 }

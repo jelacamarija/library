@@ -34,4 +34,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @EntityGraph(attributePaths = {"user", "book", "loan"})
     Page<Reservation> findAll(Pageable pageable);
 
+    @Query("""
+        SELECT r FROM Reservation r
+        JOIN FETCH r.user u
+        JOIN FETCH r.book b
+        WHERE LOWER(u.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
+    """)
+    Page<Reservation> searchByUserMembership(@Param("q") String q, Pageable pageable);
 }

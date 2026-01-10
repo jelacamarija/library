@@ -12,6 +12,7 @@ public class LoanResponseDto {
     private Long loanId;
 
     private Long userId;
+    private String membershipNumber;
 
     private Long bookId;
     private String bookTitle;

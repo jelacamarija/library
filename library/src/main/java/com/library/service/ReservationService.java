@@ -144,4 +144,24 @@ public class ReservationService {
 
         return ReservationMapper.toDto(reservation);
     }
+
+    public Page<ReservationResponseDto> searchReservationsByMembership(String q, int page, int size, String sort) {
+
+        if (q == null || q.trim().isEmpty()) {
+            return Page.empty();
+        }
+
+        String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction =
+                (sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc"))
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        Page<Reservation> reservations = reservationRepository.searchByUserMembership(q.trim(), pageable);
+
+        return reservations.map(ReservationMapper::toDto);
+    }
 }

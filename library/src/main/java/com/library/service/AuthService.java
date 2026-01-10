@@ -1,8 +1,6 @@
 package com.library.service;
 
-import com.library.dto.LoginRequestDto;
-import com.library.dto.LoginResponseDto;
-import com.library.dto.RegisterRequestDto;
+import com.library.dto.*;
 import com.library.entity.User;
 import com.library.mapper.RegisterMapper;
 import com.library.repository.UserRepository;
@@ -13,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -98,6 +97,10 @@ public class AuthService {
              throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Morate da verifikujete svoj nalog. Proverite mejl.");
          }
 
+         if (user.getPassword() == null) {
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                     "Nalog nije aktiviran. Postavite lozinku putem mejla.");
+         }
 
          if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
              throw new RuntimeException("Pogrešna lozinka");
@@ -113,5 +116,56 @@ public class AuthService {
                  .build();
      }
 
+    @Transactional
+    public String createUserByLibrarian(LibrarianCreateUserDto dto) {
+        Optional<User> existing=userRepository.findByEmail(dto.getEmail());
+        if(existing.isPresent()){
+            throw new RuntimeException("Korisnik sa ovim mejlom vec postoji");
+        }
+        String verifyCode = UUID.randomUUID().toString();
 
+        User user = User.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .phoneNumber(dto.getPhoneNumber())
+                .role("CLIENT")
+                .isVerified(false)
+                .active(true)
+                .verifyCode(verifyCode)
+                .verifyCodeExpiry(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .membershipDate(new Date())
+                .build();
+
+        user.setPassword(null);
+
+        userRepository.save(user);
+
+        user.setMembershipNumber(generateMembershipNumber(user.getUserID()));
+        userRepository.save(user);
+
+        String link = frontendBaseUrl + "/set-password?code=" + verifyCode;
+        emailService.sendSetPasswordEmail(user.getEmail(), link);
+
+        return "Korisnik kreiran. Poslat mejl za postavljanje lozinke.";
+    }
+
+    @Transactional
+    public String setPasswordAndVerify(SetPasswordDto dto) {
+        User user = userRepository.findByVerifyCode(dto.getCode())
+                .orElseThrow(() -> new RuntimeException("Nevažeći kod."));
+
+        if (user.getVerifyCodeExpiry() == null || user.getVerifyCodeExpiry().before(new Date())) {
+            throw new RuntimeException("Link je istekao.");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setIsVerified(true);
+
+        user.setVerifyCode(null);
+        user.setVerifyCodeExpiry(null);
+
+        userRepository.save(user);
+
+        return "Lozinka postavljena. Nalog je aktiviran.";
+    }
 }

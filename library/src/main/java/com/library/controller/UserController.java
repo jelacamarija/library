@@ -1,10 +1,13 @@
 package com.library.controller;
 
 
+import com.library.dto.LibrarianCreateUserDto;
 import com.library.dto.UserListDto;
 import com.library.dto.UserProfileDto;
+import com.library.service.AuthService;
 import com.library.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping("/me")
     public UserProfileDto me(HttpServletRequest request) {
@@ -61,5 +65,12 @@ public class UserController {
         if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
             throw new RuntimeException("Zabranjen pristup");
         }
+    }
+
+    @PostMapping("/create")
+    public String createUser(@Valid @RequestBody LibrarianCreateUserDto dto,
+                             HttpServletRequest request) {
+        requireLibrarian(request);
+        return authService.createUserByLibrarian(dto);
     }
 }

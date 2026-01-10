@@ -138,4 +138,23 @@ public class LoanService {
                 .map(LoanMapper::toDto)
                 .toList();
     }
+
+    public Page<LoanResponseDto> searchLoansByMembershipNumber(int page, int size, String sort, String q) {
+        String query = (q == null) ? "" : q.trim();
+        if (query.isEmpty()) return Page.empty();
+
+        String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction =
+                (sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc"))
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        Page<Loan> loansPage = loanRepository.findByUser_MembershipNumberContainingIgnoreCase(query, pageable);
+
+        return loansPage.map(LoanMapper::toDto);
+    }
+
 }

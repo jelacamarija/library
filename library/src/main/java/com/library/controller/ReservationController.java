@@ -125,4 +125,23 @@ public class ReservationController {
 
         return reservationService.cancelReservation(userID, id);
     }
+
+    @GetMapping("/search-by-membership")
+    public Page<ReservationResponseDto> searchByMembership(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "reservedAt,desc") String sort,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return reservationService.searchReservationsByMembership(q, page, size, sort);
+    }
+
+    private void requireLibrarian(HttpServletRequest request) {
+        String role = (String) request.getAttribute("userRole");
+        if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
+            throw new RuntimeException("Zabranjen pristup");
+        }
+    }
 }
