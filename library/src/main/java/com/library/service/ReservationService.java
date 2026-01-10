@@ -14,6 +14,7 @@ import com.library.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -26,6 +27,7 @@ public class ReservationService {
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
 
+    @Transactional
     public ReservationResponseDto createReservation(Long userID, Long bookID){
 
         User user = userRepository.findById(userID)
@@ -47,6 +49,9 @@ public class ReservationService {
         if (existing.isPresent()) {
             throw new RuntimeException("Već imate rezervaciju za ovu knjigu (na čekanju ili aktivnu).");
         }
+
+        book.setCopiesAvailable(book.getCopiesAvailable() - 1);
+        bookRepository.save(book);
 
         Reservation reservation = ReservationMapper.toEntity(user, book);
         reservationRepository.save(reservation);
@@ -99,10 +104,6 @@ public class ReservationService {
         Book book = reservation.getBook();
         User user = reservation.getUser();
 
-        if (book.getCopiesAvailable() <= 0) {
-            throw new RuntimeException("Nema dostupnih kopija knjige za pozajmicu");
-        }
-
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
@@ -120,12 +121,10 @@ public class ReservationService {
 
         loanRepository.save(loan);
 
-        book.setCopiesAvailable(book.getCopiesAvailable() - 1);
-        bookRepository.save(book);
-
         return ReservationMapper.toDto(reservation);
     }
 
+    @Transactional
     public ReservationResponseDto cancelReservation(Long userID, Long reservationID) {
 
         Reservation reservation = reservationRepository
@@ -138,6 +137,10 @@ public class ReservationService {
 
         reservation.setStatus(ReservationMapper.STATUS_CANCELED);
         reservationRepository.save(reservation);
+
+        Book book = reservation.getBook();
+        book.setCopiesAvailable(book.getCopiesAvailable() + 1);
+        bookRepository.save(book);
 
         return ReservationMapper.toDto(reservation);
     }

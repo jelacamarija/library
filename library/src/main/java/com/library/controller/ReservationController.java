@@ -107,7 +107,7 @@ public class ReservationController {
 
         return reservationService.activateReservation(dto);
     }
-    
+
     @PutMapping("/{id}/cancel")
     public ReservationResponseDto cancelMyReservation(
             @PathVariable Long id,
