@@ -2,6 +2,7 @@ package com.library.controller;
 
 
 import com.library.dto.LibrarianCreateUserDto;
+import com.library.dto.UpdatePhoneDto;
 import com.library.dto.UserListDto;
 import com.library.dto.UserProfileDto;
 import com.library.service.AuthService;
@@ -73,4 +74,15 @@ public class UserController {
         requireLibrarian(request);
         return authService.createUserByLibrarian(dto);
     }
+
+    @PatchMapping("/{id}/phone")
+    public UserListDto updatePhone(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePhoneDto dto,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return userService.updateUserPhone(id, dto.getPhoneNumber());
+    }
+
 }

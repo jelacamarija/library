@@ -5,6 +5,7 @@ import com.library.dto.UserListDto;
 import com.library.dto.UserProfileDto;
 import com.library.entity.User;
 import com.library.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -71,5 +72,20 @@ public class UserService {
                 u.getActive(),
                 u.getIsVerified()
         );
+    }
+
+    @Transactional
+    public UserListDto updateUserPhone(Long userId, String phoneNumber) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
+
+        if (!"CLIENT".equalsIgnoreCase(u.getRole())) {
+            throw new RuntimeException("Možete mijenjati podatke samo CLIENT korisnicima.");
+        }
+
+        u.setPhoneNumber(phoneNumber);
+        userRepository.save(u);
+
+        return toListDto(u);
     }
 }
