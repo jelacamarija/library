@@ -19,6 +19,7 @@ public class ReservationMapper {
                 .reservationID(reservation.getReservationID())
                 .userID(reservation.getUser().getUserID())
                 .userName(reservation.getUser().getName())
+                .membershipNumber(reservation.getUser().getMembershipNumber())
                 .bookID(reservation.getBook().getBookID())
                 .bookTitle(reservation.getBook().getTitle())
                 .bookAuthor(reservation.getBook().getAuthor())

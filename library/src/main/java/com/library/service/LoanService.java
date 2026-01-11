@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -155,6 +156,25 @@ public class LoanService {
         Page<Loan> loansPage = loanRepository.findByUser_MembershipNumberContainingIgnoreCase(query, pageable);
 
         return loansPage.map(LoanMapper::toDto);
+    }
+
+    @Transactional
+    public void returnLoan(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new RuntimeException("Iznajmljivanje ne postoji"));
+
+        if ("RETURNED".equalsIgnoreCase(loan.getStatus())) {
+            throw new RuntimeException("Knjiga je već vraćena.");
+        }
+
+        loan.setStatus("RETURNED");
+        loan.setReturnedAt(new Date());
+
+        Book book = loan.getBook();
+        book.setCopiesAvailable(book.getCopiesAvailable() + 1);
+        bookRepository.save(book);
+
+        loanRepository.save(loan);
     }
 
 }

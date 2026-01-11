@@ -7,13 +7,14 @@ export interface ReservationRow {
 
   userID: number;
   userName: string;
+  membershipNumber?: string;
 
   bookID: number;
   bookTitle: string;
   bookAuthor: string;
 
-  reservedAt: string;   // ISO
-  expiresAt: string | null; // ISO | null
+  reservedAt: string;
+  expiresAt: string | null;
 
   status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELED' | string;
   loanID: number | null;
@@ -23,7 +24,7 @@ export interface PageResponse<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page (0-based)
+  number: number;
   size: number;
   first: boolean;
   last: boolean;
@@ -46,6 +47,25 @@ export class LibrarianReservationsService {
       .set('sort', sort);
 
     return this.http.get<PageResponse<ReservationRow>>(`${this.baseUrl}/all`, { params });
+  }
+
+  // ✅ SEARCH PO BROJU ČLANSKE
+  searchByMembership(
+    q: string,
+    page: number,
+    size: number,
+    sort: string
+  ): Observable<PageResponse<ReservationRow>> {
+    const params = new HttpParams()
+      .set('q', q)
+      .set('page', page)
+      .set('size', size)
+      .set('sort', sort);
+
+    return this.http.get<PageResponse<ReservationRow>>(
+      `${this.baseUrl}/search-by-membership`,
+      { params }
+    );
   }
 
   activate(payload: ReservationActivatePayload): Observable<any> {

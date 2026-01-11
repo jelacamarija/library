@@ -12,7 +12,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Rezervacije</h1>
-        <p class="text-sm text-gray-600">Pregled svih rezervacija korisnika (svi statusi).</p>
+        <p class="text-sm text-gray-600">Pregled svih rezervacija korisnika.</p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -37,6 +37,24 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
       </div>
     </div>
 
+    <!-- SEARCH -->
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+            type="text"
+            class="w-full sm:flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            [value]="query()"
+            (input)="onQueryChange($any($event.target).value)"
+            placeholder="Pretraži po broju članske karte (npr. LIB000123)"
+        />
+        <button
+            *ngIf="query()"
+            class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+            (click)="clearQuery()"
+        >
+            Obriši
+        </button>
+        </div>
+
     <!-- ERROR -->
     <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
       {{ error() }}
@@ -49,6 +67,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
           <thead class="bg-gray-50 text-gray-700">
             <tr>
               <th class="text-left font-semibold px-4 py-3">Korisnik</th>
+              <th class="text-left font-semibold px-4 py-3">Broj članske karte</th>
               <th class="text-left font-semibold px-4 py-3">Naslov</th>
               <th class="text-left font-semibold px-4 py-3">Autor</th>
 
@@ -89,7 +108,12 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
             <!-- ROWS -->
             <tr *ngFor="let r of rows()" class="border-t">
               <td class="px-4 py-3">
-                <div class="font-medium text-gray-900">{{ r.userName || ('User #' + r.userID) }}</div>
+                <div class="font-medium text-gray-900">{{ r.userName}}</div>
+                
+              </td>
+
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900">{{ r.membershipNumber }}</div>
                 
               </td>
 
@@ -232,13 +256,15 @@ export class LibrarianDashboardReservationsComponent {
   private api = inject(LibrarianReservationsService);
   private fb = inject(FormBuilder);
 
-  // state
   rows = signal<ReservationRow[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
 
   page = signal(0);
   size = signal(10);
+
+  query = signal('');
+  private debounceTimer: any = null;
 
   sortField = signal<'reservedAt' | 'expiresAt'>('reservedAt');
   sortDir = signal<'asc' | 'desc'>('desc');
@@ -258,7 +284,6 @@ export class LibrarianDashboardReservationsComponent {
 
   constructor() {
     effect(() => {
-      // auto-load on init and on paging/sorting changes
       this.fetch();
     });
   }
@@ -269,16 +294,21 @@ export class LibrarianDashboardReservationsComponent {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.getAll(this.page(), this.size(), this.sortParam()).subscribe({
+    const q = this.query().trim();
+    const obs = q
+      ? this.api.searchByMembership(q, this.page(), this.size(), this.sortParam())
+      : this.api.getAll(this.page(), this.size(), this.sortParam());
+
+    obs.subscribe({
       next: (res) => {
         this.rows.set(res.content ?? []);
         this.totalElements.set(res.totalElements ?? 0);
         this.totalPages.set(Math.max(1, res.totalPages ?? 1));
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
-        this.error.set(err?.error?.message ?? 'Greška pri učitavanju rezervacija.');
+        this.error.set('Greška pri učitavanju rezervacija.');
       },
     });
   }
@@ -291,6 +321,20 @@ export class LibrarianDashboardReservationsComponent {
     const next = Number(value);
     this.size.set(Number.isFinite(next) && next > 0 ? next : 10);
     this.page.set(0);
+  }
+
+    onQueryChange(value: string): void {
+        this.query.set(value);
+        this.page.set(0);
+
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => this.fetch(), 300);
+    }
+
+  clearQuery(): void {
+    this.query.set('');
+    this.page.set(0);
+    this.fetch();
   }
 
   prevPage(): void {
@@ -332,7 +376,7 @@ export class LibrarianDashboardReservationsComponent {
   }
 
   closeActivateModal(): void {
-    if (this.actionLoadingId() !== null) return; // ne zatvaraj dok traje akcija
+    if (this.actionLoadingId() !== null) return;
     this.activateModalOpen.set(false);
     this.selected.set(null);
     this.modalError.set(null);
@@ -357,11 +401,11 @@ export class LibrarianDashboardReservationsComponent {
         this.actionLoadingId.set(null);
         this.activateModalOpen.set(false);
         this.selected.set(null);
-        this.fetch(); // refresh lista da pokaže ACTIVE + loanID
+        this.fetch();
       },
       error: (err) => {
         this.actionLoadingId.set(null);
-        this.modalError.set(err?.error?.message ?? 'Neuspješna aktivacija rezervacije.');
+        this.modalError.set(err?.error?.message ?? 'Neuspešna aktivacija rezervacije.');
       },
     });
   }

@@ -17,5 +17,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     );
     Page<Loan> findByStatus(String status, Pageable pageable);
     List<Loan> findByUser_UserIDOrderByLoanedAtDesc(Long userId);
-    Page<Loan> findByUser_MembershipNumberContainingIgnoreCase(String q, Pageable pageable);
+    Page<Loan> findByUser_MembershipNumberContainingIgnoreCase(String membershipNumber, Pageable pageable);
 }
