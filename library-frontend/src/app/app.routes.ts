@@ -6,7 +6,7 @@ import { roleGuard, roleChildGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // =======================
-  // LANDING (root)
+  // PUBLIC ROUTES
   // =======================
   { path: '', canActivate: [landingGuard], children: [] },
 
@@ -26,6 +26,14 @@ export const routes: Routes = [
         .then(m => m.VerifyComponent),
   },
 
+  // 🔑 KLJUČNO: SET PASSWORD (PUBLIC)
+  {
+    path: 'set-password',
+    loadComponent: () =>
+      import('./features/auth/set-password/set-password.component')
+        .then(m => m.SetPasswordComponent),
+  },
+
   // =======================
   // FORBIDDEN
   // =======================
@@ -37,7 +45,7 @@ export const routes: Routes = [
   },
 
   // =======================
-  // AUTHENTICATED LAYOUT (common shell)
+  // AUTHENTICATED LAYOUT
   // =======================
   {
     path: '',
@@ -94,7 +102,6 @@ export const routes: Routes = [
               },
             ],
           },
-
           { path: '', redirectTo: 'books', pathMatch: 'full' },
         ],
       },
@@ -134,6 +141,12 @@ export const routes: Routes = [
                     .then(m => m.LibrarianDashboardUsersComponent),
               },
               {
+                path: 'users/new',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-user-create.component')
+                    .then(m => m.LibrarianDashboardUserCreateComponent),
+              },
+              {
                 path: 'reservations',
                 loadComponent: () =>
                   import('./features/librarian/dashboard/librarian-dashboard-reservations.component')
@@ -147,7 +160,6 @@ export const routes: Routes = [
               },
             ],
           },
-
           { path: '', redirectTo: 'books', pathMatch: 'full' },
         ],
       },
