@@ -2,6 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian-loans.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-loans',
@@ -25,6 +26,14 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
         >
           Osvježi
         </button>
+        <button
+  (click)="goToCreate()"
+  class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+  [disabled]="loading()"
+>
+  Dodaj novo iznajmljivanje
+</button>
+
 
         <select
           class="px-3 py-2 rounded-xl border border-gray-300 bg-white"
@@ -286,6 +295,12 @@ export class LibrarianDashboardLoansComponent {
       },
     });
   }
+  private router = inject(Router);
+
+goToCreate(): void {
+  this.router.navigateByUrl('/librarian/dashboard/loans/new');
+}
+
 
   reload(): void {
     this.fetch();

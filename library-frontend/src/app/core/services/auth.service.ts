@@ -43,14 +43,25 @@ export class AuthService {
   private readonly EMAIL_KEY = 'user_email';
   private readonly NAME_KEY = 'user_name';
 
-  
+  // ✅ koristi session kao primarni (kao i sad)
   private storage: Storage = sessionStorage;
 
   constructor(private http: HttpClient) {}
 
+  // ✅ očisti i session i local da nikad ne bude mix
+  private clearAllStorage(): void {
+    [sessionStorage, localStorage].forEach(s => {
+      s.removeItem(this.TOKEN_KEY);
+      s.removeItem(this.ROLE_KEY);
+      s.removeItem(this.EMAIL_KEY);
+      s.removeItem(this.NAME_KEY);
+    });
+  }
+
   login(body: LoginRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>('/api/login', body).pipe(
       tap((res) => {
+        this.clearAllStorage(); // ✅ prije upisa očisti sve
         this.storage.setItem(this.TOKEN_KEY, res.token);
         this.storage.setItem(this.ROLE_KEY, res.role);
         this.storage.setItem(this.EMAIL_KEY, res.email);
@@ -59,36 +70,35 @@ export class AuthService {
     );
   }
 
-    getMyProfile() {
-  return this.http.get<UserProfileDto>('/api/users/me');
-  }
-
   logout(): void {
-    this.storage.removeItem(this.TOKEN_KEY);
-    this.storage.removeItem(this.ROLE_KEY);
-    this.storage.removeItem(this.EMAIL_KEY);
-    this.storage.removeItem(this.NAME_KEY);
+    this.clearAllStorage(); // ✅ čisti sve
   }
 
+  // ✅ primarno session, ali fallback na local ako baš mora (npr. stari ostatak)
   getToken(): string | null {
-    return this.storage.getItem(this.TOKEN_KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY) ?? localStorage.getItem(this.TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {
-    return !!this.storage.getItem(this.TOKEN_KEY);
+    return !!this.getToken();
   }
 
   getRole(): 'CLIENT' | 'LIBRARIAN' | null {
-    const r = this.storage.getItem(this.ROLE_KEY);
+    const r = sessionStorage.getItem(this.ROLE_KEY) ?? localStorage.getItem(this.ROLE_KEY);
     return (r === 'CLIENT' || r === 'LIBRARIAN') ? r : null;
   }
 
   getName(): string | null {
-    return this.storage.getItem(this.NAME_KEY);
+    return sessionStorage.getItem(this.NAME_KEY) ?? localStorage.getItem(this.NAME_KEY);
   }
 
   getEmail(): string | null {
-    return this.storage.getItem(this.EMAIL_KEY);
+    return sessionStorage.getItem(this.EMAIL_KEY) ?? localStorage.getItem(this.EMAIL_KEY);
+  }
+
+  // ✅ koristi se iz interceptora kad dobiješ 401
+  forceLogout(): void {
+    this.clearAllStorage();
   }
 
   hasRole(required: string | string[]): boolean {
@@ -98,18 +108,11 @@ export class AuthService {
     return req.includes(role);
   }
 
+  getMyProfile() {
+    return this.http.get<UserProfileDto>('/api/users/me');
+  }
+
   register(body: RegisterRequest) {
-  return this.http.post('/api/register', body, {
-    responseType: 'text' as const,
-  });
-}
-
-
-  
-  clearLegacyLocalStorage(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.ROLE_KEY);
-    localStorage.removeItem(this.EMAIL_KEY);
-    localStorage.removeItem(this.NAME_KEY);
+    return this.http.post('/api/register', body, { responseType: 'text' as const });
   }
 }

@@ -158,6 +158,13 @@ export const routes: Routes = [
                   import('./features/librarian/dashboard/librarian-dashboard-loans.component')
                     .then(m => m.LibrarianDashboardLoansComponent),
               },
+              {
+  path: 'loans/new',
+  loadComponent: () =>
+    import('./features/librarian/dashboard/librarian-dashboard-create-loan.component')
+      .then(m => m.LibrarianDashboardCreateLoanComponent),
+}
+
             ],
           },
           { path: '', redirectTo: 'books', pathMatch: 'full' },
