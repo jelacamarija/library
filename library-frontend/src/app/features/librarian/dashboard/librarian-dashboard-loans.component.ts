@@ -1,248 +1,274 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian-loans.service';
 import { Router } from '@angular/router';
+import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian-loans.service';
 
 @Component({
   selector: 'app-admin-loans',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePipe],
+  imports: [CommonModule, DatePipe],
   template: `
-  <div class="mx-auto max-w-7xl px-4 py-6">
+    <div class="mx-auto max-w-7xl px-4 py-6">
+      <!-- HEADER -->
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+        <div>
+          <h1 class="text-2xl font-bold">Iznajmljivanja</h1>
+          <p class="text-sm text-gray-600">Pregled svih iznajmljivanja korisnika.</p>
+        </div>
 
-    <!-- HEADER -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-      <div>
-        <h1 class="text-2xl font-bold">Iznajmljivanja</h1>
-        <p class="text-sm text-gray-600">Pregled svih iznajmljivanja korisnika.</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            (click)="reload()"
+            class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+            [disabled]="loading()"
+          >
+            Osvježi
+          </button>
+
+          <button
+            (click)="goToCreate()"
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            [disabled]="loading()"
+          >
+            Dodaj novo iznajmljivanje
+          </button>
+
+          <select
+            class="px-3 py-2 rounded-xl border border-gray-300 bg-white"
+            [value]="size()"
+            (change)="onSizeChange($any($event.target).value)"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <!-- SEARCH -->
+      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+          type="text"
+          class="w-full sm:flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          [value]="query()"
+          (input)="onQueryChange($any($event.target).value)"
+          placeholder="Pretraži po broju članske karte (npr. LIB000123)"
+        />
         <button
-          (click)="reload()"
+          *ngIf="query()"
           class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-          [disabled]="loading()"
+          (click)="clearQuery()"
         >
-          Osvježi
+          Obriši
         </button>
-        <button
-  (click)="goToCreate()"
-  class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-  [disabled]="loading()"
->
-  Dodaj novo iznajmljivanje
-</button>
-
-
-        <select
-          class="px-3 py-2 rounded-xl border border-gray-300 bg-white"
-          [value]="size()"
-          (change)="onSizeChange($any($event.target).value)"
-        >
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-        </select>
       </div>
-    </div>
 
-    <!-- SEARCH -->
-    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-      <input
-        type="text"
-        class="w-full sm:flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        [value]="query()"
-        (input)="onQueryChange($any($event.target).value)"
-        placeholder="Pretraži po broju članske karte (npr. LIB000123)"
-      />
-      <button
-        *ngIf="query()"
-        class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-        (click)="clearQuery()"
-      >
-        Obriši
-      </button>
-    </div>
+      <!-- ERROR -->
+      <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
+        {{ error() }}
+      </div>
 
-    <!-- ERROR -->
-    <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
-      {{ error() }}
-    </div>
+      <!-- TABLE CARD -->
+      <div class="bg-white border rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-700">
+              <tr>
+                <th class="text-left font-semibold px-4 py-3">Ime i prezime</th>
+                <th class="text-left font-semibold px-4 py-3">Broj clanske karte</th>
+                <th class="text-left font-semibold px-4 py-3">Naslov</th>
+                <th class="text-left font-semibold px-4 py-3">Autor</th>
 
-    <!-- TABLE -->
-    <div class="bg-white border rounded-2xl overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-700">
-            <tr>
-              <th class="text-left font-semibold px-4 py-3">Korisnik</th>
-              <th class="text-left font-semibold px-4 py-3">Broj članske karte</th>
-              <th class="text-left font-semibold px-4 py-3">Naslov</th>
-              <th class="text-left font-semibold px-4 py-3">Autor</th>
+                <th class="text-left font-semibold px-4 py-3">
+                  <button type="button" class="hover:underline" (click)="toggleSort('dueDate')">
+                    Rok vraćanja
+                    <span class="ml-1 text-xs text-gray-500" *ngIf="sortField()==='dueDate'">
+                      {{ sortDir()==='desc' ? '↓' : '↑' }}
+                    </span>
+                  </button>
+                </th>
 
-              <th class="text-left font-semibold px-4 py-3">
-                <button class="hover:underline" (click)="toggleSort('dueDate')">
-                  Rok vraćanja
-                  <span class="ml-1 text-xs text-gray-500" *ngIf="sortField()==='dueDate'">
-                    {{ sortDir()==='desc' ? '↓' : '↑' }}
+                <th class="text-left font-semibold px-4 py-3">Vraćena</th>
+                <th class="text-left font-semibold px-4 py-3">Datum vraćanja</th>
+                <th class="text-left font-semibold px-4 py-3">Status</th>
+                <th class="text-right font-semibold px-4 py-3"></th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y">
+              <!-- LOADING -->
+              <tr *ngIf="loading()">
+                <td colspan="9" class="px-4 py-6 text-gray-600">Učitavanje...</td>
+              </tr>
+
+              <!-- EMPTY -->
+              <tr *ngIf="!loading() && rows().length === 0">
+                <td colspan="9" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
+              </tr>
+
+              <!-- ROWS -->
+              <tr *ngFor="let l of rows()" class="hover:bg-gray-50/60">
+                <!-- Korisnik -->
+                <td class="px-4 py-3">
+                  <div class="font-medium text-gray-900">{{ l.userName || ($any(l).name) || ($any(l).user?.name) || '—' }}
+</div>
+                  
+                </td>
+
+                <!-- Članska -->
+                <td class="px-4 py-3 text-gray-800">
+                  <span class="font-medium">{{ l.membershipNumber || '—' }}</span>
+                </td>
+
+                <!-- Knjiga -->
+                <td class="px-4 py-3">
+                  <div class="font-medium text-gray-900">{{ l.bookTitle }}</div>
+                  
+                </td>
+
+                <!-- Autor -->
+                <td class="px-4 py-3 text-gray-800">{{ l.bookAuthor }}</td>
+
+                <!-- Rok -->
+                <td class="px-4 py-3 text-gray-800">
+                  {{ l.dueDate | date:'dd.MM.yyyy' }}
+                </td>
+
+                <!-- Vraćena -->
+                <td class="px-4 py-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
+                    [ngClass]="isReturned(l)
+                      ? 'border-green-300 bg-green-50 text-green-800'
+                      : 'border-yellow-300 bg-yellow-50 text-yellow-800'"
+                  >
+                    {{ isReturned(l) ? 'DA' : 'NE' }}
                   </span>
-                </button>
-              </th>
+                </td>
 
-              <th class="text-left font-semibold px-4 py-3">Vraćena</th>
-              <th class="text-left font-semibold px-4 py-3">Datum vraćanja</th>
-              <th class="text-right font-semibold px-4 py-3"></th>
-            </tr>
-          </thead>
+                <!-- Datum vraćanja -->
+                <td class="px-4 py-3 text-gray-800">
+                  {{ l.returnedAt ? (l.returnedAt | date:'dd.MM.yyyy') : '—' }}
+                </td>
 
-          <tbody>
-            <!-- LOADING -->
-            <tr *ngIf="loading()">
-              <td colspan="8" class="px-4 py-6 text-gray-600">Učitavanje...</td>
-            </tr>
+                <!-- Status -->
+                <td class="px-4 py-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
+                    [ngClass]="statusBadgeClass(l)"
+                  >
+                    {{ (l.status || '').toUpperCase() }}
+                  </span>
+                </td>
 
-            <!-- EMPTY -->
-            <tr *ngIf="!loading() && rows().length === 0">
-              <td colspan="8" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
-            </tr>
-
-            <!-- ROWS -->
-            <tr *ngFor="let l of rows()" class="border-t">
-              <td class="px-4 py-3">
-                <div class="font-medium text-gray-900 flex items-center gap-3">
-                  <span>{{ l.userName }}</span>
-
+                <!-- Akcije -->
+                <td class="px-4 py-3 text-right">
                   <button
-                    class="px-3 py-1.5 rounded-lg text-white text-xs disabled:opacity-50"
-                    [ngClass]="canReturn(l) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 cursor-not-allowed'"
+                    type="button"
+                    class="px-3 py-2 rounded-xl text-white text-xs disabled:opacity-50"
+                    [ngClass]="canReturn(l)
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-gray-300 cursor-not-allowed'"
                     [disabled]="!canReturn(l) || actionLoadingId()===l.loanId"
                     (click)="openReturnModal(l)"
                   >
                     <span *ngIf="actionLoadingId()===l.loanId">Vraćam...</span>
                     <span *ngIf="actionLoadingId()!==l.loanId">Vrati knjigu</span>
                   </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER PAGINATION -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
+          <div class="text-sm text-gray-600">
+            Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+            • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+              (click)="prevPage()"
+              [disabled]="loading() || page()===0"
+            >
+              Prethodna
+            </button>
+            <button
+              class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+              (click)="nextPage()"
+              [disabled]="loading() || page()+1>=totalPages()"
+            >
+              Sledeća
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RETURN CONFIRM MODAL -->
+      <div *ngIf="returnModalOpen()" class="fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/40" (click)="closeReturnModal()"></div>
+
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+          <div class="w-full max-w-md bg-white rounded-2xl shadow-lg border">
+            <div class="p-5 border-b">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-lg font-bold">Vrati knjigu</h2>
+                  <p class="text-sm text-gray-600">
+                    Da li ste sigurni da želite da označite iznajmljivanje kao vraćeno?
+                  </p>
                 </div>
-              </td>
-
-              <td class="px-4 py-3 text-gray-800">{{ l.membershipNumber || '—' }}</td>
-
-              <td class="px-4 py-3">
-                <div class="font-medium text-gray-900">{{ l.bookTitle }}</div>
-              </td>
-
-              <td class="px-4 py-3 text-gray-800">{{ l.bookAuthor }}</td>
-
-              <td class="px-4 py-3 text-gray-800">
-                {{ l.dueDate | date:'dd.MM.yyyy' }}
-              </td>
-
-              <td class="px-4 py-3">
-                <span
-                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
-                  [ngClass]="isReturned(l) ? 'border-green-300 bg-green-50 text-green-800' : 'border-yellow-300 bg-yellow-50 text-yellow-800'"
-                >
-                  {{ isReturned(l) ? 'DA' : 'NE' }}
-                </span>
-              </td>
-
-              <td class="px-4 py-3 text-gray-800">
-                {{ l.returnedAt ? (l.returnedAt | date:'dd.MM.yyyy') : '—' }}
-              </td>
-
-              <td class="px-4 py-3 text-right text-xs text-gray-500">
-                {{ l.status }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- FOOTER PAGINATION -->
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
-        <div class="text-sm text-gray-600">
-          Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
-          • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
-            (click)="prevPage()"
-            [disabled]="loading() || page()===0"
-          >
-            Prethodna
-          </button>
-          <button
-            class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
-            (click)="nextPage()"
-            [disabled]="loading() || page()+1>=totalPages()"
-          >
-            Sledeća
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RETURN CONFIRM MODAL -->
-    <div *ngIf="returnModalOpen()" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/40" (click)="closeReturnModal()"></div>
-
-      <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-lg border">
-          <div class="p-5 border-b">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <h2 class="text-lg font-bold">Vrati knjigu</h2>
-                <p class="text-sm text-gray-600">Da li ste sigurni da želite da označite iznajmljivanje kao vraćeno?</p>
+                <button class="text-gray-500 hover:text-gray-800" (click)="closeReturnModal()">✕</button>
               </div>
-              <button class="text-gray-500 hover:text-gray-800" (click)="closeReturnModal()">✕</button>
-            </div>
-          </div>
-
-          <div class="p-5">
-            <div class="text-sm text-gray-700 space-y-1 mb-4" *ngIf="selectedReturn() as s">
-              <div><span class="text-gray-500">Korisnik:</span> <span class="font-medium">{{ s.userName }}</span></div>
-              <div><span class="text-gray-500">Članska:</span> <span class="font-medium">{{ s.membershipNumber || '—' }}</span></div>
-              <div><span class="text-gray-500">Knjiga:</span> <span class="font-medium">{{ s.bookTitle }}</span></div>
-              <div><span class="text-gray-500">Autor:</span> <span class="font-medium">{{ s.bookAuthor }}</span></div>
-              <div><span class="text-gray-500">Rok:</span> <span class="font-medium">{{ s.dueDate | date:'dd.MM.yyyy' }}</span></div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-                (click)="closeReturnModal()"
-                [disabled]="actionLoadingId()!==null"
-              >
-                Otkaži
-              </button>
+            <div class="p-5">
+              <div class="text-sm text-gray-700 space-y-1 mb-4" *ngIf="selectedReturn() as s">
+                <div><span class="text-gray-500">Korisnik:</span> <span class="font-medium">{{ s.userName }}</span></div>
+                <div><span class="text-gray-500">Članska:</span> <span class="font-medium">{{ s.membershipNumber || '—' }}</span></div>
+                <div><span class="text-gray-500">Knjiga:</span> <span class="font-medium">{{ s.bookTitle }}</span></div>
+                <div><span class="text-gray-500">Autor:</span> <span class="font-medium">{{ s.bookAuthor }}</span></div>
+                <div><span class="text-gray-500">Rok:</span> <span class="font-medium">{{ s.dueDate | date:'dd.MM.yyyy' }}</span></div>
+              </div>
 
-              <button
-                type="button"
-                class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
-                (click)="confirmReturn()"
-                [disabled]="actionLoadingId()!==null || !selectedReturn()"
-              >
-                Potvrdi
-              </button>
-            </div>
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+                  (click)="closeReturnModal()"
+                  [disabled]="actionLoadingId()!==null"
+                >
+                  Otkaži
+                </button>
 
-            <div *ngIf="modalError()" class="mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
-              {{ modalError() }}
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                  (click)="confirmReturn()"
+                  [disabled]="actionLoadingId()!==null || !selectedReturn()"
+                >
+                  Potvrdi
+                </button>
+              </div>
+
+              <div *ngIf="modalError()" class="mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+                {{ modalError() }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-  </div>
+    </div>
   `,
 })
 export class LibrarianDashboardLoansComponent {
   private api = inject(LibrarianLoansService);
+  private router = inject(Router);
 
   rows = signal<LoanRow[]>([]);
   loading = signal(false);
@@ -272,6 +298,10 @@ export class LibrarianDashboardLoansComponent {
     effect(() => this.fetch());
   }
 
+  goToCreate(): void {
+    this.router.navigateByUrl('/librarian/dashboard/loans/new');
+  }
+
   fetch(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -295,12 +325,6 @@ export class LibrarianDashboardLoansComponent {
       },
     });
   }
-  private router = inject(Router);
-
-goToCreate(): void {
-  this.router.navigateByUrl('/librarian/dashboard/loans/new');
-}
-
 
   reload(): void {
     this.fetch();
@@ -351,6 +375,13 @@ goToCreate(): void {
 
   canReturn(l: LoanRow): boolean {
     return !this.isReturned(l);
+  }
+
+  statusBadgeClass(l: LoanRow): string {
+    const s = (l.status || '').toUpperCase();
+    if (s === 'RETURNED') return 'border-green-300 bg-green-50 text-green-800';
+    if (s === 'ACTIVE') return 'border-blue-300 bg-blue-50 text-blue-800';
+    return 'border-gray-300 bg-gray-50 text-gray-800';
   }
 
   openReturnModal(l: LoanRow): void {
