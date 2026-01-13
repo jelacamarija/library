@@ -19,7 +19,7 @@ public class BookController {
 
     private final BookService bookService;
 
-    @PostMapping
+    @PostMapping("/create")
     public BookResponseDto createBook(@RequestBody BookCreateRequestDto dto, HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
         if (!"LIBRARIAN".equals(role)) {

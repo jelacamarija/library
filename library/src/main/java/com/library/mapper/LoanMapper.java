@@ -10,6 +10,7 @@ public class LoanMapper {
                 .loanId(loan.getLoanId())
                 .userId(loan.getUser().getUserID())
                 .membershipNumber(loan.getUser().getMembershipNumber())
+                .userName(loan.getUser().getName())
                 .bookId(loan.getBook().getBookID())
                 .bookTitle(loan.getBook().getTitle())
                 .bookAuthor(loan.getBook().getAuthor())

@@ -105,15 +105,5 @@ public class LoanController {
         return loanService.searchLoansByMembershipNumber(page, size, sort, q);
     }
 
-    @PatchMapping("/{loanId}/return")
-    public void returnLoan(
-            HttpServletRequest request,
-            @PathVariable Long loanId
-    ) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen.");
-        }
-        loanService.returnLoan(loanId);
-    }
+
 }
