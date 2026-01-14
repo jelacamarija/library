@@ -11,9 +11,9 @@ export type ReservationResponseDto = {
   bookTitle: string;
   bookAuthor: string;
 
-  reservedAt: string; 
+  reservedAt: string;
   expiresAt: string;
-  status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | 'CANCELED' | string;
+  status: 'PENDING' | 'FULFILLED' | 'EXPIRED' | 'CANCELED' | string;
   loanID: number | null;
 };
 
@@ -48,8 +48,13 @@ export class ReservationService {
       this.getHeaders()
     );
   }
-
-  cancelReservation(reservationID: number): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${reservationID}/cancel`, {});
-  }
+  
+  //otkazivanje rezervacije
+  cancelReservation(reservationID: number): Observable<ReservationResponseDto> {
+  return this.http.put<ReservationResponseDto>(
+    `${this.baseUrl}/${reservationID}/cancel`,
+    {},
+    this.getHeaders()
+  );
+}
 }

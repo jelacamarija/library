@@ -134,6 +134,49 @@ export class ClientSearchComponent {
     this.messageOpen.set(true);
   }
 
+  private parseReserveError(err: any): { title: string; text: string } {
+  const raw =
+    (err?.error?.message || err?.message || 'Greška pri rezervaciji.').toString();
+
+  const msg = raw.toLowerCase();
+
+  // nema dostupnih knjiga / nije dostupna
+  if (
+    msg.includes('nije dostupna') ||
+    msg.includes('nema dostup') ||
+    msg.includes('dostupna za rezervaciju')
+  ) {
+    return {
+      title: 'Rezervacija nije moguća',
+      text: 'Trenutno nema dostupnih primjeraka ove knjige.',
+    };
+  }
+
+  // već ima pending rezervaciju
+  if (msg.includes('već imate rezervaciju') || msg.includes('vec imate rezervaciju')) {
+    return {
+      title: 'Već imate rezervaciju',
+      text: 'Već imate rezervaciju na čekanju za ovu knjigu. Pogledajte "Moje rezervacije".',
+    };
+  }
+
+  // već ima iznajmljenu (ACTIVE loan)
+  if (
+    msg.includes('iznajmljen') ||
+    msg.includes('iznajmljenu') ||
+    msg.includes('aktivno iznajmljivanje') ||
+    msg.includes('already') && msg.includes('loan')
+  ) {
+    return {
+      title: 'Knjiga je već izdata',
+      text: 'Ovu knjigu već imate iznajmljenu. Ne možete je rezervisati dok je ne vratite.',
+    };
+  }
+
+  return { title: 'Greška', text: raw };
+}
+
+
   closeMessage() {
     this.messageOpen.set(false);
     this.messageTitle.set('');
@@ -179,18 +222,14 @@ export class ClientSearchComponent {
         this.closeDetails();
         this.openMessage('success', 'Uspješno', msg);
 
-        // refresh da se osvježi copiesAvailable
-        this.loadAll();
-
-        // opcionalno: ako želiš da ostaneš na rezultatima pretrage umjesto "sve knjige",
-        // možeš umjesto loadAll uraditi:
-        // const q = this.query().trim();
-        // if (q) this.search$.next(q); else this.loadAll();
+      const q = this.query().trim();
+      if (q) this.search$.next(q);
+      else this.loadAll();
       },
       error: (err: any) => {
         this.reserving.set(false);
-        const msg = err?.error?.message ?? 'Greška pri rezervaciji.';
-        this.openMessage('error', 'Greška', msg);
+        const parsed = this.parseReserveError(err);
+        this.openMessage('error', parsed.title, parsed.text);
       },
     });
   }

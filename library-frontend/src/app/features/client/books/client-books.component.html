@@ -17,9 +17,7 @@
         <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
         <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
         <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
-        <p class="text-sm text-gray-600">
-          Dostupno: <span class="font-medium">{{ b.copiesAvailable }}</span> / {{ b.copiesTotal }}
-        </p>
+       
       </div>
 
       <div class="flex gap-2 mt-4">
@@ -75,11 +73,7 @@
       <p><span class="font-medium">ISBN:</span> {{ selectedBook()?.isbn }}</p>
       <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
       <p><span class="font-medium">Godina:</span> {{ selectedBook()?.publishedYear }}</p>
-      <p>
-        <span class="font-medium">Kopije:</span>
-        {{ selectedBook()?.copiesAvailable }} dostupno / {{ selectedBook()?.copiesTotal }} ukupno
-      </p>
-
+      
       <p class="pt-2 text-gray-800">
         <span class="font-medium">Opis:</span><br />
         {{ selectedBook()?.description }}
