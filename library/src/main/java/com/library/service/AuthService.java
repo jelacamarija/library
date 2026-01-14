@@ -91,7 +91,9 @@ public class AuthService {
 
      public LoginResponseDto loginUser(LoginRequestDto request){
          User user = userRepository.findByEmail(request.getEmail())
-                 .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa datim emailom"));
+                 .orElseThrow(() -> new ResponseStatusException(
+                         HttpStatus.UNAUTHORIZED, "Pogrešan email ili lozinka."
+                 ));
 
          if (Boolean.FALSE.equals(user.getIsVerified())) {
              throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Morate da verifikujete svoj nalog. Proverite mejl.");

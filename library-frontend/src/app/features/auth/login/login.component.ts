@@ -15,8 +15,10 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  toastMessage = '';
-  showToast = false;
+  modalOpen = false;
+  modalTitle = '';
+  modalText = '';
+  modalType: 'error' | 'info' | 'success' = 'info';
 
   loading = false;
   errorMsg = '';
@@ -26,14 +28,47 @@ export class LoginComponent {
     password: ['', [Validators.required]],
   });
 
-  private openToast(message: string) {
-  this.toastMessage = message;
-  this.showToast = true;
-}
-closeToast() {
-  this.showToast = false;
-  this.toastMessage = '';
-}
+  private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
+    this.modalType = type;
+    this.modalTitle = title;
+    this.modalText = text;
+    this.modalOpen = true;
+  }
+
+  closeModal() {
+    this.modalOpen = false;
+    this.modalTitle = '';
+    this.modalText = '';
+    this.modalType = 'info';
+  }
+
+  private parseLoginError(err: any): { title: string; text: string } {
+    const backendMsg =
+      err?.error?.message ??
+      err?.error?.error ??
+      (typeof err?.error === 'string' ? err.error : null) ??
+      'Prijava nije uspjela.';
+
+    if (err?.status === 403) {
+      return {
+        title: 'Nalog nije verifikovan',
+        text: backendMsg || 'Morate verifikovati nalog prije prijave.',
+      };
+    }
+
+    if (err?.status === 401) {
+      return {
+        title: 'Pogrešni podaci',
+        text: 'Pogrešan email ili lozinka.',
+      };
+    }
+
+    return {
+      title: 'Prijava nije uspjela',
+      text: backendMsg,
+    };
+  }
+
   submit(): void {
   this.errorMsg = '';
   if (this.form.invalid) {
@@ -50,27 +85,24 @@ closeToast() {
       else this.router.navigateByUrl('/client/books');
     },
     error: (err) => {
-      this.loading = false;
+    this.loading = false;
 
-      const backendMsg =
-        err?.error?.message ??
-        err?.error?.error ??
-        (typeof err?.error === 'string' ? err.error : null);
+    const backendMsg =
+      err?.error?.message ??
+      'Prijava nije uspjela.';
 
-      // ako je 403 (neverifikovan)
-      if (err?.status === 403) {
-        this.openToast(
-            'Morate da verifikujete svoj nalog prije prijave'
-        );
-        
+    if (err?.status === 403) {
+      this.openModal('error', 'Nalog nije verifikovan', backendMsg);
+      return;
+    }
 
-        return;
-      }
-  
+    if (err?.status === 401) {
+      this.openModal('error', 'Pogrešni podaci', 'Pogrešan email ili lozinka.');
+      return;
+    }
 
-
-      this.errorMsg = backendMsg ?? 'Pogrešan email ili lozinka.';
-    },
+    this.openModal('error', 'Prijava nije uspjela', backendMsg);
+  },
   });
 }
 }

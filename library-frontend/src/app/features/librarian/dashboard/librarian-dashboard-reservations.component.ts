@@ -148,14 +148,14 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
 
               <td class="px-4 py-3 text-right">
                 <button
-                  class="px-3 py-2 rounded-xl text-white disabled:opacity-50"
-                  [ngClass]="canActivate(r) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'"
-                  [disabled]="!canActivate(r) || actionLoadingId()===r.reservationID"
-                  (click)="openActivateModal(r)"
-                >
-                  <span *ngIf="actionLoadingId()===r.reservationID">Aktiviram...</span>
-                  <span *ngIf="actionLoadingId()!==r.reservationID">Aktiviraj</span>
-                </button>
+                class="px-3 py-2 rounded-xl text-white disabled:opacity-50"
+                [ngClass]="canActivate(r) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'"
+                [disabled]="!canActivate(r) || actionLoadingId()===r.reservationID"
+                (click)="openActivateModal(r)"
+              >
+                <span *ngIf="actionLoadingId()===r.reservationID">Aktiviram...</span>
+                <span *ngIf="actionLoadingId()!==r.reservationID">Aktiviraj</span>
+              </button>
               </td>
             </tr>
           </tbody>
@@ -211,39 +211,40 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
               <div><span class="text-gray-500">Autor:</span> <span class="font-medium">{{ s.bookAuthor }}</span></div>
             </div>
 
-            <form [formGroup]="activateForm" class="space-y-3" (ngSubmit)="confirmActivate()">
-              <div>
-                <label class="block text-sm text-gray-700 mb-1">Broj dana iznajmljivanja</label>
-                <input
-                  type="number"
-                  min="1"
-                  class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  formControlName="days"
-                />
-                <div *ngIf="activateForm.controls.days.touched && activateForm.controls.days.invalid"
-                     class="text-xs text-red-600 mt-1">
-                  Unesi broj dana (min 1).
-                </div>
-              </div>
+            <div class="space-y-3">
+              <p class="text-sm text-gray-700">
+                Aktivacijom se rezervacija označava kao <span class="font-medium">FULFILLED</span> i automatski se kreira iznajmljivanje
+                sa rokom vraćanja <span class="font-medium">30 dana</span> od dana preuzimanja.
+              </p>
 
               <div class="flex items-center justify-end gap-2 pt-2">
-                <button type="button"
-                        class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-                        (click)="closeActivateModal()">
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+                  (click)="closeActivateModal()"
+                  [disabled]="actionLoadingId()!==null"
+                >
                   Otkaži
                 </button>
 
-                <button type="submit"
-                        class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                        [disabled]="activateForm.invalid || actionLoadingId()!==null">
-                  Potvrdi aktivaciju
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  (click)="confirmActivate()"
+                  [disabled]="actionLoadingId()!==null"
+                >
+                  <span *ngIf="actionLoadingId()!==null">Aktiviram...</span>
+                  <span *ngIf="actionLoadingId()===null">Potvrdi aktivaciju</span>
                 </button>
               </div>
 
-              <div *ngIf="modalError()" class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+              <div
+                *ngIf="modalError()"
+                class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm"
+              >
                 {{ modalError() }}
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -277,10 +278,6 @@ export class LibrarianDashboardReservationsComponent {
   selected = signal<ReservationRow | null>(null);
   actionLoadingId = signal<number | null>(null);
   modalError = signal<string | null>(null);
-
-  activateForm = this.fb.nonNullable.group({
-    days: [14, [Validators.required, Validators.min(1)]],
-  });
 
   constructor() {
     effect(() => {
@@ -362,7 +359,7 @@ export class LibrarianDashboardReservationsComponent {
   statusClass(status: string): string {
     const s = (status || '').toUpperCase();
     if (s === 'PENDING') return 'border-yellow-300 bg-yellow-50 text-yellow-800';
-    if (s === 'ACTIVE') return 'border-green-300 bg-green-50 text-green-800';
+    if (s === 'FULFILLED') return 'border-green-300 bg-green-50 text-green-800';
     if (s === 'EXPIRED') return 'border-gray-300 bg-gray-50 text-gray-700';
     if (s === 'CANCELED' || s === 'CANCELLED') return 'border-red-300 bg-red-50 text-red-700';
     return 'border-gray-300 bg-white text-gray-700';
@@ -371,7 +368,6 @@ export class LibrarianDashboardReservationsComponent {
   openActivateModal(r: ReservationRow): void {
     this.modalError.set(null);
     this.selected.set(r);
-    this.activateForm.patchValue({ days: 14 });
     this.activateModalOpen.set(true);
   }
 
@@ -387,16 +383,9 @@ export class LibrarianDashboardReservationsComponent {
     const s = this.selected();
     if (!s) return;
 
-    if (this.activateForm.invalid) {
-      this.activateForm.markAllAsTouched();
-      return;
-    }
-
-    const days = this.activateForm.getRawValue().days;
-
     this.actionLoadingId.set(s.reservationID);
 
-    this.api.activate({ reservationID: s.reservationID, days }).subscribe({
+    this.api.activate({ reservationID: s.reservationID }).subscribe({
       next: () => {
         this.actionLoadingId.set(null);
         this.activateModalOpen.set(false);

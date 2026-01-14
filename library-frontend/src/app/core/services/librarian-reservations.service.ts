@@ -16,7 +16,7 @@ export interface ReservationRow {
   reservedAt: string;
   expiresAt: string | null;
 
-  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELED' | string;
+  status: 'PENDING' | 'FULFILLED' | 'EXPIRED' | 'CANCELED' | string;
   loanID: number | null;
 }
 
@@ -32,7 +32,6 @@ export interface PageResponse<T> {
 
 export interface ReservationActivatePayload {
   reservationID: number;
-  days: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +68,6 @@ export class LibrarianReservationsService {
   }
 
   activate(payload: ReservationActivatePayload): Observable<any> {
-    return this.http.post(`${this.baseUrl}/activate`, payload);
+    return this.http.post(`${this.baseUrl}/fulfill`, payload);
   }
 }
