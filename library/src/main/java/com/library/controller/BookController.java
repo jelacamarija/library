@@ -72,7 +72,7 @@ public class BookController {
         return bookService.searchBooks(query,page,size);
     }
 
-    @GetMapping("/filter")
+    /*@GetMapping("/filter")
     public Page<BookResponseDto> filterByCategory(@RequestParam String category,
                                                   @RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "10") int size){
@@ -96,7 +96,7 @@ public class BookController {
             @RequestParam(defaultValue = "10") int size) {
 
         return bookService.filterByCategoryAndSort(category, direction, page, size);
-    }
+    }*/
 
 
 }

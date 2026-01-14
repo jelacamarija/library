@@ -41,4 +41,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         WHERE LOWER(u.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
     """)
     Page<Reservation> searchByUserMembership(@Param("q") String q, Pageable pageable);
+    Optional<Reservation> findTopByUserAndBookAndStatusOrderByReservedAtDesc(
+            User user, Book book, String status
+    );
+
 }

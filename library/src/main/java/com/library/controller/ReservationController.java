@@ -91,8 +91,8 @@ public class ReservationController {
         return reservationService.getReservationsForUserLibrarian(userId, page, size);
     }
 
-    @PostMapping("/activate")
-    public ReservationResponseDto activateReservation(
+    @PostMapping("/fulfill")
+    public ReservationResponseDto fulfillReservation(
             @RequestBody ReservationActiveDto dto,
             HttpServletRequest request
     ) {
@@ -105,7 +105,7 @@ public class ReservationController {
             throw new RuntimeException("Samo bibliotekar može aktivirati rezervaciju");
         }
 
-        return reservationService.activateReservation(dto);
+        return reservationService.fulfillReservation(dto);
     }
 
     @PutMapping("/{id}/cancel")

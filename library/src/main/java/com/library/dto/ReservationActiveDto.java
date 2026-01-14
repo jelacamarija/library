@@ -7,5 +7,5 @@ import lombok.Data;
 public class ReservationActiveDto {
 
     private Long reservationID;
-    private int days;
+
 }

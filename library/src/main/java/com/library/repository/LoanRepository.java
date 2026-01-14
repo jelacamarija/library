@@ -1,6 +1,8 @@
 package com.library.repository;
 
+import com.library.entity.Book;
 import com.library.entity.Loan;
+import com.library.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +20,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     Page<Loan> findByStatus(String status, Pageable pageable);
     List<Loan> findByUser_UserIDOrderByLoanedAtDesc(Long userId);
     Page<Loan> findByUser_MembershipNumberContainingIgnoreCase(String membershipNumber, Pageable pageable);
+    boolean existsByUserAndBookAndStatusIgnoreCase(User user, Book book, String status);
+
 }

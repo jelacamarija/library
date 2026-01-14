@@ -8,6 +8,6 @@ public class LoanCreateDto {
 
     private Long userId;
     private Long bookId;
-    private Long reservationID;
-    private int days;
+   // private Long reservationID;
+
 }

@@ -1,6 +1,7 @@
 package com.library.scheduler;
 
 import com.library.entity.Reservation;
+import com.library.mapper.ReservationMapper;
 import com.library.repository.ReservationRepository;
 import com.library.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,10 @@ public class ReservationsScheduler {
     public void expireReservations() {
         Date now = new Date();
         List<Reservation> expired = reservationRepository
-                .findByStatusAndExpiresAtBefore("PENDING", now);
+                .findByStatusAndExpiresAtBefore(ReservationMapper.STATUS_PENDING, now);
         if (expired.isEmpty()) { return;}
         for (Reservation reservation : expired) {
-            reservation.setStatus("EXPIRED");
+            reservation.setStatus(ReservationMapper.STATUS_EXPIRED);
             reservation.getBook().setCopiesAvailable(
                     reservation.getBook().getCopiesAvailable() + 1
             );

@@ -10,7 +10,7 @@ import java.util.Date;
 public class ReservationMapper {
 
     public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_ACTIVE = "ACTIVE";
+    public static final String STATUS_FULFILLED = "FULFILLED";
     public static final String STATUS_EXPIRED = "EXPIRED";
     public static final String STATUS_CANCELED = "CANCELED";
 

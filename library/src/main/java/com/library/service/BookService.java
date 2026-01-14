@@ -85,7 +85,7 @@ public class BookService {
         return books.map(BookMapper::toDto);
     }
 
-    public Page<BookResponseDto> filterByCategory(String category, int page,int size){
+    /*public Page<BookResponseDto> filterByCategory(String category, int page,int size){
         Pageable pageable=PageRequest.of(page,size);
 
         Page<Book> books=bookRepository.findByCategoryIgnoreCase(category,pageable);
@@ -118,7 +118,7 @@ public class BookService {
         Page<Book> books = bookRepository.findByCategoryIgnoreCase(category, pageable);
 
         return books.map(BookMapper::toDto);
-    }
+    }*/
 
 
 

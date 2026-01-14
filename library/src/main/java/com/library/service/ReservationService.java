@@ -36,19 +36,27 @@ public class ReservationService {
         Book book = bookRepository.findById(bookID)
                 .orElseThrow(() -> new RuntimeException("Knjiga ne postoji"));
 
+
+        boolean alreadyLoaned = loanRepository.existsByUserAndBookAndStatusIgnoreCase(user, book, "ACTIVE");
+        if (alreadyLoaned) {
+            throw new RuntimeException("Ovu knjigu već imate iznajmljenu. Ne možete je rezervisati dok je ne vratite.");
+        }
+
+
         if (book.getCopiesAvailable() <= 0) {
-            throw new RuntimeException("Knjiga trenutno nije dostupna za rezervaciju");
+            throw new RuntimeException("Knjiga trenutno nije dostupna za rezervaciju.");
         }
 
 
         Optional<Reservation> existing =
                 reservationRepository.findByUserAndBookAndStatusIn(
-                        user, book, List.of(ReservationMapper.STATUS_PENDING, ReservationMapper.STATUS_ACTIVE)
+                        user, book, List.of(ReservationMapper.STATUS_PENDING)
                 );
 
         if (existing.isPresent()) {
-            throw new RuntimeException("Već imate rezervaciju za ovu knjigu (na čekanju ili aktivnu).");
+            throw new RuntimeException("Već imate rezervaciju na čekanju za ovu knjigu.");
         }
+
 
         book.setCopiesAvailable(book.getCopiesAvailable() - 1);
         bookRepository.save(book);
@@ -58,6 +66,7 @@ public class ReservationService {
 
         return ReservationMapper.toDto(reservation);
     }
+
 
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
         List<Reservation> reservations = reservationRepository.findByUserIdWithBook(userID);
@@ -85,34 +94,51 @@ public class ReservationService {
         return reservations.map(ReservationMapper::toDto);
     }
 
-    public ReservationResponseDto activateReservation(ReservationActiveDto dto){
+    @Transactional
+    public ReservationResponseDto fulfillReservation(ReservationActiveDto dto){
 
         Reservation reservation = reservationRepository.findById(dto.getReservationID())
                 .orElseThrow(() -> new RuntimeException("Rezervacija ne postoji"));
 
         if (!ReservationMapper.STATUS_PENDING.equalsIgnoreCase(reservation.getStatus())) {
-            throw new RuntimeException("Rezervacija nije na čekanju (možda je aktivirana, istekla ili otkazana).");
+            throw new RuntimeException("Rezervacija se moze preuzetu samo ako je na cekanju");
         }
 
-        // aktiviranje rezervacije
-        reservation.setStatus(ReservationMapper.STATUS_ACTIVE);
+        Date now = new Date();
+
+        if (reservation.getExpiresAt() != null && reservation.getExpiresAt().before(now)) {
+            // vrati kopiju jer je rezervacija propala
+            Book book = reservation.getBook();
+            book.setCopiesAvailable(book.getCopiesAvailable() + 1);
+            bookRepository.save(book);
+
+            reservation.setStatus(ReservationMapper.STATUS_EXPIRED);
+            reservationRepository.save(reservation);
+
+            throw new RuntimeException("Rezervacija je istekla i ne može se preuzeti.");
+        }
+
+        //provjerava da li korisnik ima aktivno iznajmljivanje iste knjige
+        boolean alreadyHasLoan =
+                loanRepository.existsByUserAndBookAndStatusIgnoreCase(
+                        reservation.getUser(), reservation.getBook(), "ACTIVE"
+                );
+        if (alreadyHasLoan) {
+            throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
+        }
+
+        reservation.setStatus(ReservationMapper.STATUS_FULFILLED);
         reservation.setUsed(true);
-        reservation.setExpiresAt(null); // više nema roka isteka
         reservationRepository.save(reservation);
 
-        // kreiranje loan jer je rez preuzeta
-        Book book = reservation.getBook();
-        User user = reservation.getUser();
-
-        Date now = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        calendar.add(Calendar.DAY_OF_MONTH, dto.getDays());
-        Date dueDate = calendar.getTime();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.MONTH, 1);
+        Date dueDate = cal.getTime();
 
         Loan loan = Loan.builder()
-                .user(user)
-                .book(book)
+                .user(reservation.getUser())
+                .book(reservation.getBook())
                 .reservation(reservation)
                 .loanedAt(now)
                 .dueDate(dueDate)
@@ -122,6 +148,7 @@ public class ReservationService {
         loanRepository.save(loan);
 
         return ReservationMapper.toDto(reservation);
+
     }
 
     @Transactional

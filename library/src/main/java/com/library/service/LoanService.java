@@ -8,6 +8,7 @@ import com.library.entity.Loan;
 import com.library.entity.Reservation;
 import com.library.entity.User;
 import com.library.mapper.LoanMapper;
+import com.library.mapper.ReservationMapper;
 import com.library.repository.BookRepository;
 import com.library.repository.LoanRepository;
 import com.library.repository.ReservationRepository;
@@ -35,48 +36,83 @@ public class LoanService {
     private final ReservationRepository reservationRepository;
 
 
+    @Transactional
     public LoanResponseDto createLoan(LoanCreateDto dto){
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("Korisnik nije pronadjen"));
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
 
         Book book = bookRepository.findById(dto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Knjiga nije pronadjena"));
+                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
 
-        if (book.getCopiesAvailable() <= 0) {
-            throw new RuntimeException("Knjiga trenutno nije dostupna za iznajmljivanje");
-
+        // 1) već ima aktivno iznajmljivanje za tu knjigu
+        if (loanRepository.existsByUserAndBookAndStatusIgnoreCase(user, book, "ACTIVE")) {
+            throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
         }
 
-        Reservation reservation=null;
+        Date now = new Date();
 
-        if(dto.getReservationID()!=null){
-            reservation= reservationRepository.findById(dto.getReservationID())
-                .orElseThrow(() -> new RuntimeException("Rezervacija nije pronadjena"));
+        // 2) da li postoji PENDING rezervacija za tu knjigu i tog korisnika?
+        Reservation pending = reservationRepository
+                .findTopByUserAndBookAndStatusOrderByReservedAtDesc(
+                        user, book, ReservationMapper.STATUS_PENDING
+                )
+                .orElse(null);
 
-            reservation.setStatus("ACTIVE");
-            reservationRepository.save(reservation);
+        if (pending != null) {
 
+            // ako je istekla (scheduler možda još nije stigao)
+            if (pending.getExpiresAt() != null && pending.getExpiresAt().before(now)) {
+
+                pending.setStatus(ReservationMapper.STATUS_EXPIRED);
+                reservationRepository.save(pending);
+
+                // vrati kopiju jer je rezervacija propala
+                book.setCopiesAvailable(book.getCopiesAvailable() + 1);
+                bookRepository.save(book);
+
+                // nakon toga nastavljamo kao "nema rezervacije"
+                pending = null;
+            }
         }
 
-        Loan loan = new Loan();
-        loan.setUser(user);
-        loan.setBook(book);
-        loan.setReservation(reservation);
-        loan.setLoanedAt(new Date());
-        loan.setStatus("ACTIVE");
+        // 3) Ako nema validne rezervacije → mora biti dostupna kopija
+        if (pending == null) {
+            if (book.getCopiesAvailable() <= 0) {
+                throw new RuntimeException("Knjiga trenutno nije dostupna za iznajmljivanje.");
+            }
+            // skidamo kopiju jer nema rezervacije
+            book.setCopiesAvailable(book.getCopiesAvailable() - 1);
+            bookRepository.save(book);
+        } else {
+            // 4) ima PENDING rezervaciju → preuzmi je (FULFILLED)
+            pending.setStatus(ReservationMapper.STATUS_FULFILLED);
+            pending.setUsed(true);
+            reservationRepository.save(pending);
+            // copiesAvailable se NE dira ovde (već je skinuto kad je rezervisana)
+        }
 
-        Calendar cal=Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(Calendar.DAY_OF_MONTH,dto.getDays());
-        loan.setDueDate(cal.getTime());
+        // dueDate = +1 mesec
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.MONTH, 1);
+        Date dueDate = cal.getTime();
 
-        book.setCopiesAvailable(book.getCopiesAvailable() - 1);
-        bookRepository.save(book);
+        Loan loan = Loan.builder()
+                .user(user)
+                .book(book)
+                .reservation(pending) // null ako nije bilo rezervacije
+                .loanedAt(now)
+                .dueDate(dueDate)
+                .status("ACTIVE")
+                .build();
 
         loanRepository.save(loan);
+
         return LoanMapper.toDto(loan);
     }
+
+
 
     public Page<LoanResponseDto> getAllLoans(int page, int size, String sort) {
         String[] sortParts = sort.split(",");
