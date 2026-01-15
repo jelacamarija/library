@@ -45,6 +45,9 @@ public class LoanService {
         Book book = bookRepository.findById(dto.getBookId())
                 .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
 
+        if(Boolean.FALSE.equals(user.getIsVerified())){
+            throw new RuntimeException("Korisnik nije verifikovan. Ne može iznajmiti knjigu.");
+        }
         // 1) već ima aktivno iznajmljivanje za tu knjigu
         if (loanRepository.existsByUserAndBookAndStatusIgnoreCase(user, book, "ACTIVE")) {
             throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
