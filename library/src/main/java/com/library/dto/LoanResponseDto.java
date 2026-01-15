@@ -1,5 +1,6 @@
 package com.library.dto;
 
+import com.library.entity.LoanStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -25,5 +26,5 @@ public class LoanResponseDto {
     private Date dueDate;
     private Date returnedAt;
 
-    private String status;
+    private LoanStatus status;
 }

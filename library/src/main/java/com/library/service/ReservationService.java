@@ -2,10 +2,7 @@ package com.library.service;
 
 import com.library.dto.ReservationActiveDto;
 import com.library.dto.ReservationResponseDto;
-import com.library.entity.Book;
-import com.library.entity.Loan;
-import com.library.entity.Reservation;
-import com.library.entity.User;
+import com.library.entity.*;
 import com.library.mapper.ReservationMapper;
 import com.library.repository.BookRepository;
 import com.library.repository.LoanRepository;
@@ -37,7 +34,7 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Knjiga ne postoji"));
 
 
-        boolean alreadyLoaned = loanRepository.existsByUserAndBookAndStatusIgnoreCase(user, book, "ACTIVE");
+        boolean alreadyLoaned = loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE);
         if (alreadyLoaned) {
             throw new RuntimeException("Ovu knjigu već imate iznajmljenu. Ne možete je rezervisati dok je ne vratite.");
         }
@@ -120,8 +117,8 @@ public class ReservationService {
 
         //provjerava da li korisnik ima aktivno iznajmljivanje iste knjige
         boolean alreadyHasLoan =
-                loanRepository.existsByUserAndBookAndStatusIgnoreCase(
-                        reservation.getUser(), reservation.getBook(), "ACTIVE"
+                loanRepository.existsByUserAndBookAndStatus(
+                        reservation.getUser(), reservation.getBook(), LoanStatus.ACTIVE
                 );
         if (alreadyHasLoan) {
             throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
@@ -142,7 +139,7 @@ public class ReservationService {
                 .reservation(reservation)
                 .loanedAt(now)
                 .dueDate(dueDate)
-                .status("ACTIVE")
+                .status(LoanStatus.ACTIVE)
                 .build();
 
         loanRepository.save(loan);

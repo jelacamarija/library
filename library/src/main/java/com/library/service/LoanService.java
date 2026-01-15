@@ -3,10 +3,7 @@ package com.library.service;
 
 import com.library.dto.LoanCreateDto;
 import com.library.dto.LoanResponseDto;
-import com.library.entity.Book;
-import com.library.entity.Loan;
-import com.library.entity.Reservation;
-import com.library.entity.User;
+import com.library.entity.*;
 import com.library.mapper.LoanMapper;
 import com.library.mapper.ReservationMapper;
 import com.library.repository.BookRepository;
@@ -49,7 +46,7 @@ public class LoanService {
             throw new RuntimeException("Korisnik nije verifikovan. Ne može iznajmiti knjigu.");
         }
         // 1) već ima aktivno iznajmljivanje za tu knjigu
-        if (loanRepository.existsByUserAndBookAndStatusIgnoreCase(user, book, "ACTIVE")) {
+        if (loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE)) {
             throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
         }
 
@@ -107,7 +104,7 @@ public class LoanService {
                 .reservation(pending) // null ako nije bilo rezervacije
                 .loanedAt(now)
                 .dueDate(dueDate)
-                .status("ACTIVE")
+                .status(LoanStatus.ACTIVE)
                 .build();
 
         loanRepository.save(loan);
@@ -142,12 +139,12 @@ public class LoanService {
 
         Loan loan = loanRepository.findById(loanID)
                 .orElseThrow(() -> new RuntimeException("Iznajmljivanje ne postoji."));
-        if ("RETURNED".equals(loan.getStatus())) {
+        if (LoanStatus.RETURNED.equals(loan.getStatus())) {
             throw new RuntimeException("Knjiga je već označena kao vraćena.");
         }
 
         loan.setReturnedAt(new Date());
-        loan.setStatus("RETURNED");
+        loan.setStatus(LoanStatus.RETURNED);
 
         Book book = loan.getBook();
         book.setCopiesAvailable(book.getCopiesAvailable() + 1);
@@ -158,7 +155,7 @@ public class LoanService {
 
     public Page<LoanResponseDto> getActiveLoans(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Loan> loans = loanRepository.findByStatus("ACTIVE", pageable);
+        Page<Loan> loans = loanRepository.findByStatus(LoanStatus.ACTIVE, pageable);
         return loans.map(LoanMapper::toDto);
     }
 
@@ -202,11 +199,11 @@ public class LoanService {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new RuntimeException("Iznajmljivanje ne postoji"));
 
-        if ("RETURNED".equalsIgnoreCase(loan.getStatus())) {
+        if (LoanStatus.RETURNED==loan.getStatus()) {
             throw new RuntimeException("Knjiga je već vraćena.");
         }
 
-        loan.setStatus("RETURNED");
+        loan.setStatus(LoanStatus.RETURNED);
         loan.setReturnedAt(new Date());
 
         Book book = loan.getBook();

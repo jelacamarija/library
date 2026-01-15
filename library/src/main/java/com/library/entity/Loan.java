@@ -39,6 +39,8 @@ public class Loan {
     @Temporal(TemporalType.TIMESTAMP)
     private Date returnedAt;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LoanStatus status;
 
 }
