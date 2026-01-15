@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject ,ChangeDetectorRef} from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -14,6 +14,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private cdr=inject(ChangeDetectorRef)
 
   modalOpen = false;
   modalTitle = '';
@@ -33,6 +34,8 @@ export class LoginComponent {
     this.modalTitle = title;
     this.modalText = text;
     this.modalOpen = true;
+
+    this.cdr.detectChanges();
   }
 
   closeModal() {
@@ -42,32 +45,58 @@ export class LoginComponent {
     this.modalType = 'info';
   }
 
-  private parseLoginError(err: any): { title: string; text: string } {
-    const backendMsg =
-      err?.error?.message ??
+  private parseLoginError(err: any): { title: string; text: string; type: 'error' | 'info' | 'success' } {
+  const raw =
+    (err?.error?.message ??
       err?.error?.error ??
       (typeof err?.error === 'string' ? err.error : null) ??
-      'Prijava nije uspjela.';
+      err?.message ??
+      'Prijava nije uspjela.'
+    ).toString();
 
-    if (err?.status === 403) {
-      return {
-        title: 'Nalog nije verifikovan',
-        text: backendMsg || 'Morate verifikovati nalog prije prijave.',
-      };
-    }
+  const msg = raw.toLowerCase();
+  const status = err?.status;
 
-    if (err?.status === 401) {
-      return {
-        title: 'Pogrešni podaci',
-        text: 'Pogrešan email ili lozinka.',
-      };
-    }
-
+  // 1) Nalog nije verifikovan
+  if (status === 403 || msg.includes('verifik') || msg.includes('nije verifik')) {
     return {
-      title: 'Prijava nije uspjela',
-      text: backendMsg,
+      type: 'error',
+      title: 'Nalog nije verifikovan',
+      text: raw || 'Morate verifikovati nalog prije prijave.',
     };
   }
+
+  // 2) Nalog nije aktiviran / postavljanje lozinke
+  if (status === 403 && (msg.includes('nije aktiviran') || msg.includes('postavite lozinku') || msg.includes('set-password'))) {
+    return {
+      type: 'error',
+      title: 'Nalog nije aktiviran',
+      text: raw,
+    };
+  }
+
+  // 3) Pogrešni podaci (401 ili poruka)
+  if (status === 401 || msg.includes('pogrešan email') || msg.includes('pogresan email')) {
+    return {
+      type: 'error',
+      title: 'Pogrešni podaci',
+      text: 'Pogrešan email ili lozinka, pokusajte opet!',
+    };
+  }
+
+  // 4) Pogrešna lozinka (tvoj backend trenutno može vratiti 409 preko GlobalExceptionHandler)
+  if (status === 409 && (msg.includes('pogrešna lozinka') || msg.includes('pogresna lozinka'))) {
+    return {
+      type: 'error',
+      title: 'Pogrešni podaci',
+      text: 'Pogrešan email ili lozinka, pokusajte opet!',
+    };
+  }
+
+  // Fallback
+  return { type: 'error', title: 'Prijava nije uspjela', text: raw };
+}
+
 
   submit(): void {
   this.errorMsg = '';
@@ -77,6 +106,8 @@ export class LoginComponent {
   }
 
   this.loading = true;
+  this.cdr.detectChanges();
+
   this.auth.login(this.form.getRawValue()).subscribe({
     next: () => {
       this.loading = false;
@@ -85,24 +116,11 @@ export class LoginComponent {
       else this.router.navigateByUrl('/client/books');
     },
     error: (err) => {
-    this.loading = false;
-
-    const backendMsg =
-      err?.error?.message ??
-      'Prijava nije uspjela.';
-
-    if (err?.status === 403) {
-      this.openModal('error', 'Nalog nije verifikovan', backendMsg);
-      return;
-    }
-
-    if (err?.status === 401) {
-      this.openModal('error', 'Pogrešni podaci', 'Pogrešan email ili lozinka.');
-      return;
-    }
-
-    this.openModal('error', 'Prijava nije uspjela', backendMsg);
-  },
+      this.loading = false;
+      const parsed = this.parseLoginError(err);
+      this.openModal(parsed.type, parsed.title, parsed.text);
+    },
   });
 }
+
 }

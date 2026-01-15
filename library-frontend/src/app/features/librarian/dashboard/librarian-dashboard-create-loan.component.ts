@@ -3,7 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { Router } from '@angular/router';
 import { LibrarianLoansService } from '../../../core/services/librarian-loans.service';
 
-type UserOpt = { userId: number; name: string; membershipNumber: string };
+type UserOpt = { userId: number; name: string; membershipNumber: string ,isVerified:boolean};
 type BookOpt = { bookId: number; title: string; author: string };
 
 @Component({
@@ -17,14 +17,6 @@ type BookOpt = { bookId: number; title: string; author: string };
         <p class="text-sm text-gray-600">
           Izaberi korisnika i knjigu. Rok vraćanja je automatski 30 dana od danas.
         </p>
-      </div>
-
-      <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
-        {{ error() }}
-      </div>
-
-      <div *ngIf="success()" class="mb-4 p-4 rounded-xl border border-green-200 bg-green-50 text-green-800">
-        {{ success() }}
       </div>
 
       <!-- ✅ BITNO: (submit) + preventDefault u TS -->
@@ -59,15 +51,28 @@ type BookOpt = { bookId: number; title: string; author: string };
               Pretraga korisnika...
             </div>
 
-            <button
-              type="button"
-              *ngFor="let u of userOptions()"
-              class="w-full text-left px-4 py-2 hover:bg-gray-50"
-              (click)="selectUser(u)"
-            >
-              <div class="font-medium text-gray-900">{{ u.membershipNumber }}</div>
-              <div class="text-xs text-gray-600">{{ u.name }}</div>
-            </button>
+          <button
+  type="button"
+  *ngFor="let u of userOptions()"
+  class="w-full text-left px-4 py-2 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+  [disabled]="!u.isVerified"
+  (click)="selectUser(u)"
+>
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <div class="font-medium text-gray-900">{{ u.membershipNumber }}</div>
+      <div class="text-xs text-gray-600">{{ u.name }}</div>
+    </div>
+
+    <span
+      *ngIf="!u.isVerified"
+      class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200"
+    >
+      Nije verifikovan
+    </span>
+  </div>
+</button>
+
 
             <div class="px-4 py-3 text-sm text-gray-600"
                  *ngIf="!userLoading() && userOptions().length === 0">
@@ -77,7 +82,6 @@ type BookOpt = { bookId: number; title: string; author: string };
         </div>
 
         <!-- BOOK AUTOCOMPLETE -->
-        <!-- ✅ BITNO: book-autocomplete -->
         <div class="relative book-autocomplete">
           <label class="block text-sm text-gray-700 mb-1">Knjiga (naslov ili autor)</label>
 
@@ -157,6 +161,45 @@ type BookOpt = { bookId: number; title: string; author: string };
         </div>
       </form>
     </div>
+
+    <!-- ===== MODAL ===== -->
+    <div
+      *ngIf="modalOpen()"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="bg-white rounded-2xl shadow-xl w-[92%] max-w-md p-6 relative">
+        <button
+          (click)="closeModal()"
+          class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
+        >
+          ✕
+        </button>
+
+        <h2
+          class="text-lg font-semibold mb-2"
+          [ngClass]="{
+            'text-red-600': modalType() === 'error',
+            'text-green-600': modalType() === 'success',
+            'text-gray-800': modalType() === 'info'
+          }"
+        >
+          {{ modalTitle() }}
+        </h2>
+
+        <p class="text-gray-700 mb-6">
+          {{ modalText() }}
+        </p>
+
+        <div class="flex justify-end">
+          <button
+            (click)="closeModal()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class LibrarianDashboardCreateLoanComponent {
@@ -164,8 +207,12 @@ export class LibrarianDashboardCreateLoanComponent {
   private router = inject(Router);
 
   loading = signal(false);
-  error = signal<string | null>(null);
-  success = signal<string | null>(null);
+
+  // ===== MODAL =====
+  modalOpen = signal(false);
+  modalTitle = signal('');
+  modalText = signal('');
+  modalType = signal<'error' | 'info' | 'success'>('info');
 
   today = signal(new Date());
   dueDatePreview = computed(() => {
@@ -187,8 +234,6 @@ export class LibrarianDashboardCreateLoanComponent {
   onUserQueryChange(value: string): void {
     this.userQuery.set(value);
     this.selectedUser.set(null);
-    this.error.set(null);
-    this.success.set(null);
 
     const q = value.trim();
     if (this.userDebounce) clearTimeout(this.userDebounce);
@@ -211,13 +256,15 @@ export class LibrarianDashboardCreateLoanComponent {
       next: (res: any) => {
         if (this.lastUserQuery !== q) return;
 
-        const list: UserOpt[] = (res?.content ?? [])
-          .map((u: any) => ({
-            userId: u.userId ?? u.userID ?? u.id,
-            name: u.name,
-            membershipNumber: u.membershipNumber,
-          }))
-          .filter((x: any) => !!x.userId && !!x.membershipNumber);
+ const list: UserOpt[] = (res?.content ?? [])
+  .map((u: any) => ({
+    userId: u.userId ?? u.userID ?? u.id,
+    name: u.name,
+    membershipNumber: u.membershipNumber,
+    isVerified: Boolean(u.isVerified ?? u.verified ?? u.is_verified ?? false),
+  }))
+  .filter((x: any) => !!x.userId && !!x.membershipNumber);
+
 
         this.userOptions.set(list);
         this.userLoading.set(false);
@@ -233,11 +280,21 @@ export class LibrarianDashboardCreateLoanComponent {
   }
 
   selectUser(u: UserOpt): void {
-    this.selectedUser.set(u);
-    this.userQuery.set(`${u.membershipNumber} — ${u.name}`);
-    this.userOptions.set([]);
-    this.userDropdownOpen.set(false);
+  if (!u.isVerified) {
+    this.openModal(
+      'error',
+      'Nalog nije verifikovan',
+      'Ovaj korisnik nije verifikovao nalog i ne može zadužiti knjigu.'
+    );
+    return;
   }
+
+  this.selectedUser.set(u);
+  this.userQuery.set(`${u.membershipNumber} — ${u.name}`);
+  this.userOptions.set([]);
+  this.userDropdownOpen.set(false);
+}
+
 
   clearSelectedUser(): void {
     this.selectedUser.set(null);
@@ -259,8 +316,6 @@ export class LibrarianDashboardCreateLoanComponent {
   onBookQueryChange(value: string): void {
     this.bookQuery.set(value);
     this.selectedBook.set(null);
-    this.error.set(null);
-    this.success.set(null);
 
     const q = value.trim();
     if (this.bookDebounce) clearTimeout(this.bookDebounce);
@@ -328,19 +383,81 @@ export class LibrarianDashboardCreateLoanComponent {
     if (!target.closest('.book-autocomplete')) this.bookDropdownOpen.set(false);
   }
 
+  // ===== MODAL HELPERS =====
+  private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
+    this.modalType.set(type);
+    this.modalTitle.set(title);
+    this.modalText.set(text);
+    this.modalOpen.set(true);
+  }
+
+  closeModal() {
+    this.modalOpen.set(false);
+    this.modalTitle.set('');
+    this.modalText.set('');
+    this.modalType.set('info');
+  }
+
+  private parseCreateLoanError(err: any): { title: string; text: string } {
+    const raw =
+      (err?.error?.message ??
+        err?.error?.error ??
+        (typeof err?.error === 'string' ? err.error : null) ??
+        'Neuspješno kreiranje iznajmljivanja.'
+      ).toString();
+
+    const msg = raw.toLowerCase();
+
+    if (msg.includes('već ima aktivno') || msg.includes('vec ima aktivno')) {
+      return {
+        title: 'Već iznajmljena knjiga',
+        text: 'Korisnik već ima aktivno iznajmljivanje za ovu knjigu.',
+      };
+    }
+
+    if (msg.includes('nije dostupna') || msg.includes('nije dostupna za iznajmljivanje')) {
+      return {
+        title: 'Knjiga nije dostupna',
+        text: 'Trenutno nema dostupnih primjeraka ove knjige.',
+      };
+    }
+
+    if (msg.includes('korisnik nije prona')) {
+      return {
+        title: 'Korisnik ne postoji',
+        text: 'Izabrani korisnik više ne postoji u sistemu.',
+      };
+    }
+
+    if (msg.includes('knjiga nije prona')) {
+      return {
+        title: 'Knjiga ne postoji',
+        text: 'Izabrana knjiga više ne postoji u sistemu.',
+      };
+    }
+
+    return { title: 'Greška', text: raw };
+  }
+
   // ✅ BITNO: preventDefault da nema refresh
   submit(ev?: Event): void {
     ev?.preventDefault();
-
-    console.log('SUBMIT FIRED');
 
     const u = this.selectedUser();
     const b = this.selectedBook();
     if (!u || !b) return;
 
+    if (!u.isVerified) {
+  this.openModal(
+    'error',
+    'Nalog nije verifikovan',
+    'Izabrani korisnik nije verifikovao nalog i ne može zadužiti knjigu.'
+  );
+  return;
+}
+
+
     this.loading.set(true);
-    this.error.set(null);
-    this.success.set(null);
 
     const payload = {
       userId: u.userId,
@@ -352,12 +469,17 @@ export class LibrarianDashboardCreateLoanComponent {
     this.api.createLoan(payload).subscribe({
       next: () => {
         this.loading.set(false);
-        this.success.set('Iznajmljivanje uspješno kreirano.');
-        this.router.navigateByUrl('/librarian/dashboard/loans');
+
+        this.openModal('success', 'Uspješno', 'Iznajmljivanje je uspješno kreirano.');
+
+        setTimeout(() => {
+          this.router.navigateByUrl('/librarian/dashboard/loans');
+        }, 800);
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.message ?? 'Neuspješno kreiranje iznajmljivanja.');
+        const parsed = this.parseCreateLoanError(err);
+        this.openModal('error', parsed.title, parsed.text);
       },
     });
   }

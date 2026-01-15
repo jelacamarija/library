@@ -17,63 +17,92 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
       </p>
     </div>
 
-    <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
-      {{ error() }}
-    </div>
-
-    <div *ngIf="success()" class="mb-4 p-4 rounded-xl border border-green-200 bg-green-50 text-green-800">
-      {{ success() }}
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white border rounded-2xl p-6 space-y-4">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="bg-white border rounded-2xl p-6 space-y-4"
+    >
       <div>
         <label class="block text-sm text-gray-700 mb-1">Ime i prezime</label>
         <input
-          class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full border rounded-xl px-3 py-2"
           formControlName="name"
-          placeholder="npr. Petar Petrović"
         />
-        <div *ngIf="form.controls.name.touched && form.controls.name.invalid" class="text-xs text-red-600 mt-1">
-          Unesi ime i prezime.
-        </div>
       </div>
 
       <div>
         <label class="block text-sm text-gray-700 mb-1">Email</label>
         <input
           type="email"
-          class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full border rounded-xl px-3 py-2"
           formControlName="email"
-          placeholder="npr. petar@gmail.com"
         />
-        <div *ngIf="form.controls.email.touched && form.controls.email.invalid" class="text-xs text-red-600 mt-1">
-          Unesi ispravan email.
-        </div>
       </div>
 
       <div>
         <label class="block text-sm text-gray-700 mb-1">Broj telefona</label>
         <input
-          class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full border rounded-xl px-3 py-2"
           formControlName="phoneNumber"
-          placeholder="npr. 06x/xxx-xxx"
         />
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-2">
-        <button type="button" class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50" (click)="back()">
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl border"
+          (click)="back()"
+        >
           Nazad
         </button>
+
         <button
           type="submit"
-          class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
           [disabled]="form.invalid || loading()"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50"
         >
-          <span *ngIf="loading()">Kreiram...</span>
-          <span *ngIf="!loading()">Kreiraj korisnika</span>
+          {{ loading() ? 'Kreiram...' : 'Kreiraj korisnika' }}
         </button>
       </div>
     </form>
+  </div>
+
+  <!-- ===== MODAL ===== -->
+  <div
+    *ngIf="modalOpen()"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  >
+    <div class="bg-white rounded-2xl shadow-xl w-[92%] max-w-md p-6 relative">
+      <button
+        (click)="closeModal()"
+        class="absolute top-3 right-3 text-gray-400 text-xl"
+      >
+        ✕
+      </button>
+
+      <h2
+        class="text-lg font-semibold mb-2"
+        [ngClass]="{
+          'text-red-600': modalType() === 'error',
+          'text-green-600': modalType() === 'success'
+        }"
+      >
+        {{ modalTitle() }}
+      </h2>
+
+      <p class="text-gray-700 mb-6">
+        {{ modalText() }}
+      </p>
+
+      <div class="flex justify-end">
+        <button
+          (click)="closeModal()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-xl"
+        >
+          OK
+        </button>
+      </div>
+    </div>
   </div>
   `,
 })
@@ -83,8 +112,12 @@ export class LibrarianDashboardUserCreateComponent {
   private router = inject(Router);
 
   loading = signal(false);
-  error = signal<string | null>(null);
-  success = signal<string | null>(null);
+
+  // ===== MODAL STATE =====
+  modalOpen = signal(false);
+  modalTitle = signal('');
+  modalText = signal('');
+  modalType = signal<'error' | 'info' | 'success'>('info');
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
@@ -93,9 +126,6 @@ export class LibrarianDashboardUserCreateComponent {
   });
 
   submit(): void {
-    this.error.set(null);
-    this.success.set(null);
-
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -103,22 +133,64 @@ export class LibrarianDashboardUserCreateComponent {
 
     this.loading.set(true);
 
-    const payload = this.form.getRawValue();
-
-    this.api.createUser(payload).subscribe({
+    this.api.createUser(this.form.getRawValue()).subscribe({
       next: (msg) => {
         this.loading.set(false);
-        this.success.set(msg || 'Korisnik kreiran. Poslat mejl za postavljanje lozinke.');
         this.form.reset({ name: '', email: '', phoneNumber: '' });
+
+        this.openModal(
+          'success',
+          'Uspješno',
+          msg || 'Korisnik kreiran. Poslat mejl za postavljanje lozinke.'
+        );
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.message ?? 'Neuspješno kreiranje korisnika.');
+        const parsed = this.parseCreateUserError(err);
+        this.openModal('error', parsed.title, parsed.text);
       },
     });
   }
 
   back(): void {
     this.router.navigateByUrl('/librarian/dashboard/users');
+  }
+
+  // ===== MODAL HELPERS =====
+  private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
+    this.modalType.set(type);
+    this.modalTitle.set(title);
+    this.modalText.set(text);
+    this.modalOpen.set(true);
+  }
+
+  closeModal() {
+    this.modalOpen.set(false);
+    this.modalTitle.set('');
+    this.modalText.set('');
+    this.modalType.set('info');
+  }
+
+  private parseCreateUserError(err: any): { title: string; text: string } {
+    const raw =
+      (err?.error?.message ??
+        err?.error?.error ??
+        (typeof err?.error === 'string' ? err.error : null) ??
+        'Neuspješno kreiranje korisnika.'
+      ).toString();
+
+    const msg = raw.toLowerCase();
+
+    if (err?.status === 409 || msg.includes('vec postoji') || msg.includes('već postoji')) {
+      return {
+        title: 'Email je zauzet',
+        text: 'Korisnik sa ovim emailom već postoji. Unesite drugi email.',
+      };
+    }
+
+    return {
+      title: 'Greška',
+      text: raw,
+    };
   }
 }
