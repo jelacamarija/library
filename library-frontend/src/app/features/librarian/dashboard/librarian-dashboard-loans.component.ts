@@ -141,9 +141,11 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
                     [ngClass]="isReturned(l)
                       ? 'border-green-300 bg-green-50 text-green-800'
-                      : 'border-yellow-300 bg-yellow-50 text-yellow-800'"
+                      : (isExpired(l)
+                          ? 'border-red-300 bg-red-50 text-red-800'
+                          : 'border-yellow-300 bg-yellow-50 text-yellow-800')"
                   >
-                    {{ isReturned(l) ? 'DA' : 'NE' }}
+                    {{ isReturned(l) ? 'DA' : (isExpired(l) ? 'ISTEKLO' : 'NE') }}
                   </span>
                 </td>
 
@@ -368,20 +370,25 @@ export class LibrarianDashboardLoansComponent {
     this.fetch();
   }
 
+  isExpired(l: LoanRow): boolean {
+    return (l.status || '').toUpperCase() === 'EXPIRED';
+  }
+
   isReturned(l: LoanRow): boolean {
     const s = (l.status || '').toUpperCase();
     return s === 'RETURNED' || l.returnedAt != null;
   }
 
   canReturn(l: LoanRow): boolean {
-    return !this.isReturned(l);
+    return !this.isReturned(l) && !this.isExpired(l);
   }
 
   statusBadgeClass(l: LoanRow): string {
     const s = (l.status || '').toUpperCase();
-    if (s === 'RETURNED') return 'border-green-300 bg-green-50 text-green-800';
-    if (s === 'ACTIVE') return 'border-blue-300 bg-blue-50 text-blue-800';
-    return 'border-gray-300 bg-gray-50 text-gray-800';
+      if (s === 'RETURNED') return 'border-green-300 bg-green-50 text-green-800';
+      if (s === 'ACTIVE') return 'border-blue-300 bg-blue-50 text-blue-800';
+      if (s === 'EXPIRED') return 'border-red-300 bg-red-50 text-red-800';
+      return 'border-gray-300 bg-gray-50 text-gray-800';
   }
 
   openReturnModal(l: LoanRow): void {

@@ -69,7 +69,7 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
 
               <td class="p-3 text-gray-700">
                 <!-- Rok vraćanja prikazujemo samo ako je ACTIVE -->
-                <span *ngIf="isActive(l); else dash">
+                <span *ngIf="isActive(l) || isExpired(l); else dash">
                   {{ formatDate(l.dueDate) }}
                 </span>
                 <ng-template #dash>—</ng-template>
@@ -107,12 +107,10 @@ export class ClientProfileLoansComponent implements OnInit {
   ngOnInit(): void {
     this.service.getMyLoans().subscribe({
       next: (res) => {
-        // Ako želiš da prikazuje baš sve (ACTIVE + RETURNED), ostavi ovako:
         this.items = (res ?? []).slice();
 
-        // Ako želiš da filtriraš samo ACTIVE/RETURNED (da ne upadne neki EXPIRED itd):
         this.items = this.items.filter((l) =>
-          ['ACTIVE', 'RETURNED'].includes((l.status || '').toUpperCase())
+          ['ACTIVE', 'RETURNED', 'EXPIRED'].includes((l.status || '').toUpperCase())
         );
 
         this.loading = false;
@@ -133,6 +131,10 @@ export class ClientProfileLoansComponent implements OnInit {
     return (l.status || '').toUpperCase() === 'RETURNED';
   }
 
+  isExpired(l: LoanResponseDto): boolean {
+    return (l.status || '').toUpperCase() === 'EXPIRED';
+  }
+
   formatDate(value?: string | null): string {
   if (!value) return '—';
   const d = new Date(value);
@@ -150,6 +152,7 @@ export class ClientProfileLoansComponent implements OnInit {
     const s = (status || '').toUpperCase();
     if (s === 'ACTIVE') return 'Aktivno';
     if (s === 'RETURNED') return 'Vraćeno';
+    if (s === 'EXPIRED') return 'Isteklo';
     return status || '—';
   }
 
@@ -163,6 +166,9 @@ export class ClientProfileLoansComponent implements OnInit {
 
     if (s === 'RETURNED')
       return `${base} bg-green-50 text-green-700 border-green-200`;
+
+    if (s === 'EXPIRED')
+      return `${base} bg-orange-50 text-red-700 border-red-200`;
 
     return `${base} bg-gray-50 text-gray-700 border-gray-200`;
   }

@@ -34,12 +34,25 @@ export class LibrarianBooksComponent {
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     author: ['', [Validators.required, Validators.minLength(2)]],
-    isbn: ['', [Validators.required, Validators.minLength(5)]],
+
+    isbn: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^\d{13}$/),
+      ],
+    ],
+
     category: ['', [Validators.required]],
-    publishedYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
+
+    publishedYear: [
+      new Date().getFullYear(),
+      [Validators.required, Validators.min(1)],
+    ],
+
     copiesTotal: [1, [Validators.required, Validators.min(1)]],
-    copiesAvailable: [1, [Validators.required, Validators.min(0)]],
-    description: [''],
+
+    description: [''], 
   });
 
   isLoading = computed(() => this.state().status === 'loading');
@@ -89,7 +102,6 @@ export class LibrarianBooksComponent {
       category: '',
       publishedYear: new Date().getFullYear(),
       copiesTotal: 1,
-      copiesAvailable: 1,
       description: '',
     });
     this.showAddModal.set(true);
@@ -113,11 +125,6 @@ export class LibrarianBooksComponent {
     if (!ok) return;
 
     const payload = this.form.getRawValue();
-
-    if (payload.copiesAvailable > payload.copiesTotal) {
-      this.addError.set('Dostupne kopije ne mogu biti veće od ukupnih.');
-      return;
-    }
 
     this.addLoading.set(true);
 

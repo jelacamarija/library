@@ -7,6 +7,7 @@ import com.library.dto.BookUpdateCopiesDto;
 import com.library.dto.BookUpdateDescriptionDto;
 import com.library.service.BookService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
@@ -20,7 +21,7 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping("/create")
-    public BookResponseDto createBook(@RequestBody BookCreateRequestDto dto, HttpServletRequest request) {
+    public BookResponseDto createBook(@Valid @RequestBody BookCreateRequestDto dto, HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
         if (!"LIBRARIAN".equals(role)) {
             throw new RuntimeException("Nemate pravo pristupa — samo bibliotekar može dodati knjigu.");

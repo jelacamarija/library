@@ -34,7 +34,6 @@ export class BookService {
     category: string;
     publishedYear: number;
     copiesTotal: number;
-    copiesAvailable: number;
     description: string;
   }) {
   return this.http.post<BookDto>('/api/books', payload);
