@@ -13,7 +13,7 @@ export const landingGuard: CanActivateFn = () => {
 
   const role = auth.getRole();
   if (role === 'LIBRARIAN') {
-    router.navigateByUrl('/librarian/books'); // ili '/librarian/dashboard'
+    router.navigateByUrl('/librarian/books');
   } else if (role === 'CLIENT') {
     router.navigateByUrl('/client/books');
   } else {

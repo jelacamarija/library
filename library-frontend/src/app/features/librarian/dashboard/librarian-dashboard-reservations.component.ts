@@ -273,7 +273,6 @@ export class LibrarianDashboardReservationsComponent {
   totalElements = signal(0);
   totalPages = signal(1);
 
-  // activate modal
   activateModalOpen = signal(false);
   selected = signal<ReservationRow | null>(null);
   actionLoadingId = signal<number | null>(null);

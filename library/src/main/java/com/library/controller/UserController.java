@@ -28,7 +28,6 @@ public class UserController {
         return userService.getMyProfile(userID);
     }
 
-    // LIBRARIAN: lista svih CLIENT korisnika
     @GetMapping("/clients")
     public Page<UserListDto> allClients(
             @RequestParam(defaultValue = "0") int page,
@@ -39,7 +38,6 @@ public class UserController {
         return userService.getAllClients(page, size);
     }
 
-    // LIBRARIAN: pretraga po cl. broju (contains)
     @GetMapping("/clients/search")
     public Page<UserListDto> searchClients(
             @RequestParam String q,
@@ -51,7 +49,6 @@ public class UserController {
         return userService.searchClientsByMembership(q, page, size);
     }
 
-    // LIBRARIAN: tačan članski broj
     @GetMapping("/clients/by-membership/{membershipNumber}")
     public UserListDto byMembership(
             @PathVariable String membershipNumber,

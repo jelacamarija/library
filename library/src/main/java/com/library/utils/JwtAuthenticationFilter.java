@@ -28,7 +28,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Ovdje su rute koje NE TRAŽE token:
         return path.startsWith("/api/login")
         || path.startsWith("/api/register")
         || path.startsWith("/api/register/verify")
@@ -48,7 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         String authHeader = request.getHeader("Authorization");
 
-        // Ako nema Authorization header → odbijamo (401)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
@@ -56,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7); // Preskače "Bearer "
+        String token = authHeader.substring(7);
 
         if (!jwtUtil.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -65,17 +63,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Ako je token OK → vadimo podatke:
+
         String email = jwtUtil.getEmailFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
         Long userId=jwtUtil.getUserIdFromToken(token);
 
-        // Spremimo ih u request, da ih kontroleri mogu koristiti
         request.setAttribute("userEmail", email);
         request.setAttribute("userRole", role);
         request.setAttribute("userId",userId);
 
-        // Pusti dalje request
         filterChain.doFilter(request, response);
     }
 }

@@ -45,14 +45,13 @@ public class LoanService {
         if(Boolean.FALSE.equals(user.getIsVerified())){
             throw new RuntimeException("Korisnik nije verifikovan. Ne može iznajmiti knjigu.");
         }
-        // 1) već ima aktivno iznajmljivanje za tu knjigu
+
         if (loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE)) {
             throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
         }
 
         Date now = new Date();
 
-        // 2) da li postoji PENDING rezervacija za tu knjigu i tog korisnika?
         Reservation pending = reservationRepository
                 .findTopByUserAndBookAndStatusOrderByReservedAtDesc(
                         user, book, ReservationMapper.STATUS_PENDING
@@ -61,38 +60,28 @@ public class LoanService {
 
         if (pending != null) {
 
-            // ako je istekla (scheduler možda još nije stigao)
             if (pending.getExpiresAt() != null && pending.getExpiresAt().before(now)) {
 
                 pending.setStatus(ReservationMapper.STATUS_EXPIRED);
                 reservationRepository.save(pending);
-
-                // vrati kopiju jer je rezervacija propala
                 book.setCopiesAvailable(book.getCopiesAvailable() + 1);
                 bookRepository.save(book);
-
-                // nakon toga nastavljamo kao "nema rezervacije"
                 pending = null;
             }
         }
 
-        // 3) Ako nema validne rezervacije → mora biti dostupna kopija
         if (pending == null) {
             if (book.getCopiesAvailable() <= 0) {
                 throw new RuntimeException("Knjiga trenutno nije dostupna za iznajmljivanje.");
             }
-            // skidamo kopiju jer nema rezervacije
             book.setCopiesAvailable(book.getCopiesAvailable() - 1);
             bookRepository.save(book);
         } else {
-            // 4) ima PENDING rezervaciju → preuzmi je (FULFILLED)
             pending.setStatus(ReservationMapper.STATUS_FULFILLED);
             pending.setUsed(true);
             reservationRepository.save(pending);
-            // copiesAvailable se NE dira ovde (već je skinuto kad je rezervisana)
         }
 
-        // dueDate = +1 mesec
         Calendar cal = Calendar.getInstance();
         cal.setTime(now);
         cal.add(Calendar.MONTH, 1);
@@ -101,7 +90,7 @@ public class LoanService {
         Loan loan = Loan.builder()
                 .user(user)
                 .book(book)
-                .reservation(pending) // null ako nije bilo rezervacije
+                .reservation(pending)
                 .loanedAt(now)
                 .dueDate(dueDate)
                 .status(LoanStatus.ACTIVE)

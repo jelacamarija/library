@@ -70,7 +70,6 @@ export class ClientProfileInfoComponent implements OnInit {
         this.initials = this.getInitials(u.name);
         this.loading = false;
 
-        // ⭐ forsiraj refresh UI-a
         this.cdr.detectChanges();
       },
       error: (e) => {

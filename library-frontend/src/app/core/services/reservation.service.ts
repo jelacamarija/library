@@ -32,7 +32,6 @@ export class ReservationService {
     };
   }
 
-  // Kreiranje rezervacije
   reserve(payload: { bookID: number }): Observable<ReservationResponseDto> {
     return this.http.post<ReservationResponseDto>(
       `${this.baseUrl}/reserve`,
@@ -41,7 +40,6 @@ export class ReservationService {
     );
   }
 
-  // Moje rezervacije
   getMyReservations(): Observable<ReservationResponseDto[]> {
     return this.http.get<ReservationResponseDto[]>(
       `${this.baseUrl}/my`,
@@ -49,7 +47,6 @@ export class ReservationService {
     );
   }
   
-  //otkazivanje rezervacije
   cancelReservation(reservationID: number): Observable<ReservationResponseDto> {
   return this.http.put<ReservationResponseDto>(
     `${this.baseUrl}/${reservationID}/cancel`,

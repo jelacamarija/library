@@ -24,7 +24,7 @@ public class LoanController {
         String role= (String) request.getAttribute("userRole");
 
         if(!"LIBRARIAN".equalsIgnoreCase(role)){
-            throw new RuntimeException("Samo bibliotekar moye izdati knjigu");
+            throw new RuntimeException("Samo bibliotekar moze izdati knjigu");
         }
         return loanService.createLoan(dto);
     }

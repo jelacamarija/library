@@ -7,7 +7,7 @@ export type PageDto<T> = {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page (0-based)
+  number: number; 
   size: number;
 };
 

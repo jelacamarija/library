@@ -113,7 +113,6 @@ export class LibrarianDashboardUserCreateComponent {
 
   loading = signal(false);
 
-  // ===== MODAL STATE =====
   modalOpen = signal(false);
   modalTitle = signal('');
   modalText = signal('');
@@ -156,7 +155,6 @@ export class LibrarianDashboardUserCreateComponent {
     this.router.navigateByUrl('/librarian/dashboard/users');
   }
 
-  // ===== MODAL HELPERS =====
   private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
     this.modalType.set(type);
     this.modalTitle.set(title);

@@ -18,7 +18,6 @@ export class RegisterComponent {
   private cdr = inject(ChangeDetectorRef);
   private zone=inject(NgZone);
 
-  // MODAL STATE (isto kao Login)
   modalOpen = false;
   modalTitle = '';
   modalText = '';
@@ -38,7 +37,7 @@ export class RegisterComponent {
     this.modalTitle = title;
     this.modalText = text;
     this.modalOpen = true;
-    this.cdr.detectChanges(); // ✅ da se odmah prikaže
+    this.cdr.detectChanges(); 
   }
 
   closeModal() {
@@ -61,7 +60,7 @@ export class RegisterComponent {
     const msg = raw.toLowerCase();
     const status = err?.status;
 
-    // 1) email već postoji (tvoj najčešći slučaj)
+    //email već postoji 
     if (status === 409 && (msg.includes('vec postoji') || msg.includes('već postoji') || msg.includes('postoji'))) {
       return {
         type: 'error',
@@ -70,7 +69,7 @@ export class RegisterComponent {
       };
     }
 
-    // 2) validaciona greška (ako/ kada dodaš @Valid)
+    //validaciona greška 
     if (status === 400) {
       return {
         type: 'error',
@@ -78,8 +77,6 @@ export class RegisterComponent {
         text: raw,
       };
     }
-
-    // fallback
     return { type: 'error', title: 'Registracija nije uspjela', text: raw };
   }
 
@@ -89,7 +86,6 @@ export class RegisterComponent {
     return;
   }
 
-  // ✅ sve promjene stanja radi u zoni
   this.zone.run(() => {
     this.loading = true;
     this.cdr.detectChanges();
@@ -113,7 +109,6 @@ export class RegisterComponent {
             'Registracija uspješna',
             resText || 'Provjeri email i klikni na link za verifikaciju naloga.'
           );
-          // openModal već radi detectChanges (ako si ga tako ostavila)
         });
       },
       error: (err) => {

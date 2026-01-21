@@ -104,7 +104,6 @@ public class ReservationService {
         Date now = new Date();
 
         if (reservation.getExpiresAt() != null && reservation.getExpiresAt().before(now)) {
-            // vrati kopiju jer je rezervacija propala
             Book book = reservation.getBook();
             book.setCopiesAvailable(book.getCopiesAvailable() + 1);
             bookRepository.save(book);
@@ -115,7 +114,6 @@ public class ReservationService {
             throw new RuntimeException("Rezervacija je istekla i ne može se preuzeti.");
         }
 
-        //provjerava da li korisnik ima aktivno iznajmljivanje iste knjige
         boolean alreadyHasLoan =
                 loanRepository.existsByUserAndBookAndStatus(
                         reservation.getUser(), reservation.getBook(), LoanStatus.ACTIVE

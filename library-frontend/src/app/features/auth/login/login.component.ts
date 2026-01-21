@@ -57,7 +57,7 @@ export class LoginComponent {
   const msg = raw.toLowerCase();
   const status = err?.status;
 
-  // 1) Nalog nije verifikovan
+  //nalog nije verifikovan
   if (status === 403 || msg.includes('verifik') || msg.includes('nije verifik')) {
     return {
       type: 'error',
@@ -66,7 +66,7 @@ export class LoginComponent {
     };
   }
 
-  // 2) Nalog nije aktiviran / postavljanje lozinke
+  //nalog nije aktiviran
   if (status === 403 && (msg.includes('nije aktiviran') || msg.includes('postavite lozinku') || msg.includes('set-password'))) {
     return {
       type: 'error',
@@ -75,7 +75,7 @@ export class LoginComponent {
     };
   }
 
-  // 3) Pogrešni podaci (401 ili poruka)
+  // pogrešni podaci
   if (status === 401 || msg.includes('pogrešan email') || msg.includes('pogresan email')) {
     return {
       type: 'error',
@@ -84,7 +84,7 @@ export class LoginComponent {
     };
   }
 
-  // 4) Pogrešna lozinka (tvoj backend trenutno može vratiti 409 preko GlobalExceptionHandler)
+  // pogrešna lozinka
   if (status === 409 && (msg.includes('pogrešna lozinka') || msg.includes('pogresna lozinka'))) {
     return {
       type: 'error',
@@ -92,8 +92,6 @@ export class LoginComponent {
       text: 'Pogrešan email ili lozinka, pokusajte opet!',
     };
   }
-
-  // Fallback
   return { type: 'error', title: 'Prijava nije uspjela', text: raw };
 }
 
@@ -122,5 +120,4 @@ export class LoginComponent {
     },
   });
 }
-
 }

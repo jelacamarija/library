@@ -180,11 +180,9 @@ export class ClientProfileReservationsComponent implements OnInit {
   loading = true;
   error = false;
 
-  // UI state
   query = '';
   statusFilter: StatusFilter = 'ALL';
 
-  // modal state
   confirmOpen = false;
   selectedReservation: ReservationResponseDto | null = null;
   cancelLoading = false;
@@ -236,12 +234,9 @@ export class ClientProfileReservationsComponent implements OnInit {
       : 'ALL';
   }
 
-  // samo PENDING može da se otkaže, i samo ako nije već istekao rok
   canCancel(r: ReservationResponseDto): boolean {
     const s = (r.status || '').toUpperCase();
     if (s !== 'PENDING') return false;
-
-    // ako backend već radi expire, ovo je samo dodatna UX zaštita
     if (!r.expiresAt) return true;
     const d = new Date(r.expiresAt);
     return !Number.isNaN(d.getTime()) && d.getTime() > Date.now();
@@ -265,7 +260,6 @@ export class ClientProfileReservationsComponent implements OnInit {
 
     this.service.cancelReservation(this.selectedReservation.reservationID).subscribe({
       next: (updated) => {
-        // update lokalno (da ostane u listi ako filter pokazuje sve)
         const id = updated.reservationID;
         this.items = this.items.map(x => x.reservationID === id ? updated : x);
 

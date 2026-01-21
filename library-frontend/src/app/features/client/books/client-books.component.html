@@ -28,7 +28,6 @@
           Detalji
         </button>
 
-        <!-- OVO dugme možeš ostaviti ili ukloniti; ako ga ostaviš - disable kad je 0 -->
         <button
           class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
           [disabled]="b.copiesAvailable === 0"
@@ -47,10 +46,8 @@
 
 <!-- DETAILS MODAL -->
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
-  <!-- overlay -->
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
 
-  <!-- modal box -->
   <div class="relative mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
     <div class="flex items-start justify-between gap-4">
       <div>

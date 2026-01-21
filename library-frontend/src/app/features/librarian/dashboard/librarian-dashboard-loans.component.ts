@@ -288,7 +288,6 @@ export class LibrarianDashboardLoansComponent {
   totalElements = signal(0);
   totalPages = signal(1);
 
-  // return modal state
   returnModalOpen = signal(false);
   selectedReturn = signal<LoanRow | null>(null);
   actionLoadingId = signal<number | null>(null);

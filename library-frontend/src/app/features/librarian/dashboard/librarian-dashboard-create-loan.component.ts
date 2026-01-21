@@ -208,7 +208,6 @@ export class LibrarianDashboardCreateLoanComponent {
 
   loading = signal(false);
 
-  // ===== MODAL =====
   modalOpen = signal(false);
   modalTitle = signal('');
   modalText = signal('');
@@ -221,7 +220,6 @@ export class LibrarianDashboardCreateLoanComponent {
     return d;
   });
 
-  // ---- USER ----
   userQuery = signal('');
   userOptions = signal<UserOpt[]>([]);
   userLoading = signal(false);
@@ -303,7 +301,6 @@ export class LibrarianDashboardCreateLoanComponent {
     this.userDropdownOpen.set(false);
   }
 
-  // ---- BOOK ----
   bookQuery = signal('');
   bookOptions = signal<BookOpt[]>([]);
   bookLoading = signal(false);
@@ -373,7 +370,6 @@ export class LibrarianDashboardCreateLoanComponent {
     this.bookDropdownOpen.set(false);
   }
 
-  // ✅ klik van => zatvori dropdown
   @HostListener('document:click', ['$event'])
   onDocumentClick(ev: MouseEvent): void {
     const target = ev.target as HTMLElement | null;
@@ -383,7 +379,6 @@ export class LibrarianDashboardCreateLoanComponent {
     if (!target.closest('.book-autocomplete')) this.bookDropdownOpen.set(false);
   }
 
-  // ===== MODAL HELPERS =====
   private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
     this.modalType.set(type);
     this.modalTitle.set(title);
@@ -439,7 +434,6 @@ export class LibrarianDashboardCreateLoanComponent {
     return { title: 'Greška', text: raw };
   }
 
-  // ✅ BITNO: preventDefault da nema refresh
   submit(ev?: Event): void {
     ev?.preventDefault();
 

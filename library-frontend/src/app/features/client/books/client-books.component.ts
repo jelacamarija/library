@@ -21,20 +21,16 @@ export class ClientBooksComponent {
 
   state = signal<UiState>({ status: 'loading' });
 
-  // DETAILS MODAL
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
-  // CONFIRM MODAL (Da li ste sigurni?)
   showConfirmReserve = signal(false);
 
-  // MESSAGE MODAL (za sve poruke)
   messageOpen = signal(false);
   messageTitle = signal('');
   messageText = signal('');
   messageType = signal<'success' | 'error' | 'info'>('info');
 
-  // optional: loading tokom rezervacije da disable dugmad
   reserving = signal(false);
 
   isLoading = computed(() => this.state().status === 'loading');
@@ -75,7 +71,6 @@ export class ClientBooksComponent {
     this.showConfirmReserve.set(false);
   }
 
-  // === MESSAGE MODAL HELPERS ===
   private openMessage(type: 'success' | 'error' | 'info', title: string, text: string) {
     this.messageType.set(type);
     this.messageTitle.set(title);
@@ -90,7 +85,6 @@ export class ClientBooksComponent {
     this.messageType.set('info');
   }
 
-  // === RESERVE FLOW ===
   clickReserveFromDetails() {
     const b = this.selectedBook();
     if (!b) return;
@@ -100,7 +94,6 @@ export class ClientBooksComponent {
       return;
     }
 
-    // Otvori confirm modal
     this.showConfirmReserve.set(true);
   }
 
@@ -114,7 +107,7 @@ export class ClientBooksComponent {
 
   const msg = raw.toLowerCase();
 
-  // 1) nema dostupnih primeraka
+  //nema dostupnih primeraka
   if (msg.includes('nije dostupna') || msg.includes('nema dostup') || msg.includes('dostupna za rezervaciju')) {
     return {
       title: 'Rezervacija nije moguća',
@@ -122,7 +115,7 @@ export class ClientBooksComponent {
     };
   }
 
-  // 2) već postoji rezervacija (pending)
+  //već postoji rezervacija (pending)
   if (msg.includes('već imate rezervaciju') || msg.includes('vec imate rezervaciju')) {
     return {
       title: 'Već imate rezervaciju',
@@ -130,15 +123,13 @@ export class ClientBooksComponent {
     };
   }
 
-  // 3) već iznajmljena (active loan) — ovo će raditi kad backend vrati takvu poruku
+  //već iznajmljena
   if (msg.includes('već ima') && (msg.includes('iznajmlj') || msg.includes('loan'))) {
     return {
       title: 'Knjiga je već izdata',
       text: 'Ovu knjigu već imate iznajmljenu. Ne možete je ponovo rezervisati dok je ne vratite.',
     };
   }
-
-  // fallback
   return { title: 'Greška', text: raw };
 }
 
@@ -146,7 +137,6 @@ export class ClientBooksComponent {
   confirmReserve() {
     const b = this.selectedBook();
     if (!b) return;
-       //ponovo provjerava da li se stanje sa dostupnim knjigama promijenilo
     if (b.copiesAvailable <= 0) {
       this.openMessage('error', 'Rezervacija nije moguća', 'Trenutno nema dostupnih primjeraka ove knjige.');
       this.showConfirmReserve.set(false);

@@ -10,7 +10,6 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
   const token = auth.getToken();
 
-  // ne dodaj token na login/register/verify/set-password
   if (
     !token ||
     req.url.includes('/api/login') ||
@@ -28,7 +27,6 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((err: unknown) => {
       if (err instanceof HttpErrorResponse && err.status === 401) {
-        // ✅ očisti sve i vrati na login
         auth.forceLogout();
         router.navigateByUrl('/login');
       }

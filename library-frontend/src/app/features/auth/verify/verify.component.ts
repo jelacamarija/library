@@ -53,7 +53,6 @@ export class VerifyComponent {
     this.http.get(`http://localhost:8080/api/register/verify?code=${encodeURIComponent(code)}`, { responseType: 'text' })
       .subscribe({
         next: (res) => {
-          // tvoj backend vraća String poruku
           if (res.toLowerCase().includes('uspešno')) {
             this.status = 'success';
             setTimeout(() => this.router.navigate(['/login'], { queryParams: { verified: '1' } }), 1200);

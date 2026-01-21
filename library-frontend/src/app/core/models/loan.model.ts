@@ -8,7 +8,7 @@ export interface Loan {
 
   reservationId?: number | null;
 
-  loanedAt: string;   // ISO string
+  loanedAt: string;  
   dueDate?: string | null;
   returnedAt?: string | null;
 

@@ -230,7 +230,6 @@ export class LibrarianDashboardUsersComponent {
   query = signal('');
   private debounceTimer: any = null;
 
-  // modal state
   editOpen = signal(false);
   selected = signal<UserRow | null>(null);
   saving = signal(false);
@@ -242,7 +241,6 @@ export class LibrarianDashboardUsersComponent {
 
   constructor() {
     effect(() => {
-      // auto-load on init and when page/size changes
       this.fetch();
     });
   }
@@ -335,7 +333,6 @@ export class LibrarianDashboardUsersComponent {
         this.editOpen.set(false);
         this.selected.set(null);
 
-        // refresh list (da bude 100% sync)
         this.fetch();
       },
       error: (err) => {

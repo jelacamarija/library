@@ -118,7 +118,6 @@ export class SetPasswordComponent {
         next: (msg) => {
           this.loading.set(false);
           this.success.set(msg || 'Lozinka postavljena. Nalog je aktiviran.');
-          // opcionalno: nakon 1-2 sekunde preusmjeri na login
           setTimeout(() => this.router.navigateByUrl('/login'), 800);
         },
         error: (err) => {

@@ -5,9 +5,6 @@ import { landingGuard } from './core/guards/landing.guard';
 import { roleGuard, roleChildGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  // =======================
-  // PUBLIC ROUTES
-  // =======================
   { path: '', canActivate: [landingGuard], children: [] },
 
   { path: 'login', component: LoginComponent },
@@ -26,7 +23,6 @@ export const routes: Routes = [
         .then(m => m.VerifyComponent),
   },
 
-  // 🔑 KLJUČNO: SET PASSWORD (PUBLIC)
   {
     path: 'set-password',
     loadComponent: () =>
@@ -34,9 +30,6 @@ export const routes: Routes = [
         .then(m => m.SetPasswordComponent),
   },
 
-  // =======================
-  // FORBIDDEN
-  // =======================
   {
     path: 'forbidden',
     loadComponent: () =>
@@ -44,9 +37,6 @@ export const routes: Routes = [
         .then(m => m.ForbiddenComponent),
   },
 
-  // =======================
-  // AUTHENTICATED LAYOUT
-  // =======================
   {
     path: '',
     canActivate: [authGuard],
@@ -54,9 +44,6 @@ export const routes: Routes = [
       import('./layout/app-layout.component')
         .then(m => m.AppLayoutComponent),
     children: [
-      // =======================
-      // CLIENT
-      // =======================
       {
         path: 'client',
         canActivate: [roleGuard],
@@ -106,9 +93,6 @@ export const routes: Routes = [
         ],
       },
 
-      // =======================
-      // LIBRARIAN
-      // =======================
       {
         path: 'librarian',
         canActivate: [roleGuard],
@@ -173,8 +157,5 @@ export const routes: Routes = [
     ],
   },
 
-  // =======================
-  // FALLBACK
-  // =======================
   { path: '**', redirectTo: '' },
 ];

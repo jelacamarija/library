@@ -23,31 +23,24 @@ export class LibrarianSearchComponent {
   private bookService = inject(BookService);
   private fb = inject(FormBuilder);
 
-  // SEARCH INPUT
   query = signal('');
 
-  // UI state
   state = signal<UiState>({ status: 'loading' });
 
-  // debounce stream
   private search$ = new Subject<string>();
 
-  // DETAILS MODAL
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
-  // ADD BOOK MODAL
   showAddModal = signal(false);
   addError = signal('');
   addLoading = signal(false);
 
-  // EDIT MODAL
   showEditModal = signal(false);
   editLoading = signal(false);
   editError = signal('');
   editMode = signal<'description' | 'copies'>('description');
 
-  // FORMS
   addForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     author: ['', [Validators.required, Validators.minLength(2)]],
@@ -67,7 +60,6 @@ export class LibrarianSearchComponent {
     copiesToAdd: [1, [Validators.required, Validators.min(1)]],
   });
 
-  // computed
   isLoading = computed(() => this.state().status === 'loading');
   isError = computed(() => this.state().status === 'error');
 
@@ -86,10 +78,7 @@ export class LibrarianSearchComponent {
   );
 
   ngOnInit() {
-    // 1) odmah prikaži sve
     this.loadAll();
-
-    // 2) auto pretraga dok kucaš
     this.search$
       .pipe(debounceTime(350), distinctUntilChanged())
       .subscribe((raw) => {
@@ -126,7 +115,6 @@ export class LibrarianSearchComponent {
     });
   }
 
-  // helper: refresh results (ako ima query -> pretraga, ako nema -> sve)
   private refreshAfterChange() {
     const q = this.query().trim();
     if (!q) {
@@ -154,7 +142,6 @@ export class LibrarianSearchComponent {
     this.search$.next('');
   }
 
-  // DETAILS MODAL
   openDetails(book: BookDto) {
     this.selectedBook.set(book);
   }
@@ -163,7 +150,6 @@ export class LibrarianSearchComponent {
     this.selectedBook.set(null);
   }
 
-  // ADD BOOK MODAL
   openAdd() {
     this.addError.set('');
     this.addForm.reset({
@@ -217,7 +203,6 @@ export class LibrarianSearchComponent {
     });
   }
 
-  // EDIT MODAL
   openEdit(mode: 'description' | 'copies') {
     this.editError.set('');
     this.editMode.set(mode);

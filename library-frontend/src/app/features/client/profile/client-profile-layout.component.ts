@@ -39,7 +39,6 @@ export class ClientProfileLayoutComponent {
   private router = inject(Router);
 
   tabClass(child: 'info' | 'reservations' | 'loans') {
-    // provjerava da li je aktivna ruta /client/profile/<child>
     const url = `/client/profile/${child}`;
     const active = this.router.isActive(url, {
       paths: 'exact',

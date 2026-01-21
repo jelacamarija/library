@@ -21,11 +21,9 @@ export class LibrarianBooksComponent {
 
   state = signal<UiState>({ status: 'loading' });
 
-  // DETAILS MODAL
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
-  // ADD BOOK MODAL
   showAddModal = signal(false);
   addError = signal('');
   addLoading = signal(false);
@@ -91,7 +89,6 @@ export class LibrarianBooksComponent {
     this.selectedBook.set(null);
   }
 
-  // ADD MODAL handlers
   openAdd() {
     this.addError.set('');
     this.addSuccess.set('');
@@ -143,7 +140,6 @@ export class LibrarianBooksComponent {
     });
   }
 
-    // EDIT MODAL
   showEditModal = signal(false);
   editLoading = signal(false);
   editError = signal('');
@@ -157,7 +153,6 @@ export class LibrarianBooksComponent {
     copiesToAdd: [1, [Validators.required, Validators.min(1)]],
   });
 
-  //EDIT modal handlers
   openEdit(mode: 'description' | 'copies') {
   this.editError.set('');
   this.editMode.set(mode);
@@ -200,8 +195,8 @@ submitEditDescription() {
     next: (updated) => {
       this.editLoading.set(false);
       this.showEditModal.set(false);
-      this.selectedBook.set(updated); // odmah osvježi detalje
-      this.loadBooks(); // osvježi listu
+      this.selectedBook.set(updated); 
+      this.loadBooks(); 
     },
     error: (err) => {
       this.editLoading.set(false);
@@ -231,8 +226,8 @@ submitEditCopies() {
     next: (updated) => {
       this.editLoading.set(false);
       this.showEditModal.set(false);
-      this.selectedBook.set(updated); // odmah osvježi detalje
-      this.loadBooks(); // osvježi listu
+      this.selectedBook.set(updated);
+      this.loadBooks();
     },
     error: (err) => {
       this.editLoading.set(false);

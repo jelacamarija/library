@@ -20,10 +20,10 @@ export type UserProfileDto = {
   email: string;
   phoneNumber: string | null;
   membershipNumber: string | null;
-  membershipDate: string | null; // ISO
+  membershipDate: string | null; 
   isVerified: boolean;
   active: boolean;
-  createdAt: string;             // ISO
+  createdAt: string;             
   role: 'CLIENT' | 'LIBRARIAN';
 }
 
@@ -43,12 +43,10 @@ export class AuthService {
   private readonly EMAIL_KEY = 'user_email';
   private readonly NAME_KEY = 'user_name';
 
-  // ✅ koristi session kao primarni (kao i sad)
   private storage: Storage = sessionStorage;
 
   constructor(private http: HttpClient) {}
 
-  // ✅ očisti i session i local da nikad ne bude mix
   private clearAllStorage(): void {
     [sessionStorage, localStorage].forEach(s => {
       s.removeItem(this.TOKEN_KEY);
@@ -61,7 +59,7 @@ export class AuthService {
   login(body: LoginRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>('/api/login', body).pipe(
       tap((res) => {
-        this.clearAllStorage(); // ✅ prije upisa očisti sve
+        this.clearAllStorage(); 
         this.storage.setItem(this.TOKEN_KEY, res.token);
         this.storage.setItem(this.ROLE_KEY, res.role);
         this.storage.setItem(this.EMAIL_KEY, res.email);
@@ -71,10 +69,9 @@ export class AuthService {
   }
 
   logout(): void {
-    this.clearAllStorage(); // ✅ čisti sve
+    this.clearAllStorage(); 
   }
 
-  // ✅ primarno session, ali fallback na local ako baš mora (npr. stari ostatak)
   getToken(): string | null {
     return sessionStorage.getItem(this.TOKEN_KEY) ?? localStorage.getItem(this.TOKEN_KEY);
   }
@@ -96,7 +93,6 @@ export class AuthService {
     return sessionStorage.getItem(this.EMAIL_KEY) ?? localStorage.getItem(this.EMAIL_KEY);
   }
 
-  // ✅ koristi se iz interceptora kad dobiješ 401
   forceLogout(): void {
     this.clearAllStorage();
   }

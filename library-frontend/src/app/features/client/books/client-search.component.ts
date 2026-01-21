@@ -23,16 +23,12 @@ export class ClientSearchComponent {
   private bookService = inject(BookService);
   private reservationService = inject(ReservationService);
 
-  // SEARCH INPUT
   query = signal('');
 
-  // UI state
   state = signal<UiState>({ status: 'loading' });
 
-  // debounce stream
   private search$ = new Subject<string>();
 
-  // ===== MODALS (isto kao books) =====
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
@@ -45,7 +41,6 @@ export class ClientSearchComponent {
 
   reserving = signal(false);
 
-  // ===== computed =====
   isLoading = computed(() => this.state().status === 'loading');
   isError = computed(() => this.state().status === 'error');
 
@@ -64,10 +59,8 @@ export class ClientSearchComponent {
   );
 
   ngOnInit() {
-    // 1) odmah prikaži sve
     this.loadAll();
 
-    // 2) auto pretraga dok kucaš
     this.search$
       .pipe(debounceTime(350), distinctUntilChanged())
       .subscribe((raw) => {
@@ -91,7 +84,6 @@ export class ClientSearchComponent {
       });
   }
 
-  // ===== LOAD =====
   private loadAll() {
     this.state.set({ status: 'loading' });
     this.bookService.getPage(0, 12).subscribe({
@@ -115,7 +107,6 @@ export class ClientSearchComponent {
     this.search$.next('');
   }
 
-  // ===== DETAILS MODAL =====
   openDetails(book: BookDto) {
     this.selectedBook.set(book);
     this.showConfirmReserve.set(false);
@@ -126,7 +117,6 @@ export class ClientSearchComponent {
     this.showConfirmReserve.set(false);
   }
 
-  // ===== MESSAGE MODAL =====
   private openMessage(type: 'success' | 'error' | 'info', title: string, text: string) {
     this.messageType.set(type);
     this.messageTitle.set(title);
@@ -140,7 +130,7 @@ export class ClientSearchComponent {
 
   const msg = raw.toLowerCase();
 
-  // nema dostupnih knjiga / nije dostupna
+  // nema dostupnih knjiga
   if (
     msg.includes('nije dostupna') ||
     msg.includes('nema dostup') ||
@@ -152,7 +142,7 @@ export class ClientSearchComponent {
     };
   }
 
-  // već ima pending rezervaciju
+  // već ima rezervaciju
   if (msg.includes('već imate rezervaciju') || msg.includes('vec imate rezervaciju')) {
     return {
       title: 'Već imate rezervaciju',
@@ -160,7 +150,7 @@ export class ClientSearchComponent {
     };
   }
 
-  // već ima iznajmljenu (ACTIVE loan)
+  // već ima iznajmljenu
   if (
     msg.includes('iznajmljen') ||
     msg.includes('iznajmljenu') ||
@@ -184,7 +174,6 @@ export class ClientSearchComponent {
     this.messageType.set('info');
   }
 
-  // ===== RESERVATION FLOW (isto kao books) =====
   clickReserveFromDetails() {
     const b = this.selectedBook();
     if (!b) return;

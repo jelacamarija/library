@@ -42,7 +42,7 @@ export interface BookOption {
   bookId: number;
   title: string;
   author: string;
-  copiesAvailable?: number; // ako ga imaš u BookResponseDto
+  copiesAvailable?: number; 
 }
 
 export interface LoanCreateRequest {
@@ -74,19 +74,16 @@ export class LibrarianLoansService {
     return this.http.patch(`${this.baseUrl}/${loanId}/return`, {});
   }
 
-  // ✅ AUTOCOMPLETE: CLIENT po članskoj (contains)
   searchClientsByMembership(q: string, page = 0, size = 8): Observable<PageResponse<any>> {
     const params = new HttpParams().set('q', q).set('page', page).set('size', size);
     return this.http.get<PageResponse<any>>(`${this.usersUrl}/clients/search`, { params });
   }
 
-  // ✅ AUTOCOMPLETE: knjige po naslovu ili autoru (contains)
   searchBooks(q: string, page = 0, size = 8): Observable<PageResponse<any>> {
     const params = new HttpParams().set('query', q).set('page', page).set('size', size);
     return this.http.get<PageResponse<any>>(`${this.booksUrl}/search`, { params });
   }
 
-  // ✅ CREATE LOAN
   createLoan(payload: LoanCreateRequest): Observable<any> {
     return this.http.post(`${this.baseUrl}/create`, payload);
   }

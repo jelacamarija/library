@@ -25,7 +25,6 @@ export type UserRow = {
 export class LibrarianUsersService {
   private http = inject(HttpClient);
 
-  // Ako već imaš environment api url, ubaci ga ovdje.
   private base = '/api/users';
 
   getAll(page: number, size: number): Observable<PageResponse<UserRow>> {
