@@ -3,6 +3,7 @@ package com.library.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -30,14 +31,13 @@ public class Loan {
     @JoinColumn(name = "reservationId", nullable = true)
     private Reservation reservation;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date loanedAt;
+    @Column(nullable = false)
+    private LocalDateTime loanedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date dueDate;
+    @Column(nullable = false)
+    private LocalDateTime dueDate;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date returnedAt;
+    private LocalDateTime returnedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

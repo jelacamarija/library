@@ -18,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import java.time.LocalDateTime;
+
 
 import java.util.Calendar;
 import java.util.Date;
@@ -31,6 +34,10 @@ public class LoanService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final ReservationRepository reservationRepository;
+
+    @Value("${library.loan.duration-days}")
+    private int loanDurationDays;
+
 
 
     @Transactional
@@ -50,7 +57,8 @@ public class LoanService {
             throw new RuntimeException("Korisnik već ima aktivno iznajmljivanje za ovu knjigu.");
         }
 
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
+
 
         Reservation pending = reservationRepository
                 .findTopByUserAndBookAndStatusOrderByReservedAtDesc(
@@ -60,7 +68,7 @@ public class LoanService {
 
         if (pending != null) {
 
-            if (pending.getExpiresAt() != null && pending.getExpiresAt().before(now)) {
+            if (pending.getExpiresAt() != null && pending.getExpiresAt().before(new java.util.Date())) {
 
                 pending.setStatus(ReservationMapper.STATUS_EXPIRED);
                 reservationRepository.save(pending);
@@ -82,10 +90,8 @@ public class LoanService {
             reservationRepository.save(pending);
         }
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(now);
-        cal.add(Calendar.MONTH, 1);
-        Date dueDate = cal.getTime();
+        LocalDateTime dueDate = now.plusDays(loanDurationDays);
+
 
         Loan loan = Loan.builder()
                 .user(user)
@@ -132,7 +138,7 @@ public class LoanService {
             throw new RuntimeException("Knjiga je već označena kao vraćena.");
         }
 
-        loan.setReturnedAt(new Date());
+        loan.setReturnedAt(LocalDateTime.now());
         loan.setStatus(LoanStatus.RETURNED);
 
         Book book = loan.getBook();
@@ -193,7 +199,7 @@ public class LoanService {
         }
 
         loan.setStatus(LoanStatus.RETURNED);
-        loan.setReturnedAt(new Date());
+        loan.setReturnedAt(LocalDateTime.now());
 
         Book book = loan.getBook();
         book.setCopiesAvailable(book.getCopiesAvailable() + 1);

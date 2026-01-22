@@ -4,6 +4,7 @@ import com.library.entity.LoanStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -22,9 +23,9 @@ public class LoanResponseDto {
 
     private Long reservationId;
 
-    private Date loanedAt;
-    private Date dueDate;
-    private Date returnedAt;
+    private LocalDateTime loanedAt;
+    private LocalDateTime dueDate;
+    private LocalDateTime returnedAt;
 
     private LoanStatus status;
 }
