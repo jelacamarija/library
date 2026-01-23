@@ -5,10 +5,12 @@ import com.library.dto.LoanResponseDto;
 import com.library.service.LoanService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -16,6 +18,10 @@ import java.util.List;
 public class LoanController {
 
     private final LoanService loanService;
+
+    @Value("${library.loan.duration-days}")
+    private int loanDurationDays;
+
 
     @PostMapping("/create")
     public LoanResponseDto createLoan(@RequestBody LoanCreateDto dto,
@@ -104,6 +110,12 @@ public class LoanController {
 
         return loanService.searchLoansByMembershipNumber(page, size, sort, q);
     }
+
+    @GetMapping("/config")
+    public Map<String, Integer> getLoanConfig() {
+        return Map.of("loanDurationDays", loanDurationDays);
+    }
+
 
 
 }
