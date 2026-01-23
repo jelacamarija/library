@@ -3,7 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { Router } from '@angular/router';
 import { LibrarianLoansService } from '../../../core/services/librarian-loans.service';
 
-type UserOpt = { userId: number; name: string; membershipNumber: string ,isVerified:boolean};
+type UserOpt = { userId: number; name: string; membershipNumber: string; isVerified: boolean };
 type BookOpt = { bookId: number; title: string; author: string };
 
 @Component({
@@ -15,11 +15,10 @@ type BookOpt = { bookId: number; title: string; author: string };
       <div class="mb-4">
         <h1 class="text-2xl font-bold">Dodaj novo iznajmljivanje</h1>
         <p class="text-sm text-gray-600">
-          Izaberi korisnika i knjigu. Rok vraćanja je automatski 30 dana od danas.
+          Izaberi korisnika i knjigu. Rok vraćanja se automatski određuje prema pravilima biblioteke.
         </p>
       </div>
 
-      <!-- ✅ BITNO: (submit) + preventDefault u TS -->
       <form class="bg-white border rounded-2xl p-6 space-y-4" (submit)="submit($event)">
         <!-- USER AUTOCOMPLETE -->
         <div class="relative user-autocomplete">
@@ -51,31 +50,29 @@ type BookOpt = { bookId: number; title: string; author: string };
               Pretraga korisnika...
             </div>
 
-          <button
-  type="button"
-  *ngFor="let u of userOptions()"
-  class="w-full text-left px-4 py-2 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
-  [disabled]="!u.isVerified"
-  (click)="selectUser(u)"
->
-  <div class="flex items-center justify-between gap-3">
-    <div>
-      <div class="font-medium text-gray-900">{{ u.membershipNumber }}</div>
-      <div class="text-xs text-gray-600">{{ u.name }}</div>
-    </div>
+            <button
+              type="button"
+              *ngFor="let u of userOptions()"
+              class="w-full text-left px-4 py-2 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+              [disabled]="!u.isVerified"
+              (click)="selectUser(u)"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-medium text-gray-900">{{ u.membershipNumber }}</div>
+                  <div class="text-xs text-gray-600">{{ u.name }}</div>
+                </div>
 
-    <span
-      *ngIf="!u.isVerified"
-      class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200"
-    >
-      Nije verifikovan
-    </span>
-  </div>
-</button>
+                <span
+                  *ngIf="!u.isVerified"
+                  class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200"
+                >
+                  Nije verifikovan
+                </span>
+              </div>
+            </button>
 
-
-            <div class="px-4 py-3 text-sm text-gray-600"
-                 *ngIf="!userLoading() && userOptions().length === 0">
+            <div class="px-4 py-3 text-sm text-gray-600" *ngIf="!userLoading() && userOptions().length === 0">
               Ne postoji korisnik.
             </div>
           </div>
@@ -121,8 +118,7 @@ type BookOpt = { bookId: number; title: string; author: string };
               <div class="text-xs text-gray-600">{{ b.author }}</div>
             </button>
 
-            <div class="px-4 py-3 text-sm text-gray-600"
-                 *ngIf="!bookLoading() && bookOptions().length === 0">
+            <div class="px-4 py-3 text-sm text-gray-600" *ngIf="!bookLoading() && bookOptions().length === 0">
               Ne postoji knjiga.
             </div>
           </div>
@@ -132,11 +128,20 @@ type BookOpt = { bookId: number; title: string; author: string };
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="p-4 rounded-xl border bg-gray-50">
             <div class="text-xs text-gray-500">Datum podizanja</div>
-            <div class="font-medium text-gray-900">{{ today() | date:'dd.MM.yyyy' }}</div>
+            <div class="font-medium text-gray-900">{{ today() | date: 'dd.MM.yyyy' }}</div>
           </div>
+
           <div class="p-4 rounded-xl border bg-gray-50">
             <div class="text-xs text-gray-500">Rok vraćanja</div>
-            <div class="font-medium text-gray-900">{{ dueDatePreview() | date:'dd.MM.yyyy' }}</div>
+
+            <div class="font-medium text-gray-900">
+              <ng-container *ngIf="dueDatePreview(); else dueLoading">
+                {{ dueDatePreview() | date: 'dd.MM.yyyy' }}
+              </ng-container>
+              <ng-template #dueLoading>—</ng-template>
+            </div>
+
+            
           </div>
         </div>
 
@@ -153,7 +158,7 @@ type BookOpt = { bookId: number; title: string; author: string };
           <button
             type="submit"
             class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            [disabled]="loading() || !selectedUser() || !selectedBook()"
+            [disabled]="loading() || !selectedUser() || !selectedBook() || loanDurationDays() == null"
           >
             <span *ngIf="loading()">Kreiram...</span>
             <span *ngIf="!loading()">Kreiraj iznajmljivanje</span>
@@ -163,15 +168,9 @@ type BookOpt = { bookId: number; title: string; author: string };
     </div>
 
     <!-- ===== MODAL ===== -->
-    <div
-      *ngIf="modalOpen()"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-    >
+    <div *ngIf="modalOpen()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div class="bg-white rounded-2xl shadow-xl w-[92%] max-w-md p-6 relative">
-        <button
-          (click)="closeModal()"
-          class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
-        >
+        <button (click)="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">
           ✕
         </button>
 
@@ -191,10 +190,7 @@ type BookOpt = { bookId: number; title: string; author: string };
         </p>
 
         <div class="flex justify-end">
-          <button
-            (click)="closeModal()"
-            class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-          >
+          <button (click)="closeModal()" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">
             OK
           </button>
         </div>
@@ -214,11 +210,34 @@ export class LibrarianDashboardCreateLoanComponent {
   modalType = signal<'error' | 'info' | 'success'>('info');
 
   today = signal(new Date());
+
+  // ✅ čitamo iz backenda (application.properties)
+  loanDurationDays = signal<number | null>(null);
+
+  // ✅ tačan datum (today + loanDurationDays)
   dueDatePreview = computed(() => {
+    const days = this.loanDurationDays();
+    if (days == null) return null;
+
     const d = new Date(this.today().getTime());
-    d.setDate(d.getDate() + 30);
+    d.setDate(d.getDate() + days);
     return d;
   });
+
+  constructor() {
+    // ✅ učitaj config čim se komponenta otvori
+    this.api.getLoanConfig().subscribe({
+      next: (res: any) => this.loanDurationDays.set(Number(res?.loanDurationDays ?? null)),
+      error: () => {
+        this.loanDurationDays.set(null);
+        this.openModal(
+          'error',
+          'Greška',
+          'Ne mogu da učitam pravila biblioteke (rok vraćanja). Provjeri backend endpoint /api/loans/config.'
+        );
+      },
+    });
+  }
 
   userQuery = signal('');
   userOptions = signal<UserOpt[]>([]);
@@ -254,15 +273,14 @@ export class LibrarianDashboardCreateLoanComponent {
       next: (res: any) => {
         if (this.lastUserQuery !== q) return;
 
- const list: UserOpt[] = (res?.content ?? [])
-  .map((u: any) => ({
-    userId: u.userId ?? u.userID ?? u.id,
-    name: u.name,
-    membershipNumber: u.membershipNumber,
-    isVerified: Boolean(u.isVerified ?? u.verified ?? u.is_verified ?? false),
-  }))
-  .filter((x: any) => !!x.userId && !!x.membershipNumber);
-
+        const list: UserOpt[] = (res?.content ?? [])
+          .map((u: any) => ({
+            userId: u.userId ?? u.userID ?? u.id,
+            name: u.name,
+            membershipNumber: u.membershipNumber,
+            isVerified: Boolean(u.isVerified ?? u.verified ?? u.is_verified ?? false),
+          }))
+          .filter((x: any) => !!x.userId && !!x.membershipNumber);
 
         this.userOptions.set(list);
         this.userLoading.set(false);
@@ -278,21 +296,20 @@ export class LibrarianDashboardCreateLoanComponent {
   }
 
   selectUser(u: UserOpt): void {
-  if (!u.isVerified) {
-    this.openModal(
-      'error',
-      'Nalog nije verifikovan',
-      'Ovaj korisnik nije verifikovao nalog i ne može zadužiti knjigu.'
-    );
-    return;
+    if (!u.isVerified) {
+      this.openModal(
+        'error',
+        'Nalog nije verifikovan',
+        'Ovaj korisnik nije verifikovao nalog i ne može zadužiti knjigu.'
+      );
+      return;
+    }
+
+    this.selectedUser.set(u);
+    this.userQuery.set(`${u.membershipNumber} — ${u.name}`);
+    this.userOptions.set([]);
+    this.userDropdownOpen.set(false);
   }
-
-  this.selectedUser.set(u);
-  this.userQuery.set(`${u.membershipNumber} — ${u.name}`);
-  this.userOptions.set([]);
-  this.userDropdownOpen.set(false);
-}
-
 
   clearSelectedUser(): void {
     this.selectedUser.set(null);
@@ -398,37 +415,24 @@ export class LibrarianDashboardCreateLoanComponent {
       (err?.error?.message ??
         err?.error?.error ??
         (typeof err?.error === 'string' ? err.error : null) ??
-        'Neuspješno kreiranje iznajmljivanja.'
-      ).toString();
+        'Neuspješno kreiranje iznajmljivanja.').toString();
 
     const msg = raw.toLowerCase();
 
     if (msg.includes('već ima aktivno') || msg.includes('vec ima aktivno')) {
-      return {
-        title: 'Već iznajmljena knjiga',
-        text: 'Korisnik već ima aktivno iznajmljivanje za ovu knjigu.',
-      };
+      return { title: 'Već iznajmljena knjiga', text: 'Korisnik već ima aktivno iznajmljivanje za ovu knjigu.' };
     }
 
     if (msg.includes('nije dostupna') || msg.includes('nije dostupna za iznajmljivanje')) {
-      return {
-        title: 'Knjiga nije dostupna',
-        text: 'Trenutno nema dostupnih primjeraka ove knjige.',
-      };
+      return { title: 'Knjiga nije dostupna', text: 'Trenutno nema dostupnih primjeraka ove knjige.' };
     }
 
     if (msg.includes('korisnik nije prona')) {
-      return {
-        title: 'Korisnik ne postoji',
-        text: 'Izabrani korisnik više ne postoji u sistemu.',
-      };
+      return { title: 'Korisnik ne postoji', text: 'Izabrani korisnik više ne postoji u sistemu.' };
     }
 
     if (msg.includes('knjiga nije prona')) {
-      return {
-        title: 'Knjiga ne postoji',
-        text: 'Izabrana knjiga više ne postoji u sistemu.',
-      };
+      return { title: 'Knjiga ne postoji', text: 'Izabrana knjiga više ne postoji u sistemu.' };
     }
 
     return { title: 'Greška', text: raw };
@@ -442,33 +446,24 @@ export class LibrarianDashboardCreateLoanComponent {
     if (!u || !b) return;
 
     if (!u.isVerified) {
-  this.openModal(
-    'error',
-    'Nalog nije verifikovan',
-    'Izabrani korisnik nije verifikovao nalog i ne može zadužiti knjigu.'
-  );
-  return;
-}
+      this.openModal('error', 'Nalog nije verifikovan', 'Izabrani korisnik nije verifikovao nalog i ne može zadužiti knjigu.');
+      return;
+    }
 
+    if (this.loanDurationDays() == null) {
+      this.openModal('error', 'Greška', 'Nisu učitana pravila biblioteke (rok vraćanja).');
+      return;
+    }
 
     this.loading.set(true);
 
-    const payload = {
-      userId: u.userId,
-      bookId: b.bookId,
-      reservationId: null,
-      days: 30,
-    };
+    const payload = { userId: u.userId, bookId: b.bookId };
 
     this.api.createLoan(payload).subscribe({
       next: () => {
         this.loading.set(false);
-
         this.openModal('success', 'Uspješno', 'Iznajmljivanje je uspješno kreirano.');
-
-        setTimeout(() => {
-          this.router.navigateByUrl('/librarian/dashboard/loans');
-        }, 800);
+        setTimeout(() => this.router.navigateByUrl('/librarian/dashboard/loans'), 800);
       },
       error: (err) => {
         this.loading.set(false);
