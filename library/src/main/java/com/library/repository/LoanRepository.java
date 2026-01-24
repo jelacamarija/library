@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,5 +24,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     Page<Loan> findByUser_MembershipNumberContainingIgnoreCase(String membershipNumber, Pageable pageable);
     boolean existsByUserAndBookAndStatus(User user, Book book, LoanStatus status);
 
-    List<Loan> findByStatusAndDueDateBefore(LoanStatus status, Date date);
+    List<Loan> findByStatusAndDueDateBefore(LoanStatus status, LocalDateTime date);
 }

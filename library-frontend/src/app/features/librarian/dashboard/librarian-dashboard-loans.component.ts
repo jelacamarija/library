@@ -145,7 +145,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                           ? 'border-red-300 bg-red-50 text-red-800'
                           : 'border-yellow-300 bg-yellow-50 text-yellow-800')"
                   >
-                    {{ isReturned(l) ? 'DA' : (isExpired(l) ? 'ISTEKLO' : 'NE') }}
+                    {{ isReturned(l) ? 'DA' : 'NE' }}
                   </span>
                 </td>
 
@@ -380,7 +380,7 @@ export class LibrarianDashboardLoansComponent {
   }
 
   canReturn(l: LoanRow): boolean {
-    return !this.isReturned(l) && !this.isExpired(l);
+    return !this.isReturned(l);
   }
 
   statusBadgeClass(l: LoanRow): string {
