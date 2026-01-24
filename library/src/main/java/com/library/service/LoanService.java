@@ -189,23 +189,6 @@ public class LoanService {
         return loansPage.map(LoanMapper::toDto);
     }
 
-    @Transactional
-    public void returnLoan(Long loanId) {
-        Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new RuntimeException("Iznajmljivanje ne postoji"));
 
-        if (LoanStatus.RETURNED==loan.getStatus()) {
-            throw new RuntimeException("Knjiga je već vraćena.");
-        }
-
-        loan.setStatus(LoanStatus.RETURNED);
-        loan.setReturnedAt(LocalDateTime.now());
-
-        Book book = loan.getBook();
-        book.setCopiesAvailable(book.getCopiesAvailable() + 1);
-        bookRepository.save(book);
-
-        loanRepository.save(loan);
-    }
 
 }

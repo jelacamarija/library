@@ -4,6 +4,7 @@ package com.library.service;
 import com.library.dto.UserListDto;
 import com.library.dto.UserProfileDto;
 import com.library.entity.User;
+import com.library.mapper.UserMapper;
 import com.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,30 +25,24 @@ public class UserService {
         User u = userRepository.findById(userID)
                 .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
 
-        return new UserProfileDto(
-                u.getUserID(),
-                u.getName(),
-                u.getEmail(),
-                u.getPhoneNumber(),
-                u.getMembershipNumber(),
-                u.getMembershipDate(),
-                u.getIsVerified(),
-                u.getActive(),
-                u.getCreatedAt(),
-                u.getRole()
-        );
+        return UserMapper.toProfileDto(u);
+
     }
 
     public Page<UserListDto> getAllClients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return userRepository.findByRole("CLIENT", pageable).map(this::toListDto);
+        return userRepository
+                .findByRole("CLIENT", pageable)
+                .map(UserMapper::toListDto);
+
     }
 
     public Page<UserListDto> searchClientsByMembership(String q, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return userRepository
                 .findByRoleAndMembershipNumberContainingIgnoreCase("CLIENT", q, pageable)
-                .map(this::toListDto);
+                .map(UserMapper::toListDto);
+
     }
 
     public UserListDto findClientByExactMembership(String membershipNumber) {
@@ -58,21 +53,9 @@ public class UserService {
             throw new RuntimeException("Članski broj je predviđen samo za CLIENT naloge.");
         }
 
-        return toListDto(u);
+        return UserMapper.toListDto(u);
     }
 
-    private UserListDto toListDto(User u) {
-        return new UserListDto(
-                u.getUserID(),
-                u.getName(),
-                u.getEmail(),
-                u.getPhoneNumber(),
-                u.getMembershipNumber(),
-                u.getMembershipDate(),
-                u.getActive(),
-                u.getIsVerified()
-        );
-    }
 
     @Transactional
     public UserListDto updateUserPhone(Long userId, String phoneNumber) {
@@ -86,6 +69,6 @@ public class UserService {
         u.setPhoneNumber(phoneNumber);
         userRepository.save(u);
 
-        return toListDto(u);
+        return UserMapper.toListDto(u);
     }
 }

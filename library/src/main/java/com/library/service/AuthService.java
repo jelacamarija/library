@@ -64,6 +64,7 @@ public class AuthService {
      }
 
     private String generateMembershipNumber(Long userID) {
+
          return "LIB" + String.format("%06d", userID);
     }
 
