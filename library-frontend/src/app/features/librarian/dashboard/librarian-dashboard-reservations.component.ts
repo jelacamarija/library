@@ -140,7 +140,8 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
                   class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
                   [ngClass]="statusClass(r.status)"
                 >
-                  {{ r.status }}
+                  {{ statusLabel(r.status) }}
+
                 </span>
 
               
@@ -354,6 +355,25 @@ export class LibrarianDashboardReservationsComponent {
   canActivate(r: ReservationRow): boolean {
     return (r.status || '').toUpperCase() === 'PENDING';
   }
+
+  statusLabel(status: string): string {
+  const s = (status || '').toUpperCase();
+
+  switch (s) {
+    case 'PENDING':
+      return 'Na čekanju';
+    case 'FULFILLED':
+      return 'Preuzeta';
+    case 'EXPIRED':
+      return 'Istekla';
+    case 'CANCELED':
+    case 'CANCELLED':
+      return 'Otkazana';
+    default:
+      return status || '—';
+  }
+}
+
 
   statusClass(status: string): string {
     const s = (status || '').toUpperCase();

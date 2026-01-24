@@ -23,7 +23,7 @@
     {{ errorMessage() }}
   </div>
 
-  <!-- LISTA (ako je prazno, samo neće ništa prikazati) -->
+  <!-- LISTA  -->
   <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div
       *ngFor="let b of books()"
@@ -130,7 +130,7 @@
   </div>
 </div>
 
-<!-- ADD BOOK MODAL (bez formGroup) -->
+<!-- ADD BOOK MODAL -->
 <div *ngIf="showAddModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
 
@@ -157,39 +157,122 @@
         {{ addError() }}
       </div>
 
-      <!-- BITNO: pošto nema addForm u TS, ostavljamo dugme i submit poziv -->
-      <div class="text-sm text-gray-700 mb-4">
-        (Forma za dodavanje je u TS komponenti. Ako koristiš ReactiveForms, vrati addForm u TS ili mi pošalji TS da uskladim.)
-      </div>
+      <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="space-y-4">
+        <div *ngIf="addForm.touched && addForm.invalid"
+             class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+          Sva polja moraju biti popunjena ispravno.
+        </div>
 
-      <div class="pt-2 flex gap-3">
-        <button
-          type="button"
-          (click)="closeAdd()"
-          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-          [disabled]="addLoading()"
-        >
-          Otkaži
-        </button>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Naslov *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="title" type="text" />
 
-        <button
-          type="button"
-          (click)="submitAdd()"
-          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-          [disabled]="addLoading()"
-        >
-          {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
-        </button>
-      </div>
+            <p *ngIf="addForm.controls.title.touched && addForm.controls.title.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.title.errors?.['required']">Naslov je obavezan.</span>
+              <span *ngIf="addForm.controls.title.errors?.['minlength']">Naslov mora imati najmanje 2 karaktera.</span>
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Autor *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="author" type="text" />
+
+            <p *ngIf="addForm.controls.author.touched && addForm.controls.author.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.author.errors?.['required']">Autor je obavezan.</span>
+              <span *ngIf="addForm.controls.author.errors?.['minlength']">Autor mora imati najmanje 2 karaktera.</span>
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">ISBN *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="isbn" type="text" inputmode="numeric" />
+
+            <p *ngIf="addForm.controls.isbn.touched && addForm.controls.isbn.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.isbn.errors?.['required']">ISBN je obavezan.</span>
+              <span *ngIf="addForm.controls.isbn.errors?.['pattern']">ISBN mora imati tačno 13 cifara.</span>
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Kategorija *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="category" type="text" />
+
+            <p *ngIf="addForm.controls.category.touched && addForm.controls.category.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.category.errors?.['required']">Kategorija je obavezna.</span>
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Godina *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="publishedYear" type="number" />
+
+            <p *ngIf="addForm.controls.publishedYear.touched && addForm.controls.publishedYear.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.publishedYear.errors?.['required']">Godina izdanja je obavezna.</span>
+              <span *ngIf="addForm.controls.publishedYear.errors?.['min']">Godina izdanja nije ispravna.</span>
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Ukupno *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="copiesTotal" type="number" min="1" />
+
+            <p *ngIf="addForm.controls.copiesTotal.touched && addForm.controls.copiesTotal.invalid"
+               class="text-xs text-red-600 mt-1">
+              <span *ngIf="addForm.controls.copiesTotal.errors?.['required']">Ukupan broj kopija je obavezan.</span>
+              <span *ngIf="addForm.controls.copiesTotal.errors?.['min']">Ukupan broj kopija mora biti najmanje 1.</span>
+            </p>
+
+            <p class="text-xs text-gray-500 mt-1">
+              Dostupne kopije se automatski postavljaju na isti broj.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">Opis *</label>
+          <textarea class="w-full border rounded-xl px-3 py-2" formControlName="description" rows="4"></textarea>
+
+          <p *ngIf="addForm.controls.description.touched && addForm.controls.description.invalid"
+             class="text-xs text-red-600 mt-1">
+            <span *ngIf="addForm.controls.description.errors?.['required']">Opis je obavezan.</span>
+            <span *ngIf="addForm.controls.description.errors?.['minlength']">Opis mora imati najmanje 3 karaktera.</span>
+          </p>
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button
+            type="button"
+            (click)="closeAdd()"
+            class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+            [disabled]="addLoading()"
+          >
+            Otkaži
+          </button>
+
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+            [disabled]="addLoading()"
+          >
+            {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-<!-- EDIT MODAL (ostaje, jer ne znaš da li ti postoje forme — ovo koristi samo submit metode) -->
+<!-- EDIT MODAL (tvoj postojeći) -->
 <div *ngIf="showEditModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
 
-  <div class="relative mx-auto mt-20 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-xl">
+  <div class="relative mx-auto mt-20 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h2 class="text-xl font-semibold text-gray-900">
@@ -207,32 +290,115 @@
       </button>
     </div>
 
-    <div *ngIf="editError()" class="mt-4 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+    <div *ngIf="editError()" class="mt-4 p-3 rounded bg-red-50 text-red-700 text-sm">
       {{ editError() }}
     </div>
 
-    <!-- Ovdje ti TS odlučuje kako edit radi; ne diramo formGroup da ne puca -->
-    <div class="mt-5 text-sm text-gray-700">
-      (Edit forma je definisana u TS komponenti. Ako koristiš ReactiveForms, moraš imati editDescriptionForm / editCopiesForm u TS.)
+    <form
+      *ngIf="editMode() === 'description'"
+      [formGroup]="editDescriptionForm"
+      (ngSubmit)="submitEditDescription()"
+      class="mt-5 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Opis *</label>
+        <textarea class="w-full border rounded-xl px-3 py-2" rows="5" formControlName="description"></textarea>
+
+        <p *ngIf="editDescriptionForm.controls.description.touched && editDescriptionForm.controls.description.invalid"
+           class="text-xs text-red-600 mt-1">
+          Opis mora imati najmanje 3 karaktera.
+        </p>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button type="button" (click)="closeEdit()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="editLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          [disabled]="editLoading()"
+        >
+          {{ editLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
+        </button>
+      </div>
+    </form>
+
+    <form
+      *ngIf="editMode() === 'copies'"
+      [formGroup]="editCopiesForm"
+      (ngSubmit)="submitEditCopies()"
+      class="mt-5 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Broj kopija za dodavanje *</label>
+        <input class="w-full border rounded-xl px-3 py-2" type="number" min="1" formControlName="copiesToAdd" />
+
+        <p *ngIf="editCopiesForm.controls.copiesToAdd.touched && editCopiesForm.controls.copiesToAdd.invalid"
+           class="text-xs text-red-600 mt-1">
+          Broj kopija mora biti veći od 0.
+        </p>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button type="button" (click)="closeEdit()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="editLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          [disabled]="editLoading()"
+        >
+          {{ editLoading() ? 'Čuvanje...' : 'Dodaj' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div *ngIf="showConfirm()" class="fixed inset-0 z-[60]">
+  <div class="absolute inset-0 bg-black/40" (click)="closeConfirm()"></div>
+
+  <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-2xl bg-white p-6 shadow-xl">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">{{ confirmTitle() }}</h3>
+        <p class="mt-1 text-sm text-gray-600">{{ confirmMessage() }}</p>
+      </div>
+
+      <button
+        (click)="closeConfirm()"
+        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
+        aria-label="Zatvori"
+      >
+        ✕
+      </button>
     </div>
 
-    <div class="pt-4 flex gap-3">
+    <div class="mt-6 flex gap-3">
       <button
         type="button"
-        (click)="closeEdit()"
+        (click)="closeConfirm()"
         class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-        [disabled]="editLoading()"
+        [disabled]="confirmLoading()"
       >
         Otkaži
       </button>
 
       <button
         type="button"
-        (click)="editMode() === 'description' ? submitEditDescription() : submitEditCopies()"
+        (click)="confirmProceed()"
         class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-        [disabled]="editLoading()"
+        [disabled]="confirmLoading()"
       >
-        {{ editLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
+        {{ confirmLoading() ? 'Obrada...' : confirmOkText() }}
       </button>
     </div>
   </div>

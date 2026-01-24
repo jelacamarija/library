@@ -36,7 +36,7 @@ export class BookService {
     copiesTotal: number;
     description: string;
   }) {
-  return this.http.post<BookDto>('/api/books', payload);
+  return this.http.post<BookDto>('/api/books/create', payload);
   }
 
   updateDescription(id: number, description: string) {

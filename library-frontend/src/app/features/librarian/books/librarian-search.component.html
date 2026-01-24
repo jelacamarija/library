@@ -49,7 +49,10 @@
 
   <!-- LISTA -->
   <div *ngIf="!isLoading() && !isError() && !noResults()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div *ngFor="let b of books()" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
+    <div
+      *ngFor="let b of books()"
+      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition"
+    >
       <div class="mb-3">
         <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
         <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
@@ -151,7 +154,7 @@
   </div>
 </div>
 
-<!-- ADD BOOK MODAL -->
+<!-- ✅ ADD BOOK MODAL (isti stil kao LibrarianBooks, bez "Dostupno") -->
 <div *ngIf="showAddModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
 
@@ -205,15 +208,12 @@
             <input class="w-full border rounded-xl px-3 py-2" formControlName="publishedYear" type="number" />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-gray-700 mb-1">Ukupno *</label>
-              <input class="w-full border rounded-xl px-3 py-2" formControlName="copiesTotal" type="number" min="1" />
-            </div>
-            <div>
-              <label class="block text-sm text-gray-700 mb-1">Dostupno *</label>
-              <input class="w-full border rounded-xl px-3 py-2" formControlName="copiesAvailable" type="number" min="0" />
-            </div>
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Ukupno *</label>
+            <input class="w-full border rounded-xl px-3 py-2" formControlName="copiesTotal" type="number" min="1" />
+            <p class="text-xs text-gray-500 mt-1">
+              Dostupne kopije se automatski postavljaju na isti broj.
+            </p>
           </div>
         </div>
 
@@ -283,14 +283,17 @@
       </div>
 
       <div class="pt-2 flex gap-3">
-        <button type="button" (click)="closeEdit()"
+        <button
+          type="button"
+          (click)="closeEdit()"
           class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
           [disabled]="editLoading()"
         >
           Otkaži
         </button>
 
-        <button type="submit"
+        <button
+          type="submit"
           class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
           [disabled]="editLoading()"
         >
@@ -311,14 +314,17 @@
       </div>
 
       <div class="pt-2 flex gap-3">
-        <button type="button" (click)="closeEdit()"
+        <button
+          type="button"
+          (click)="closeEdit()"
           class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
           [disabled]="editLoading()"
         >
           Otkaži
         </button>
 
-        <button type="submit"
+        <button
+          type="submit"
           class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
           [disabled]="editLoading()"
         >
@@ -326,5 +332,47 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div *ngIf="showConfirm()" class="fixed inset-0 z-[60]">
+  <div class="absolute inset-0 bg-black/40" (click)="closeConfirm()"></div>
+
+  <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-2xl bg-white p-6 shadow-xl">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">{{ confirmTitle() }}</h3>
+        <p class="mt-1 text-sm text-gray-600">{{ confirmMessage() }}</p>
+      </div>
+
+      <button
+        (click)="closeConfirm()"
+        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
+        aria-label="Zatvori"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div class="mt-6 flex gap-3">
+      <button
+        type="button"
+        (click)="closeConfirm()"
+        class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+        [disabled]="confirmLoading()"
+      >
+        Otkaži
+      </button>
+
+      <button
+        type="button"
+        (click)="confirmProceed()"
+        class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+        [disabled]="confirmLoading()"
+      >
+        {{ confirmLoading() ? 'Obrada...' : confirmOkText() }}
+      </button>
+    </div>
   </div>
 </div>

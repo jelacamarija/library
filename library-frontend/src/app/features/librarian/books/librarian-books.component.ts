@@ -24,34 +24,70 @@ export class LibrarianBooksComponent {
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
+  // ADD MODAL
   showAddModal = signal(false);
   addError = signal('');
   addLoading = signal(false);
   addSuccess = signal('');
 
-  form = this.fb.nonNullable.group({
+  // CONFIRM MODAL
+  showConfirm = signal(false);
+  confirmTitle = signal('Potvrda');
+  confirmMessage = signal('');
+  confirmOkText = signal('Potvrdi');
+  confirmLoading = signal(false);
+
+  private pendingConfirmAction: (() => void) | null = null;
+
+  openConfirm(opts: { title?: string; message: string; okText?: string; action: () => void }) {
+    this.confirmTitle.set(opts.title ?? 'Potvrda');
+    this.confirmMessage.set(opts.message);
+    this.confirmOkText.set(opts.okText ?? 'Potvrdi');
+    this.pendingConfirmAction = opts.action;
+    this.showConfirm.set(true);
+  }
+
+  closeConfirm() {
+    if (this.confirmLoading()) return;
+    this.showConfirm.set(false);
+    this.pendingConfirmAction = null;
+  }
+
+  confirmProceed() {
+    const action = this.pendingConfirmAction;
+    if (!action) return;
+
+    this.showConfirm.set(false);
+    this.pendingConfirmAction = null;
+
+    action();
+  }
+
+  // ADD FORM
+  addForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     author: ['', [Validators.required, Validators.minLength(2)]],
-
-    isbn: [
-      '',
-      [
-        Validators.required,
-        Validators.pattern(/^\d{13}$/),
-      ],
-    ],
-
+    isbn: ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
     category: ['', [Validators.required]],
-
-    publishedYear: [
-      new Date().getFullYear(),
-      [Validators.required, Validators.min(1)],
-    ],
-
+    publishedYear: [new Date().getFullYear(), [Validators.required, Validators.min(1)]],
     copiesTotal: [1, [Validators.required, Validators.min(1)]],
-
-    description: [''], 
+    description: [''],
   });
+
+  // EDIT MODAL
+  showEditModal = signal(false);
+  editLoading = signal(false);
+  editError = signal('');
+  editMode = signal<'description' | 'copies'>('description');
+
+  editDescriptionForm = this.fb.nonNullable.group({
+    description: ['', [Validators.required, Validators.minLength(3)]],
+  });
+
+  editCopiesForm = this.fb.nonNullable.group({
+    copiesToAdd: [1, [Validators.required, Validators.min(1)]],
+  });
+
 
   isLoading = computed(() => this.state().status === 'loading');
   isError = computed(() => this.state().status === 'error');
@@ -73,7 +109,7 @@ export class LibrarianBooksComponent {
   private loadBooks() {
     this.state.set({ status: 'loading' });
     this.bookService.getPage(0, 12).subscribe({
-      next: (page) => this.state.set({ status: 'ready', books: page.content }),
+      next: (page) => this.state.set({ status: 'ready', books: page.content ?? [] }),
       error: (err) => {
         const msg = err?.error?.message ?? 'Greška pri učitavanju knjiga.';
         this.state.set({ status: 'error', message: msg });
@@ -81,6 +117,7 @@ export class LibrarianBooksComponent {
     });
   }
 
+  // DETAILS
   openDetails(book: BookDto) {
     this.selectedBook.set(book);
   }
@@ -89,10 +126,12 @@ export class LibrarianBooksComponent {
     this.selectedBook.set(null);
   }
 
+  // ADD MODAL ACTIONS
   openAdd() {
     this.addError.set('');
     this.addSuccess.set('');
-    this.form.reset({
+
+    this.addForm.reset({
       title: '',
       author: '',
       isbn: '',
@@ -101,6 +140,7 @@ export class LibrarianBooksComponent {
       copiesTotal: 1,
       description: '',
     });
+
     this.showAddModal.set(true);
   }
 
@@ -113,19 +153,30 @@ export class LibrarianBooksComponent {
     this.addError.set('');
     this.addSuccess.set('');
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    if (this.addForm.invalid) {
+      this.addForm.markAllAsTouched();
       return;
     }
 
-    const ok = window.confirm('Da li ste sigurni da želite da dodate novu knjigu?');
-    if (!ok) return;
+    this.openConfirm({
+      title: 'Dodavanje knjige',
+      message: 'Da li ste sigurni da želite da dodate novu knjigu?',
+      okText: 'Dodaj',
+      action: () => this.performAdd(),
+    });
+  }
 
-    const payload = this.form.getRawValue();
+  private performAdd() {
+    const raw = this.addForm.getRawValue();
+
+    const payload = {
+      ...raw,
+      copiesAvailable: raw.copiesTotal, 
+    };
 
     this.addLoading.set(true);
 
-    this.bookService.create(payload).subscribe({
+    this.bookService.create(payload as any).subscribe({
       next: () => {
         this.addLoading.set(false);
         this.addSuccess.set('Knjiga je uspješno dodata.');
@@ -140,99 +191,103 @@ export class LibrarianBooksComponent {
     });
   }
 
-  showEditModal = signal(false);
-  editLoading = signal(false);
-  editError = signal('');
-  editMode = signal<'description' | 'copies'>('description');
-
-    editDescriptionForm = this.fb.nonNullable.group({
-    description: ['', [Validators.required, Validators.minLength(3)]],
-  });
-
-  editCopiesForm = this.fb.nonNullable.group({
-    copiesToAdd: [1, [Validators.required, Validators.min(1)]],
-  });
-
+  // EDIT ACTIONS
   openEdit(mode: 'description' | 'copies') {
-  this.editError.set('');
-  this.editMode.set(mode);
+    this.editError.set('');
+    this.editMode.set(mode);
 
-  const b = this.selectedBook();
-  if (!b) return;
+    const b = this.selectedBook();
+    if (!b) return;
 
-  if (mode === 'description') {
-    this.editDescriptionForm.reset({ description: b.description ?? '' });
-  } else {
-    this.editCopiesForm.reset({ copiesToAdd: 1 });
-  }
-
-  this.showEditModal.set(true);
-}
-
-closeEdit() {
-  if (this.editLoading()) return;
-  this.showEditModal.set(false);
-}
-
-submitEditDescription() {
-  this.editError.set('');
-  const b = this.selectedBook();
-  if (!b) return;
-
-  if (this.editDescriptionForm.invalid) {
-    this.editDescriptionForm.markAllAsTouched();
-    return;
-  }
-
-  const ok = window.confirm('Da li ste sigurni da želite da izmijenite opis?');
-  if (!ok) return;
-
-  this.editLoading.set(true);
-
-  const { description } = this.editDescriptionForm.getRawValue();
-
-  this.bookService.updateDescription(b.bookID as any, description).subscribe({
-    next: (updated) => {
-      this.editLoading.set(false);
-      this.showEditModal.set(false);
-      this.selectedBook.set(updated); 
-      this.loadBooks(); 
-    },
-    error: (err) => {
-      this.editLoading.set(false);
-      this.editError.set(err?.error?.message ?? 'Greška pri izmjeni opisa.');
+    if (mode === 'description') {
+      this.editDescriptionForm.reset({ description: b.description ?? '' });
+    } else {
+      this.editCopiesForm.reset({ copiesToAdd: 1 });
     }
-  });
-}
 
-submitEditCopies() {
-  this.editError.set('');
-  const b = this.selectedBook();
-  if (!b) return;
-
-  if (this.editCopiesForm.invalid) {
-    this.editCopiesForm.markAllAsTouched();
-    return;
+    this.showEditModal.set(true);
   }
 
-  const ok = window.confirm('Da li ste sigurni da želite da dodate kopije?');
-  if (!ok) return;
+  closeEdit() {
+    if (this.editLoading()) return;
+    this.showEditModal.set(false);
+  }
 
-  this.editLoading.set(true);
+  submitEditDescription() {
+    this.editError.set('');
+    const b = this.selectedBook();
+    if (!b) return;
 
-  const { copiesToAdd } = this.editCopiesForm.getRawValue();
-
-  this.bookService.updateCopies(b.bookID as any, copiesToAdd).subscribe({
-    next: (updated) => {
-      this.editLoading.set(false);
-      this.showEditModal.set(false);
-      this.selectedBook.set(updated);
-      this.loadBooks();
-    },
-    error: (err) => {
-      this.editLoading.set(false);
-      this.editError.set(err?.error?.message ?? 'Greška pri dodavanju kopija.');
+    if (this.editDescriptionForm.invalid) {
+      this.editDescriptionForm.markAllAsTouched();
+      return;
     }
-  });
-}
+
+    this.openConfirm({
+      title: 'Izmjena opisa',
+      message: 'Da li ste sigurni da želite da izmijenite opis?',
+      okText: 'Sačuvaj',
+      action: () => this.performEditDescription(),
+    });
+  }
+
+  private performEditDescription() {
+    const b = this.selectedBook();
+    if (!b) return;
+
+    const { description } = this.editDescriptionForm.getRawValue();
+
+    this.editLoading.set(true);
+    this.bookService.updateDescription(b.bookID as any, description).subscribe({
+      next: (updated) => {
+        this.editLoading.set(false);
+        this.showEditModal.set(false);
+        this.selectedBook.set(updated);
+        this.loadBooks();
+      },
+      error: (err) => {
+        this.editLoading.set(false);
+        this.editError.set(err?.error?.message ?? 'Greška pri izmjeni opisa.');
+      },
+    });
+  }
+
+  submitEditCopies() {
+    this.editError.set('');
+    const b = this.selectedBook();
+    if (!b) return;
+
+    if (this.editCopiesForm.invalid) {
+      this.editCopiesForm.markAllAsTouched();
+      return;
+    }
+
+    this.openConfirm({
+      title: 'Dodavanje kopija',
+      message: 'Da li ste sigurni da želite da dodate kopije?',
+      okText: 'Dodaj',
+      action: () => this.performEditCopies(),
+    });
+  }
+
+  private performEditCopies() {
+    const b = this.selectedBook();
+    if (!b) return;
+
+    const { copiesToAdd } = this.editCopiesForm.getRawValue();
+
+    this.editLoading.set(true);
+    this.bookService.updateCopies(b.bookID as any, copiesToAdd).subscribe({
+      next: (updated) => {
+        this.editLoading.set(false);
+        this.showEditModal.set(false);
+        this.selectedBook.set(updated);
+        this.loadBooks();
+      },
+      error: (err) => {
+        this.editLoading.set(false);
+        this.editError.set(err?.error?.message ?? 'Greška pri dodavanju kopija.');
+      },
+    });
+  }
 }

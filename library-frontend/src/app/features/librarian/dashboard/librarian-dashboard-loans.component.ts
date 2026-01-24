@@ -160,7 +160,8 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
                     [ngClass]="statusBadgeClass(l)"
                   >
-                    {{ (l.status || '').toUpperCase() }}
+                   {{ statusLabel(l.status) }}
+
                   </span>
                 </td>
 
@@ -389,6 +390,22 @@ export class LibrarianDashboardLoansComponent {
       if (s === 'EXPIRED') return 'border-red-300 bg-red-50 text-red-800';
       return 'border-gray-300 bg-gray-50 text-gray-800';
   }
+
+  statusLabel(status: string): string {
+  const s = (status || '').toUpperCase();
+
+  switch (s) {
+    case 'ACTIVE':
+      return 'Aktivno';
+    case 'RETURNED':
+      return 'Vraćeno';
+    case 'EXPIRED':
+      return 'Isteklo';
+    default:
+      return status || '—';
+  }
+}
+
 
   openReturnModal(l: LoanRow): void {
     if (!this.canReturn(l)) return;

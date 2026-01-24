@@ -24,31 +24,63 @@ export class LibrarianSearchComponent {
   private fb = inject(FormBuilder);
 
   query = signal('');
-
   state = signal<UiState>({ status: 'loading' });
-
   private search$ = new Subject<string>();
 
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
+  // ADD MODAL
   showAddModal = signal(false);
   addError = signal('');
   addLoading = signal(false);
 
+  // EDIT MODAL
   showEditModal = signal(false);
   editLoading = signal(false);
   editError = signal('');
   editMode = signal<'description' | 'copies'>('description');
 
+  // CONFIRM MODAL STATE
+  showConfirm = signal(false);
+  confirmTitle = signal('Potvrda');
+  confirmMessage = signal('');
+  confirmOkText = signal('Potvrdi');
+  confirmLoading = signal(false);
+
+  private pendingConfirmAction: (() => void) | null = null;
+
+  openConfirm(opts: { title?: string; message: string; okText?: string; action: () => void }) {
+    this.confirmTitle.set(opts.title ?? 'Potvrda');
+    this.confirmMessage.set(opts.message);
+    this.confirmOkText.set(opts.okText ?? 'Potvrdi');
+    this.pendingConfirmAction = opts.action;
+    this.showConfirm.set(true);
+  }
+
+  closeConfirm() {
+    if (this.confirmLoading()) return;
+    this.showConfirm.set(false);
+    this.pendingConfirmAction = null;
+  }
+
+  confirmProceed() {
+    const action = this.pendingConfirmAction;
+    if (!action) return;
+
+    this.showConfirm.set(false);
+    this.pendingConfirmAction = null;
+
+    action();
+  }
+
   addForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     author: ['', [Validators.required, Validators.minLength(2)]],
-    isbn: ['', [Validators.required, Validators.minLength(5)]],
+    isbn: ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
     category: ['', [Validators.required]],
-    publishedYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
+    publishedYear: [new Date().getFullYear(), [Validators.required, Validators.min(1)]],
     copiesTotal: [1, [Validators.required, Validators.min(1)]],
-    copiesAvailable: [1, [Validators.required, Validators.min(0)]],
     description: [''],
   });
 
@@ -73,12 +105,12 @@ export class LibrarianSearchComponent {
     return s.status === 'ready' ? s.books : [];
   });
 
-  noResults = computed(
-    () => !this.isLoading() && !this.isError() && this.books().length === 0
-  );
+  noResults = computed(() => !this.isLoading() && !this.isError() && this.books().length === 0);
+
 
   ngOnInit() {
     this.loadAll();
+
     this.search$
       .pipe(debounceTime(350), distinctUntilChanged())
       .subscribe((raw) => {
@@ -91,9 +123,7 @@ export class LibrarianSearchComponent {
 
         this.state.set({ status: 'loading' });
         this.bookService.search(q, 0, 12).subscribe({
-          next: (page: any) => {
-            this.state.set({ status: 'ready', books: page.content ?? [] });
-          },
+          next: (page: any) => this.state.set({ status: 'ready', books: page.content ?? [] }),
           error: (err: any) => {
             const msg = err?.error?.message ?? 'Greška pri pretrazi.';
             this.state.set({ status: 'error', message: msg });
@@ -102,12 +132,11 @@ export class LibrarianSearchComponent {
       });
   }
 
+
   private loadAll() {
     this.state.set({ status: 'loading' });
     this.bookService.getPage(0, 12).subscribe({
-      next: (page: any) => {
-        this.state.set({ status: 'ready', books: page.content ?? [] });
-      },
+      next: (page: any) => this.state.set({ status: 'ready', books: page.content ?? [] }),
       error: (err: any) => {
         const msg = err?.error?.message ?? 'Greška pri učitavanju knjiga.';
         this.state.set({ status: 'error', message: msg });
@@ -132,6 +161,7 @@ export class LibrarianSearchComponent {
     });
   }
 
+  // SEARCH
   onQueryChange(value: string) {
     this.query.set(value);
     this.search$.next(value);
@@ -142,6 +172,7 @@ export class LibrarianSearchComponent {
     this.search$.next('');
   }
 
+  // DETAILS
   openDetails(book: BookDto) {
     this.selectedBook.set(book);
   }
@@ -150,8 +181,10 @@ export class LibrarianSearchComponent {
     this.selectedBook.set(null);
   }
 
+  // ADD MODAL
   openAdd() {
     this.addError.set('');
+
     this.addForm.reset({
       title: '',
       author: '',
@@ -159,9 +192,9 @@ export class LibrarianSearchComponent {
       category: '',
       publishedYear: new Date().getFullYear(),
       copiesTotal: 1,
-      copiesAvailable: 1,
       description: '',
     });
+
     this.showAddModal.set(true);
   }
 
@@ -178,19 +211,24 @@ export class LibrarianSearchComponent {
       return;
     }
 
-    const ok = window.confirm('Da li ste sigurni da želite da dodate novu knjigu?');
-    if (!ok) return;
+    this.openConfirm({
+      title: 'Dodavanje knjige',
+      message: 'Da li ste sigurni da želite da dodate novu knjigu?',
+      okText: 'Dodaj',
+      action: () => this.performAdd(),
+    });
+  }
 
-    const payload = this.addForm.getRawValue();
+  private performAdd() {
+    const raw = this.addForm.getRawValue();
 
-    if (payload.copiesAvailable > payload.copiesTotal) {
-      this.addError.set('Dostupne kopije ne mogu biti veće od ukupnih.');
-      return;
-    }
+    const payload = {
+      ...raw,
+      copiesAvailable: raw.copiesTotal,
+    };
 
     this.addLoading.set(true);
-
-    this.bookService.create(payload).subscribe({
+    this.bookService.create(payload as any).subscribe({
       next: () => {
         this.addLoading.set(false);
         this.showAddModal.set(false);
@@ -203,6 +241,7 @@ export class LibrarianSearchComponent {
     });
   }
 
+  // EDIT MODAL
   openEdit(mode: 'description' | 'copies') {
     this.editError.set('');
     this.editMode.set(mode);
@@ -224,6 +263,7 @@ export class LibrarianSearchComponent {
     this.showEditModal.set(false);
   }
 
+  //EDIT DESCRIPTION
   submitEditDescription() {
     this.editError.set('');
     const b = this.selectedBook();
@@ -234,12 +274,21 @@ export class LibrarianSearchComponent {
       return;
     }
 
-    const ok = window.confirm('Da li ste sigurni da želite da izmijenite opis?');
-    if (!ok) return;
+    this.openConfirm({
+      title: 'Izmjena opisa',
+      message: 'Da li ste sigurni da želite da izmijenite opis?',
+      okText: 'Sačuvaj',
+      action: () => this.performEditDescription(),
+    });
+  }
 
-    this.editLoading.set(true);
+  private performEditDescription() {
+    const b = this.selectedBook();
+    if (!b) return;
+
     const { description } = this.editDescriptionForm.getRawValue();
 
+    this.editLoading.set(true);
     this.bookService.updateDescription(b.bookID as any, description).subscribe({
       next: (updated) => {
         this.editLoading.set(false);
@@ -254,6 +303,7 @@ export class LibrarianSearchComponent {
     });
   }
 
+  //ADD COPIES
   submitEditCopies() {
     this.editError.set('');
     const b = this.selectedBook();
@@ -264,12 +314,21 @@ export class LibrarianSearchComponent {
       return;
     }
 
-    const ok = window.confirm('Da li ste sigurni da želite da dodate kopije?');
-    if (!ok) return;
+    this.openConfirm({
+      title: 'Dodavanje kopija',
+      message: 'Da li ste sigurni da želite da dodate kopije?',
+      okText: 'Dodaj',
+      action: () => this.performEditCopies(),
+    });
+  }
 
-    this.editLoading.set(true);
+  private performEditCopies() {
+    const b = this.selectedBook();
+    if (!b) return;
+
     const { copiesToAdd } = this.editCopiesForm.getRawValue();
 
+    this.editLoading.set(true);
     this.bookService.updateCopies(b.bookID as any, copiesToAdd).subscribe({
       next: (updated) => {
         this.editLoading.set(false);
