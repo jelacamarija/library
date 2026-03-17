@@ -4,7 +4,7 @@ package com.library.controller;
 import com.library.dto.LibrarianCreateUserDto;
 import com.library.dto.UpdatePhoneDto;
 import com.library.dto.UserListDto;
-import com.library.dto.UserProfileDto;
+import com.library.dto.ClientProfileDto;
 import com.library.service.AuthService;
 import com.library.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,7 @@ public class UserController {
     private final AuthService authService;
 
     @GetMapping("/me")
-    public UserProfileDto me(HttpServletRequest request) {
+    public ClientProfileDto me(HttpServletRequest request) {
         Long userID = (Long) request.getAttribute("userId");
         if (userID == null) throw new RuntimeException("Niste ulogovani");
         return userService.getMyProfile(userID);

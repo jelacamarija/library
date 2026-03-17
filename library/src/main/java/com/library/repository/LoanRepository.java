@@ -7,6 +7,8 @@ import com.library.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +23,12 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     );
     Page<Loan> findByStatus(LoanStatus status, Pageable pageable);
     List<Loan> findByUser_UserIDOrderByLoanedAtDesc(Long userId);
-    Page<Loan> findByUser_MembershipNumberContainingIgnoreCase(String membershipNumber, Pageable pageable);
+    @Query("""
+SELECT l FROM Loan l
+JOIN Client c ON l.user.userID = c.userID
+WHERE LOWER(c.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
+""")
+    Page<Loan> searchByMembership(@Param("q") String q, Pageable pageable);
     boolean existsByUserAndBookAndStatus(User user, Book book, LoanStatus status);
 
     List<Loan> findByStatusAndDueDateBefore(LoanStatus status, LocalDateTime date);

@@ -1,6 +1,5 @@
 package com.library.utils;
 
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +16,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-
     private final JwtUtil jwtUtil;
 
     @Override
@@ -29,8 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         return path.startsWith("/api/login")
-        || path.startsWith("/api/register")
-        || path.startsWith("/api/register/verify")
+                || path.startsWith("/api/register")
+                || path.startsWith("/api/register/verify")
                 || path.startsWith("/api/register/set-password");
     }
 
@@ -45,33 +43,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_OK);
             return;
         }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Missing or invalid Authorization header\"}");
+            writeUnauthorizedResponse(response, "Missing or invalid Authorization header");
             return;
         }
 
         String token = authHeader.substring(7);
 
         if (!jwtUtil.validateToken(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
+            writeUnauthorizedResponse(response, "Invalid or expired token");
             return;
         }
 
-
+        Long userId = jwtUtil.getUserIdFromToken(token);
         String email = jwtUtil.getEmailFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
-        Long userId=jwtUtil.getUserIdFromToken(token);
 
+        request.setAttribute("userId", userId);
         request.setAttribute("userEmail", email);
         request.setAttribute("userRole", role);
-        request.setAttribute("userId",userId);
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 }

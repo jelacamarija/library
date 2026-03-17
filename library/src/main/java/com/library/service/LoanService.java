@@ -6,10 +6,7 @@ import com.library.dto.LoanResponseDto;
 import com.library.entity.*;
 import com.library.mapper.LoanMapper;
 import com.library.mapper.ReservationMapper;
-import com.library.repository.BookRepository;
-import com.library.repository.LoanRepository;
-import com.library.repository.ReservationRepository;
-import com.library.repository.UserRepository;
+import com.library.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +31,7 @@ public class LoanService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final ReservationRepository reservationRepository;
+    private final MembershipRepository membershipRepository;
 
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
@@ -46,6 +44,17 @@ public class LoanService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
 
+        if (!(user instanceof Client client)) {
+            throw new RuntimeException("Samo klijent može iznajmiti knjige.");
+        }
+
+        Membership membership = membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
+
+        if (membership.getStatus() != MembershipStatus.ACTIVE) {
+            throw new RuntimeException("Morate imati aktivnu članarinu za iznajmljivanje knjiga.");
+        }
         Book book = bookRepository.findById(dto.getBookId())
                 .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
 
@@ -184,7 +193,7 @@ public class LoanService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        Page<Loan> loansPage = loanRepository.findByUser_MembershipNumberContainingIgnoreCase(query, pageable);
+        Page<Loan> loansPage = loanRepository.searchByMembership(query, pageable);
 
         return loansPage.map(LoanMapper::toDto);
     }

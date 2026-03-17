@@ -4,10 +4,7 @@ import com.library.dto.ReservationActiveDto;
 import com.library.dto.ReservationResponseDto;
 import com.library.entity.*;
 import com.library.mapper.ReservationMapper;
-import com.library.repository.BookRepository;
-import com.library.repository.LoanRepository;
-import com.library.repository.ReservationRepository;
-import com.library.repository.UserRepository;
+import com.library.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -27,6 +24,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
+    private final MembershipRepository membershipRepository;
 
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
@@ -36,6 +34,17 @@ public class ReservationService {
 
         User user = userRepository.findById(userID)
                 .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
+
+        if(!(user instanceof Client client)) {
+            throw new RuntimeException("Samo klijent može kreirati rezervaciju");
+        }
+
+        Membership membership=membershipRepository.findFirstByClientOrderByCreatedAtDesc(client)
+                .orElseThrow(()->new RuntimeException("Clanarina ne postoji"));
+
+        if(membership.getStatus()!=MembershipStatus.ACTIVE){
+            throw new RuntimeException("Morate imati aktivnu članarinu da biste rezervisali knjigu.");
+        }
 
         Book book = bookRepository.findById(bookID)
                 .orElseThrow(() -> new RuntimeException("Knjiga ne postoji"));

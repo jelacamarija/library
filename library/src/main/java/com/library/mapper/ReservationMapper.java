@@ -2,6 +2,7 @@ package com.library.mapper;
 
 import com.library.dto.ReservationResponseDto;
 import com.library.entity.Book;
+import com.library.entity.Client;
 import com.library.entity.Reservation;
 import com.library.entity.User;
 
@@ -19,7 +20,7 @@ public class ReservationMapper {
                 .reservationID(reservation.getReservationID())
                 .userID(reservation.getUser().getUserID())
                 .userName(reservation.getUser().getName())
-                .membershipNumber(reservation.getUser().getMembershipNumber())
+                .membershipNumber(extractMembershipNumber(reservation.getUser()))
                 .bookID(reservation.getBook().getBookID())
                 .bookTitle(reservation.getBook().getTitle())
                 .bookAuthor(reservation.getBook().getAuthor())
@@ -28,6 +29,13 @@ public class ReservationMapper {
                 .status(reservation.getStatus())
                 .loanID(reservation.getLoan() != null ? reservation.getLoan().getLoanId() : null)
                 .build();
+    }
+
+    private static String extractMembershipNumber(User user) {
+        if(user instanceof Client client){
+            return client.getMembershipNumber();
+        }
+        return null;
     }
 
     public static Reservation toEntity(User user, Book book) {

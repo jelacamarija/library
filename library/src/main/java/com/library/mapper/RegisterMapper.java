@@ -1,16 +1,22 @@
 package com.library.mapper;
 
 import com.library.dto.RegisterRequestDto;
+import com.library.entity.Client;
 import com.library.entity.User;
 
 public class RegisterMapper {
 
-    public static User toEntity(RegisterRequestDto dto){
-        User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        return user;
+    private RegisterMapper() {
+    }
+
+    public static Client toClientEntity(RegisterRequestDto dto) {
+        return Client.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .phoneNumber(dto.getPhoneNumber())
+                .active(true)
+                .isVerified(false)
+                .membershipNumber(null)
+                .build();
     }
 }

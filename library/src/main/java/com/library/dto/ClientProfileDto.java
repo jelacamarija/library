@@ -1,19 +1,19 @@
 package com.library.dto;
 
+
 import com.library.entity.MembershipStatus;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
-@Getter
-@Setter
-@NoArgsConstructor
+
+@Data
 @AllArgsConstructor
-public class UserListDto {
+public class ClientProfileDto {
 
     private Long userID;
     private String name;
@@ -21,10 +21,14 @@ public class UserListDto {
     private String phoneNumber;
     private String membershipNumber;
 
-    private MembershipStatus membershipStatus;
-
-    private Boolean active;
     private Boolean isVerified;
+    private Boolean active;
 
     private LocalDateTime createdAt;
+
+
+    private MembershipStatus membershipStatus;
+    private BigDecimal membershipAmount;
+    private LocalDate membershipStartDate;
+    private LocalDate membershipEndDate;
 }

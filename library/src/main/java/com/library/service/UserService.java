@@ -2,9 +2,13 @@ package com.library.service;
 
 
 import com.library.dto.UserListDto;
-import com.library.dto.UserProfileDto;
+import com.library.dto.ClientProfileDto;
+import com.library.entity.Client;
+import com.library.entity.Membership;
 import com.library.entity.User;
-import com.library.mapper.UserMapper;
+import com.library.mapper.ClientMapper;
+import com.library.repository.ClientRepository;
+import com.library.repository.MembershipRepository;
 import com.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,55 +24,78 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ClientRepository clientRepository;
+    private final MembershipRepository membershipRepository;
 
-    public UserProfileDto getMyProfile(Long userID) {
-        User u = userRepository.findById(userID)
-                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
+    public ClientProfileDto getMyProfile(Long userID) {
+        Client client=clientRepository.findById(userID).orElseThrow(
+                () -> new RuntimeException("Klijent nije pronađen")
+        );
 
-        return UserMapper.toProfileDto(u);
+        Membership membership=membershipRepository.findFirstByClientOrderByCreatedAtDesc(client).orElse(null);
+
+        return ClientMapper.toProfileDto(client, membership);
 
     }
 
     public Page<UserListDto> getAllClients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return userRepository
-                .findByRole("CLIENT", pageable)
-                .map(UserMapper::toListDto);
+        return clientRepository.findAll(pageable)
+                .map(client -> {
+                    Membership membership=membershipRepository
+                            .findFirstByClientOrderByCreatedAtDesc(client)
+                            .orElse(null);
+                    return ClientMapper.toListDto(client,membership);
+                });
 
     }
 
     public Page<UserListDto> searchClientsByMembership(String q, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return userRepository
-                .findByRoleAndMembershipNumberContainingIgnoreCase("CLIENT", q, pageable)
-                .map(UserMapper::toListDto);
 
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return clientRepository.findByMembershipNumberContainingIgnoreCase(q, pageable)
+                .map(client -> {
+                    Membership membership = membershipRepository
+                            .findFirstByClientOrderByCreatedAtDesc(client)
+                            .orElse(null);
+
+                    return ClientMapper.toListDto(client, membership);
+                });
     }
 
     public UserListDto findClientByExactMembership(String membershipNumber) {
-        User u = userRepository.findByMembershipNumber(membershipNumber)
-                .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa članskom: " + membershipNumber));
 
-        if (!"CLIENT".equalsIgnoreCase(u.getRole())) {
-            throw new RuntimeException("Članski broj je predviđen samo za CLIENT naloge.");
-        }
+        Client client = clientRepository.findByMembershipNumber(membershipNumber)
+                .orElseThrow(() ->
+                        new RuntimeException("Ne postoji korisnik sa članskom: " + membershipNumber)
+                );
 
-        return UserMapper.toListDto(u);
+        Membership membership = membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .orElse(null);
+
+        return ClientMapper.toListDto(client, membership);
     }
 
 
     @Transactional
     public UserListDto updateUserPhone(Long userId, String phoneNumber) {
-        User u = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
 
-        if (!"CLIENT".equalsIgnoreCase(u.getRole())) {
-            throw new RuntimeException("Možete mijenjati podatke samo CLIENT korisnicima.");
-        }
+        Client client = clientRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Klijent nije pronađen."));
 
-        u.setPhoneNumber(phoneNumber);
-        userRepository.save(u);
+        client.setPhoneNumber(phoneNumber);
+        clientRepository.save(client);
 
-        return UserMapper.toListDto(u);
+        Membership membership = membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .orElse(null);
+
+        return ClientMapper.toListDto(client, membership);
     }
 }

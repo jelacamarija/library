@@ -18,6 +18,7 @@ public class LoginController {
 
     @PostMapping
     public LoginResponseDto login(@RequestBody LoginRequestDto request) {
+
         return authService.loginUser(request);
     }
 }

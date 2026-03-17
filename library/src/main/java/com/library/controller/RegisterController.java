@@ -24,8 +24,8 @@ public class RegisterController {
 
 
     @PostMapping
-    public String registerUser(@Valid @RequestBody RegisterRequestDto dto){
-        return authService.registerUser(dto,frontendBaseUrl);
+    public String registerClient(@Valid @RequestBody RegisterRequestDto dto){
+        return authService.registerClient(dto,frontendBaseUrl);
     }
 
     @GetMapping("/verify")
