@@ -41,6 +41,34 @@ public class AuthService {
     private int membershipDurationDays;
 
     @Transactional
+    public String registerLibrarian(RegisterRequestDto dto) {
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Korisnik sa ovim mejlom već postoji.");
+        }
+
+        String verifyCode = UUID.randomUUID().toString();
+
+        Librarian librarian = Librarian.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .phoneNumber(dto.getPhoneNumber())
+                .isVerified(false)
+                .active(true)
+                .verifyCode(verifyCode)
+                .verifyCodeExpiry(LocalDateTime.now().plusHours(1))
+                .build();
+
+        userRepository.save(librarian);
+
+        String verificationLink = frontendBaseUrl + "/verify?code=" + verifyCode;
+        emailService.sendVerificationEmail(librarian.getEmail(), verificationLink);
+
+        return "Registracija bibliotekara uspešna. Proverite email.";
+    }
+
+    @Transactional
     public String registerClient(RegisterRequestDto dto, String appBaseUrl){
 
         if(userRepository.existsByEmail(dto.getEmail())){
@@ -76,7 +104,11 @@ public class AuthService {
     }
 
     private String generateMembershipNumber(Long userID) {
-        return "LIB" + String.format("%06d", userID);
+        return "CL" + String.format("%06d", userID);
+    }
+
+    private String generateEmployeeCode(Long userID) {
+        return "LIB" + String.format("%05d", userID);
     }
 
     @Transactional
@@ -101,6 +133,10 @@ public class AuthService {
 
             if (user instanceof Client client && client.getMembershipNumber() == null) {
                 client.setMembershipNumber(generateMembershipNumber(client.getUserID()));
+            }
+
+            if (user instanceof Librarian librarian && librarian.getEmployeeCode() == null) {
+                librarian.setEmployeeCode(generateEmployeeCode(librarian.getUserID()));
             }
 
             userRepository.save(user);
@@ -198,10 +234,43 @@ public String setPasswordAndVerify(SetPasswordDto dto) {
                 client.setMembershipNumber(generateMembershipNumber(client.getUserID()));
             }
 
+            if (user instanceof Librarian librarian && librarian.getEmployeeCode() == null) {
+                librarian.setEmployeeCode(generateEmployeeCode(librarian.getUserID()));
+            }
+
             userRepository.save(user);
 
             return "Lozinka postavljena. Nalog je aktiviran.";
         }
+
+    @Transactional
+    public String createLibrarianByLibrarian(LibrarianCreateUserDto dto) {
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Korisnik sa ovim mejlom već postoji.");
+        }
+
+        String verifyCode = UUID.randomUUID().toString();
+
+        Librarian librarian = Librarian.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .phoneNumber(dto.getPhoneNumber())
+                .password(null)
+                .isVerified(false)
+                .active(true)
+                .verifyCode(verifyCode)
+                .verifyCodeExpiry(LocalDateTime.now().plusHours(1))
+                .employeeCode(null)
+                .build();
+
+        userRepository.save(librarian);
+
+        String link = frontendBaseUrl + "/set-password?code=" + verifyCode;
+        emailService.sendSetPasswordEmail(librarian.getEmail(), link);
+
+        return "Bibliotekar kreiran. Poslat mejl za postavljanje lozinke.";
+    }
 
 
     private String resolveRole(User user) {

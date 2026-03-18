@@ -22,6 +22,10 @@ public class RegisterController {
     @Value("${app.frontend.base.url:http://localhost:4200}")
     private String frontendBaseUrl;
 
+    @PostMapping("/register-librarian")
+    public String registerLibrarian(@RequestBody @Valid RegisterRequestDto dto) {
+        return authService.registerLibrarian(dto);
+    }
 
     @PostMapping
     public String registerClient(@Valid @RequestBody RegisterRequestDto dto){

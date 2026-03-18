@@ -72,6 +72,15 @@ public class UserController {
         return authService.createUserByLibrarian(dto);
     }
 
+    @PostMapping("/create-librarian")
+    public String createLibrarian(
+            @RequestBody LibrarianCreateUserDto dto,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return authService.createLibrarianByLibrarian(dto);
+    }
+
     @PatchMapping("/{id}/phone")
     public UserListDto updatePhone(
             @PathVariable Long id,
