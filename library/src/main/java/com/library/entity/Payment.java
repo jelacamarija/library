@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "paypalOrderId"),})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,8 +22,8 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentID;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "membership_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "membership_id", nullable = false)
     private Membership membership;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -56,7 +57,7 @@ public class Payment {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
-        if (currency == null) currency = "EUR";
+        if (currency == null) currency = "USD";
         if (paymentStatus == null) paymentStatus = PaymentStatus.CREATED;
     }
 }

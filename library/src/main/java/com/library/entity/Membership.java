@@ -7,6 +7,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "memberships")
@@ -28,6 +30,9 @@ public class Membership {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Column(nullable = false, length = 3)
+    private String currency;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private MembershipStatus status;
@@ -43,14 +48,15 @@ public class Membership {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "membership", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Payment payment;
+    @OneToMany(mappedBy = "membership", cascade = CascadeType.ALL)
+    private List<Payment> payments = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) createdAt = now;
         if (updatedAt == null) updatedAt = now;
+        if(currency==null) currency = "USD";
         if (status == null) status = MembershipStatus.PENDING;
     }
 
