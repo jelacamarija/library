@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
@@ -32,7 +31,7 @@ public class ReservationController {
         }
 
         if (!"CLIENT".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Samo klijent može kreirati rezervaciju");
+            throw new RuntimeException("Samo klijent može rezervisati");
         }
 
         return reservationService.createReservation(userID, dto.getBookID());
@@ -40,12 +39,14 @@ public class ReservationController {
 
     @GetMapping("/my")
     public List<ReservationResponseDto> getMyReservations(HttpServletRequest request) {
+
         Long userID = (Long) request.getAttribute("userId");
         String role = (String) request.getAttribute("userRole");
 
         if (userID == null) {
             throw new RuntimeException("Niste ulogovani");
         }
+
         if (!"CLIENT".equalsIgnoreCase(role)) {
             throw new RuntimeException("Samo klijent može vidjeti svoje rezervacije");
         }
@@ -60,15 +61,7 @@ public class ReservationController {
             @RequestParam(defaultValue = "reservedAt,desc") String sort,
             HttpServletRequest request
     ) {
-        String role = (String) request.getAttribute("userRole");
-
-        if (role == null) {
-            throw new RuntimeException("Niste ulogovani");
-        }
-        if (!role.equalsIgnoreCase("LIBRARIAN")) {
-            throw new RuntimeException("Nemate ovlaštenje za pregled svih rezervacija");
-        }
-
+        requireLibrarian(request);
         return reservationService.getAllReservations(page, size, sort);
     }
 
@@ -79,15 +72,7 @@ public class ReservationController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
     ) {
-        String role = (String) request.getAttribute("userRole");
-
-        if (role == null) {
-            throw new RuntimeException("Niste ulogovani");
-        }
-        if (!role.equalsIgnoreCase("LIBRARIAN")) {
-            throw new RuntimeException("Nemate ovlaštenje za pregled rezervacija korisnika");
-        }
-
+        requireLibrarian(request);
         return reservationService.getReservationsForUserLibrarian(userId, page, size);
     }
 
@@ -96,15 +81,7 @@ public class ReservationController {
             @RequestBody ReservationActiveDto dto,
             HttpServletRequest request
     ) {
-        String role = (String) request.getAttribute("userRole");
-
-        if (role == null) {
-            throw new RuntimeException("Niste ulogovani");
-        }
-        if (!"LIBRARIAN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Samo bibliotekar može aktivirati rezervaciju");
-        }
-
+        requireLibrarian(request);
         return reservationService.fulfillReservation(dto);
     }
 
@@ -119,6 +96,7 @@ public class ReservationController {
         if (userID == null) {
             throw new RuntimeException("Niste ulogovani");
         }
+
         if (!"CLIENT".equalsIgnoreCase(role)) {
             throw new RuntimeException("Samo klijent može otkazati rezervaciju");
         }

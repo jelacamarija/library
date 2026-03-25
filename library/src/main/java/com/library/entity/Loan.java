@@ -27,6 +27,10 @@ public class Loan {
     @JoinColumn(name = "bookId", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_instance_id")
+    private BookInstance bookInstance;
+
     @OneToOne
     @JoinColumn(name = "reservationId", nullable = true)
     private Reservation reservation;

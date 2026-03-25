@@ -1,11 +1,12 @@
 package com.library.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
-@Table(name="books")
+@Table(name = "books")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,25 +21,20 @@ public class Book {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private String author;
-
-    @Column(unique = true, nullable = false)
-    private String isbn;
-
     @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
     private String category;
+    
+    @ManyToMany
+    @JoinTable(
+            name = "book_authors",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private List<Author> authors;
 
-    @Column(nullable = false)
-    private Integer publishedYear;
-
-    @Column(nullable = false)
-    private Integer copiesTotal;
-
-    @Column(nullable = false)
-    private Integer copiesAvailable;
-
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Publication> publications;
 }

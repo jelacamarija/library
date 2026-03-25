@@ -22,17 +22,31 @@ public class LoanController {
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
 
-
     @PostMapping("/create")
     public LoanResponseDto createLoan(@RequestBody LoanCreateDto dto,
                                       HttpServletRequest request) {
 
-        String role= (String) request.getAttribute("userRole");
+        String role = (String) request.getAttribute("userRole");
 
-        if(!"LIBRARIAN".equalsIgnoreCase(role)){
-            throw new RuntimeException("Samo bibliotekar moze izdati knjigu");
+        if (!"LIBRARIAN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Samo bibliotekar može izdati knjigu");
         }
+
         return loanService.createLoan(dto);
+    }
+
+    @PatchMapping("/{loanID}/return")
+    public LoanResponseDto returnBook(
+            HttpServletRequest request,
+            @PathVariable Long loanID
+    ) {
+        String role = (String) request.getAttribute("userRole");
+
+        if (!"LIBRARIAN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Samo bibliotekar može označiti vraćanje knjige.");
+        }
+
+        return loanService.returnBook(loanID);
     }
 
     @GetMapping
@@ -42,10 +56,7 @@ public class LoanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "loanedAt,desc") String sort
     ) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može vidjeti iznajmljivanja.");
-        }
+        requireLibrarian(request);
         return loanService.getAllLoans(page, size, sort);
     }
 
@@ -56,25 +67,8 @@ public class LoanController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može pretraživati iznajmljivanja.");
-        }
+        requireLibrarian(request);
         return loanService.searchLoansByUserName(query, page, size);
-    }
-
-    @PatchMapping("/{loanID}/return")
-    public LoanResponseDto returnBook(
-            HttpServletRequest request,
-            @PathVariable Long loanID
-    ) {
-        String role = (String) request.getAttribute("userRole");
-
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može označiti vraćanje knjige.");
-        }
-
-        return loanService.returnBook(loanID);
     }
 
     @GetMapping("/active")
@@ -83,10 +77,7 @@ public class LoanController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može videti aktivna iznajmljivanja.");
-        }
+        requireLibrarian(request);
         return loanService.getActiveLoans(page, size);
     }
 
@@ -103,11 +94,7 @@ public class LoanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "loanedAt,desc") String sort
     ) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Pristup zabranjen: samo bibliotekar može vidjeti iznajmljivanja.");
-        }
-
+        requireLibrarian(request);
         return loanService.searchLoansByMembershipNumber(page, size, sort, q);
     }
 
@@ -116,6 +103,10 @@ public class LoanController {
         return Map.of("loanDurationDays", loanDurationDays);
     }
 
-
-
+    private void requireLibrarian(HttpServletRequest request) {
+        String role = (String) request.getAttribute("userRole");
+        if (!"LIBRARIAN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Zabranjen pristup");
+        }
+    }
 }

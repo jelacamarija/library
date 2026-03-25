@@ -28,6 +28,10 @@ public class Reservation {
     @JoinColumn(name = "bookID", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_instance_id")
+    private BookInstance bookInstance;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date reservedAt;
 
