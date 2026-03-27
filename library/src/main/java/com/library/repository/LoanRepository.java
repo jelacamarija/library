@@ -24,12 +24,21 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     Page<Loan> findByStatus(LoanStatus status, Pageable pageable);
     List<Loan> findByUser_UserIDOrderByLoanedAtDesc(Long userId);
     @Query("""
-SELECT l FROM Loan l
-JOIN Client c ON l.user.userID = c.userID
-WHERE LOWER(c.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
-""")
+        SELECT l FROM Loan l
+        JOIN Client c ON l.user.userID = c.userID
+        WHERE LOWER(c.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
+        """)
     Page<Loan> searchByMembership(@Param("q") String q, Pageable pageable);
-    boolean existsByUserAndBookAndStatus(User user, Book book, LoanStatus status);
-
+    @Query("""
+        SELECT COUNT(l) > 0 FROM Loan l
+        WHERE l.user = :user
+        AND l.bookInstance.publication.book = :book
+        AND l.status = :status
+    """)
+    boolean existsByUserAndBookAndStatus(
+            @Param("user") User user,
+            @Param("book") Book book,
+            @Param("status") LoanStatus status
+    );
     List<Loan> findByStatusAndDueDateBefore(LoanStatus status, LocalDateTime date);
 }

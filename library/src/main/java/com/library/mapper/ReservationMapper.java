@@ -10,42 +10,41 @@ import java.util.Date;
 
 public class ReservationMapper {
 
-    public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_FULFILLED = "FULFILLED";
-    public static final String STATUS_EXPIRED = "EXPIRED";
-    public static final String STATUS_CANCELED = "CANCELED";
-
     public static ReservationResponseDto toDto(Reservation reservation) {
+
+        var instance = reservation.getBookInstance();
+        var publication = instance.getPublication();
+        var book = publication.getBook();
+        var user = reservation.getUser();
         return ReservationResponseDto.builder()
                 .reservationID(reservation.getReservationID())
-                .userID(reservation.getUser().getUserID())
-                .userName(reservation.getUser().getName())
-                .membershipNumber(extractMembershipNumber(reservation.getUser()))
-                .bookID(reservation.getBook().getBookID())
-                .bookTitle(reservation.getBook().getTitle())
-                .bookAuthor(reservation.getBook().getAuthor())
+                .userID(user.getUserID())
+                .userName(user.getName())
+                .membershipNumber(extractMembershipNumber(user))
+                .bookID(book.getBookID())
+                .bookTitle(book.getTitle())
+                .bookAuthor(
+                        book.getAuthors().stream()
+                                .map(a -> a.getName())
+                                .reduce((a, b) -> a + ", " + b)
+                                .orElse("")
+                )
+                .inventoryNumber(instance.getInventoryNumber())
                 .reservedAt(reservation.getReservedAt())
                 .expiresAt(reservation.getExpiresAt())
-                .status(reservation.getStatus())
-                .loanID(reservation.getLoan() != null ? reservation.getLoan().getLoanId() : null)
+                .status(reservation.getStatus().name())
+                .loanID(
+                        reservation.getLoan() != null
+                                ? reservation.getLoan().getLoanId()
+                                : null
+                )
                 .build();
     }
 
     private static String extractMembershipNumber(User user) {
-        if(user instanceof Client client){
+        if (user instanceof Client client) {
             return client.getMembershipNumber();
         }
         return null;
-    }
-
-    public static Reservation toEntity(User user, Book book) {
-        return Reservation.builder()
-                .user(user)
-                .book(book)
-                .reservedAt(new Date())
-                .expiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000)) // 3 dana
-                .status(STATUS_PENDING)
-                .used(false)
-                .build();
     }
 }

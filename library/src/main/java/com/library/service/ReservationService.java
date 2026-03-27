@@ -31,7 +31,7 @@ public class ReservationService {
     private int loanDurationDays;
 
     @Transactional
-    public ReservationResponseDto createReservation(Long userID, Long bookID) {
+    public ReservationResponseDto createReservation(Long userID, Long instanceId) {
 
         User user = userRepository.findById(userID)
                 .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
@@ -48,34 +48,32 @@ public class ReservationService {
             throw new RuntimeException("Morate imati aktivnu članarinu.");
         }
 
-        Book book = bookRepository.findById(bookID)
-                .orElseThrow(() -> new RuntimeException("Knjiga ne postoji"));
+        BookInstance instance = bookInstanceRepository.findById(instanceId)
+                .orElseThrow(() -> new RuntimeException("Primerak ne postoji"));
 
-        boolean alreadyLoaned =
-                loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE);
-
-        if (alreadyLoaned) {
-            throw new RuntimeException("Već imate ovu knjigu.");
+        if (instance.getStatus() != BookStatus.AVAILABLE) {
+            throw new RuntimeException("Knjiga nije dostupna");
         }
 
-        BookInstance instance = bookInstanceRepository
-                .findFirstByPublication_BookAndStatus(book, BookStatus.AVAILABLE)
-                .orElseThrow(() -> new RuntimeException("Nema dostupnih primjeraka"));
-
         Optional<Reservation> existing =
-                reservationRepository.findByUserAndBookAndStatusIn(
-                        user, book, List.of(ReservationMapper.STATUS_PENDING)
+                reservationRepository.findByUserAndBookInstanceAndStatus(
+                        user, instance, ReservationStatus.PENDING
                 );
 
         if (existing.isPresent()) {
-            throw new RuntimeException("Već imate rezervaciju.");
+            throw new RuntimeException("Već imate rezervaciju za ovaj primerak.");
         }
 
         instance.setStatus(BookStatus.RESERVED);
-        bookInstanceRepository.save(instance);
 
-        Reservation reservation = ReservationMapper.toEntity(user, book);
-        reservation.setBookInstance(instance);
+        Reservation reservation = Reservation.builder()
+                .user(user)
+                .bookInstance(instance)
+                .reservedAt(new Date())
+                .expiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000))
+                .status(ReservationStatus.PENDING)
+                .used(false)
+                .build();
 
         reservationRepository.save(reservation);
 
@@ -84,7 +82,7 @@ public class ReservationService {
 
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
 
-        return reservationRepository.findByUserIdWithBook(userID)
+        return reservationRepository.findByUserIdWithInstance(userID)
                 .stream()
                 .map(ReservationMapper::toDto)
                 .toList();
@@ -121,36 +119,34 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(dto.getReservationID())
                 .orElseThrow(() -> new RuntimeException("Rezervacija ne postoji"));
 
-        if (!ReservationMapper.STATUS_PENDING.equalsIgnoreCase(reservation.getStatus())) {
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new RuntimeException("Rezervacija nije validna.");
         }
 
-        if (reservation.getExpiresAt() != null && reservation.getExpiresAt().before(new Date())) {
+        if (reservation.getExpiresAt() != null &&
+                reservation.getExpiresAt().before(new Date())) {
 
-            reservation.setStatus(ReservationMapper.STATUS_EXPIRED);
+            reservation.setStatus(ReservationStatus.EXPIRED);
 
             BookInstance instance = reservation.getBookInstance();
             instance.setStatus(BookStatus.AVAILABLE);
-            bookInstanceRepository.save(instance);
 
             reservationRepository.save(reservation);
 
             throw new RuntimeException("Rezervacija je istekla.");
         }
 
-        reservation.setStatus(ReservationMapper.STATUS_FULFILLED);
+        reservation.setStatus(ReservationStatus.FULFILLED);
         reservation.setUsed(true);
 
         BookInstance instance = reservation.getBookInstance();
         instance.setStatus(BookStatus.LOANED);
-        bookInstanceRepository.save(instance);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime dueDate = now.plusDays(loanDurationDays);
 
         Loan loan = Loan.builder()
                 .user(reservation.getUser())
-                .book(reservation.getBook())
                 .bookInstance(instance)
                 .reservation(reservation)
                 .loanedAt(now)
@@ -171,14 +167,14 @@ public class ReservationService {
                 .findByReservationIDAndUser_UserID(reservationID, userID)
                 .orElseThrow(() -> new RuntimeException("Rezervacija ne postoji"));
 
-        if (!ReservationMapper.STATUS_PENDING.equalsIgnoreCase(reservation.getStatus())) {
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new RuntimeException("Možeš otkazati samo pending rezervaciju.");
         }
 
-        reservation.setStatus(ReservationMapper.STATUS_CANCELED);
+        reservation.setStatus(ReservationStatus.CANCELED);
+
         BookInstance instance = reservation.getBookInstance();
         instance.setStatus(BookStatus.AVAILABLE);
-        bookInstanceRepository.save(instance);
 
         reservationRepository.save(reservation);
 

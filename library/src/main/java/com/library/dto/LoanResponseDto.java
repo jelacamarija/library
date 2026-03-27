@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @Builder
@@ -17,9 +16,11 @@ public class LoanResponseDto {
     private String membershipNumber;
     private String userName;
 
-    private Long bookId;
+    private Long bookID;
     private String bookTitle;
     private String bookAuthor;
+
+    private String inventoryNumber;
 
     private Long reservationId;
 
@@ -27,5 +28,5 @@ public class LoanResponseDto {
     private LocalDateTime dueDate;
     private LocalDateTime returnedAt;
 
-    private LoanStatus status;
+    private String status;
 }

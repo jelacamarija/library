@@ -23,10 +23,6 @@ public class Loan {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "bookId", nullable = false)
-    private Book book;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_instance_id")
     private BookInstance bookInstance;

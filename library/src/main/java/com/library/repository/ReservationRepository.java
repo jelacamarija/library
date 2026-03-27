@@ -1,8 +1,6 @@
 package com.library.repository;
 
-import com.library.entity.Book;
-import com.library.entity.Reservation;
-import com.library.entity.User;
+import com.library.entity.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -17,32 +15,47 @@ import java.util.Optional;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
     List<Reservation> findByUser(User user);
-    List<Reservation> findByBook(Book book);
 
-    Optional<Reservation> findByUserAndBookAndStatusIn(User user, Book book, List<String> statuses);
+    Optional<Reservation> findByUserAndBookInstanceAndStatus(User user, BookInstance instance, ReservationStatus status);
 
     List<Reservation> findByUser_UserID(Long userID);
 
-    List<Reservation> findByStatusAndExpiresAtBefore(String status, Date now);
+    List<Reservation> findByStatusAndExpiresAtBefore(ReservationStatus status, Date now);
 
     Page<Reservation> findByUser_UserID(Long userID, Pageable pageable);
 
-    @Query("select r from Reservation r join fetch r.book where r.user.userID = :userId")
-    List<Reservation> findByUserIdWithBook(@Param("userId") Long userId);
-
     Optional<Reservation> findByReservationIDAndUser_UserID(Long reservationID, Long userID);
-    @EntityGraph(attributePaths = {"user", "book", "loan"})
+
+    @Query("""
+    SELECT r FROM Reservation r
+        JOIN FETCH r.bookInstance bi
+        JOIN FETCH bi.publication p
+        JOIN FETCH p.book b
+        WHERE r.user.userID = :userId
+    """)
+    List<Reservation> findByUserIdWithInstance(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {
+            "user",
+            "bookInstance",
+            "bookInstance.publication",
+            "bookInstance.publication.book",
+            "loan"
+    })
     Page<Reservation> findAll(Pageable pageable);
 
     @Query("""
         SELECT r FROM Reservation r
         JOIN FETCH r.user u
-        JOIN FETCH r.book b
+        JOIN FETCH r.bookInstance bi
+        JOIN FETCH bi.publication p
+        JOIN FETCH p.book b
         WHERE LOWER(u.membershipNumber) LIKE LOWER(CONCAT('%', :q, '%'))
     """)
     Page<Reservation> searchByUserMembership(@Param("q") String q, Pageable pageable);
-    Optional<Reservation> findTopByUserAndBookAndStatusOrderByReservedAtDesc(
-            User user, Book book, String status
+
+    Optional<Reservation> findTopByUserAndBookInstanceAndStatusOrderByReservedAtDesc(
+            User user, BookInstance instance, ReservationStatus status
     );
 
 }

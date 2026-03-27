@@ -1,9 +1,11 @@
 package com.library.scheduler;
 
+import com.library.entity.BookInstance;
+import com.library.entity.BookStatus;
 import com.library.entity.Reservation;
-import com.library.mapper.ReservationMapper;
+import com.library.entity.ReservationStatus;
+import com.library.repository.BookInstanceRepository;
 import com.library.repository.ReservationRepository;
-import com.library.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,25 +18,27 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ReservationsScheduler {
+
     private final ReservationRepository reservationRepository;
-    private final BookRepository bookRepository;
+    private final BookInstanceRepository bookInstanceRepository;
 
     @Scheduled(cron = "0 0 * * * *")
     public void expireReservations() {
+
         Date now = new Date();
-        List<Reservation> expired = reservationRepository
-                .findByStatusAndExpiresAtBefore(ReservationMapper.STATUS_PENDING, now);
-        if (expired.isEmpty()) { return;}
+        List<Reservation> expired = reservationRepository.findByStatusAndExpiresAtBefore
+                (ReservationStatus.PENDING, now);
+        if (expired.isEmpty()) {
+            return;
+        }
         for (Reservation reservation : expired) {
-            reservation.setStatus(ReservationMapper.STATUS_EXPIRED);
-            reservation.getBook().setCopiesAvailable(
-                    reservation.getBook().getCopiesAvailable() + 1
-            );
-            bookRepository.save(reservation.getBook());
+            reservation.setStatus(ReservationStatus.EXPIRED);
+            BookInstance instance = reservation.getBookInstance();
+            instance.setStatus(BookStatus.AVAILABLE);
+            bookInstanceRepository.save(instance);
             reservationRepository.save(reservation);
             log.info("Rezervacija #" + reservation.getReservationID() + " je istekla.");
         }
-        log.info("Automatski proces isteka rezervacija je završen. " +
-                "Ukupno isteklih: " + expired.size());
+        log.info("Automatski proces isteka rezervacija završen. Ukupno: {}", expired.size());
     }
 }

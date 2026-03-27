@@ -24,10 +24,6 @@ public class Reservation {
     @JoinColumn(name = "userID", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "bookID", nullable = false)
-    private Book book;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_instance_id")
     private BookInstance bookInstance;
@@ -38,8 +34,9 @@ public class Reservation {
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private ReservationStatus status;
 
     @Column(nullable = false)
     private boolean used;

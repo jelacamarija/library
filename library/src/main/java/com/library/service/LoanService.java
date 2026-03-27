@@ -43,57 +43,51 @@ public class LoanService {
         Membership membership = membershipRepository
                 .findFirstByClientOrderByCreatedAtDesc(client)
                 .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
-
         if (membership.getStatus() != MembershipStatus.ACTIVE) {
             throw new RuntimeException("Morate imati aktivnu članarinu.");
         }
 
-        if(Boolean.FALSE.equals(user.getIsVerified())){
+        if (Boolean.FALSE.equals(user.getIsVerified())) {
             throw new RuntimeException("Korisnik nije verifikovan.");
         }
 
-        Book book = bookRepository.findById(dto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
+        BookInstance instance = bookInstanceRepository.findById(dto.getInstanceId())
+                .orElseThrow(() -> new RuntimeException("Primerak ne postoji"));
+        if (instance.getStatus() != BookStatus.AVAILABLE &&
+                instance.getStatus() != BookStatus.RESERVED) {
+            throw new RuntimeException("Knjiga nije dostupna");
+        }
 
-        if (loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE)) {
+        Book book = instance.getPublication().getBook();
+        boolean alreadyLoaned =
+                loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE);
+        if (alreadyLoaned) {
             throw new RuntimeException("Već imate ovu knjigu.");
         }
 
-        BookInstance instance = bookInstanceRepository
-                .findFirstByPublication_BookAndStatus(book, BookStatus.AVAILABLE)
-                .orElseThrow(() -> new RuntimeException("Nema dostupnih primeraka"));
+        Reservation reservation = reservationRepository
+                .findTopByUserAndBookInstanceAndStatusOrderByReservedAtDesc(
+                        user, instance, ReservationStatus.PENDING
+                ).orElse(null);
 
-        Reservation pending = reservationRepository
-                .findTopByUserAndBookAndStatusOrderByReservedAtDesc(
-                        user, book, ReservationMapper.STATUS_PENDING
-                )
-                .orElse(null);
-
-        if (pending != null) {
-            pending.setStatus(ReservationMapper.STATUS_FULFILLED);
-            pending.setUsed(true);
-            pending.setBookInstance(instance);
-            reservationRepository.save(pending);
+        if (reservation != null) {
+            reservation.setStatus(ReservationStatus.FULFILLED);
+            reservation.setUsed(true);
+            reservationRepository.save(reservation);
         }
-
         instance.setStatus(BookStatus.LOANED);
-        bookInstanceRepository.save(instance);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime dueDate = now.plusDays(loanDurationDays);
-
         Loan loan = Loan.builder()
                 .user(user)
-                .book(book)
                 .bookInstance(instance)
-                .reservation(pending)
+                .reservation(reservation)
                 .loanedAt(now)
                 .dueDate(dueDate)
                 .status(LoanStatus.ACTIVE)
                 .build();
-
         loanRepository.save(loan);
-
         return LoanMapper.toDto(loan);
     }
 
@@ -102,19 +96,16 @@ public class LoanService {
         Loan loan = loanRepository.findById(loanID)
                 .orElseThrow(() -> new RuntimeException("Iznajmljivanje ne postoji."));
 
-        if (LoanStatus.RETURNED.equals(loan.getStatus())) {
+        if (loan.getStatus() == LoanStatus.RETURNED) {
             throw new RuntimeException("Knjiga je već vraćena.");
         }
 
         loan.setReturnedAt(LocalDateTime.now());
         loan.setStatus(LoanStatus.RETURNED);
-
         BookInstance instance = loan.getBookInstance();
         instance.setStatus(BookStatus.AVAILABLE);
         bookInstanceRepository.save(instance);
-
         loanRepository.save(loan);
-
         return LoanMapper.toDto(loan);
     }
 
@@ -147,12 +138,14 @@ public class LoanService {
 
     public List<LoanResponseDto> getMyLoans(HttpServletRequest request) {
 
-        String role = (String) request.getAttribute("userRole");
-        if (!"CLIENT".equalsIgnoreCase(role)) {
+        Long userId = (Long) request.getAttribute("userId");
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
+
+        if (!(user instanceof Client)) {
             throw new RuntimeException("Samo klijent može videti svoja iznajmljivanja.");
         }
-
-        Long userId = (Long) request.getAttribute("userId");
 
         return loanRepository.findByUser_UserIDOrderByLoanedAtDesc(userId)
                 .stream()

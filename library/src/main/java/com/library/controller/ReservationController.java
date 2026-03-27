@@ -34,7 +34,7 @@ public class ReservationController {
             throw new RuntimeException("Samo klijent može rezervisati");
         }
 
-        return reservationService.createReservation(userID, dto.getBookID());
+        return reservationService.createReservation(userID, dto.getInstanceID());
     }
 
     @GetMapping("/my")

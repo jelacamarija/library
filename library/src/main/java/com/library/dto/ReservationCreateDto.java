@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class ReservationCreateDto {
 
-    private Long bookID;
+    private Long instanceID;
 }

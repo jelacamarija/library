@@ -18,11 +18,16 @@ public class ReservationResponseDto {
     private Long userID;
     private String userName;
     private String membershipNumber;
+
     private Long bookID;
     private String bookTitle;
     private String bookAuthor;
+
+    private String inventoryNumber;
+
     private Date reservedAt;
     private Date expiresAt;
     private String status;
+
     private Long loanID;
 }

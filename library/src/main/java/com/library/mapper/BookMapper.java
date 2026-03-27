@@ -9,13 +9,8 @@ public class BookMapper {
     public static Book toEntity(BookCreateRequestDto dto) {
         return Book.builder()
                 .title(dto.getTitle())
-                .author(dto.getAuthor())
-                .isbn(dto.getIsbn())
                 .description(dto.getDescription())
                 .category(dto.getCategory())
-                .publishedYear(dto.getPublishedYear())
-                .copiesTotal(dto.getCopiesTotal())
-                .copiesAvailable(dto.getCopiesTotal()) // početno stanje
                 .build();
     }
 
@@ -23,13 +18,13 @@ public class BookMapper {
         return BookResponseDto.builder()
                 .bookID(book.getBookID())
                 .title(book.getTitle())
-                .author(book.getAuthor())
-                .isbn(book.getIsbn())
                 .description(book.getDescription())
                 .category(book.getCategory())
-                .publishedYear(book.getPublishedYear())
-                .copiesTotal(book.getCopiesTotal())
-                .copiesAvailable(book.getCopiesAvailable())
+                .authors(
+                        book.getAuthors().stream()
+                                .map(a -> a.getName())
+                                .toList()
+                )
                 .build();
     }
 }
