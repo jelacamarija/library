@@ -25,6 +25,11 @@ public class BookService {
 
         List<Author> authors=authorRepository.findAllById(dto.getAuthorIds());
 
+        bookRepository.findByTitleIgnoreCase(dto.getTitle())
+                .ifPresent(b -> {
+                    throw new RuntimeException("Knjiga sa tim naslovom već postoji");
+                });
+
         if(authors.size()!=dto.getAuthorIds().size()){
             throw new RuntimeException("Neki autori nisu pronadjeni");
         }
