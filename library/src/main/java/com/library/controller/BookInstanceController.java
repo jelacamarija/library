@@ -1,9 +1,10 @@
 package com.library.controller;
 
-import com.library.entity.BookStatus;
+import com.library.dto.*;
 import com.library.service.BookInstanceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,35 +12,51 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BookInstanceController {
 
-    private final BookInstanceService instanceService;
+    private final BookInstanceService bookInstanceService;
 
-    @PostMapping("/add")
-    public String addCopies(@RequestParam Long publicationId,
-                            @RequestParam int count,
-                            HttpServletRequest request) {
-
+    private void checkLibrarian(HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Samo bibliotekar može dodati kopije.");
+
+        if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
+            throw new RuntimeException("Pristup dozvoljen samo bibliotekaru");
         }
-        instanceService.addCopies(publicationId, count);
-        return "Kopije uspešno dodate.";
     }
 
-    @GetMapping("/available/{publicationId}")
-    public long getAvailable(@PathVariable Long publicationId) {
-        return instanceService.getAvailableCount(publicationId);
+    // 🔹 CREATE
+    @PostMapping
+    public BookInstanceResponseDto create(@RequestBody BookInstanceCreateDto dto,
+                                          HttpServletRequest request) {
+        checkLibrarian(request);
+        return bookInstanceService.create(dto);
     }
 
-    @PutMapping("/{instanceId}/status")
-    public String updateStatus(@PathVariable Long instanceId,
-                               @RequestParam BookStatus status,
-                               HttpServletRequest request) {
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Samo bibliotekar može menjati status.");
-        }
-        instanceService.updateStatus(instanceId, status);
-        return "Status promenjen.";
+    // 🔹 GET BY ID
+    @GetMapping("/{id}")
+    public BookInstanceResponseDto getById(@PathVariable Long id) {
+        return bookInstanceService.getById(id);
+    }
+
+    // 🔹 GET ALL
+    @GetMapping
+    public Page<BookInstanceResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size) {
+        return bookInstanceService.getAll(page, size);
+    }
+
+    // 🔹 GET BY PUBLICATION
+    @GetMapping("/publication/{publicationId}")
+    public Page<BookInstanceResponseDto> getByPublication(@PathVariable Long publicationId,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return bookInstanceService.getByPublication(publicationId, page, size);
+    }
+
+    // 🔹 UPDATE LOCATION
+    @PatchMapping("/{id}/location")
+    public BookInstanceResponseDto updateLocation(@PathVariable Long id,
+                                                  @RequestBody BookInstanceUpdateLocationDto dto,
+                                                  HttpServletRequest request) {
+        checkLibrarian(request);
+        return bookInstanceService.updateLocation(id, dto);
     }
 }

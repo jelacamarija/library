@@ -1,5 +1,6 @@
 package com.library.dto;
 
+import com.library.entity.BookStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class BookInstanceResponseDto {
 
     private String inventoryNumber;
     private String location;
-    private String status;
+    private BookStatus status;
 
     private Long publicationID;
     private String isbn;
