@@ -1,58 +1,78 @@
 package com.library.service;
 
-import com.library.dto.BookCreateRequestDto;
+import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
+import com.library.dto.BookUpdateDescriptionDto;
+import com.library.entity.Author;
 import com.library.entity.Book;
 import com.library.mapper.BookMapper;
+import com.library.repository.AuthorRepository;
 import com.library.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
 
-    public BookResponseDto createBook(BookCreateRequestDto dto){
-        Book book = BookMapper.toEntity(dto);
+    public BookResponseDto createBook(BookCreateDto dto){
 
-        Book savedBook = bookRepository.save(book);
+        List<Author> authors=authorRepository.findAllById(dto.getAuthorIds());
 
-        return BookMapper.toDto(savedBook);
-    }
+        if(authors.size()!=dto.getAuthorIds().size()){
+            throw new RuntimeException("Neki autori nisu pronadjeni");
+        }
 
-    public Page<BookResponseDto> getBooksPaginated(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return bookRepository.findAll(pageable)
-                .map(BookMapper::toDto);
-    }
-
-    public BookResponseDto getBookById(Long id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
-        return BookMapper.toDto(book);
-    }
-
-    public BookResponseDto updateBookDescription(Long id, String description) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
-
-        book.setDescription(description);
+        Book book=BookMapper.toEntity(dto,authors);
 
         return BookMapper.toDto(bookRepository.save(book));
     }
 
-    public Page<BookResponseDto> searchBooks(String query, int page, int size){
-        Pageable pageable = PageRequest.of(page, size);
+    public BookResponseDto updateDescription(Long id, BookUpdateDescriptionDto dto){
+        Book book=bookRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("Knjiga nije pronadjena"));
 
-        return bookRepository
-                .findByTitleContainingIgnoreCaseOrAuthors_NameContainingIgnoreCase(
-                        query,
-                        query,
-                        pageable
-                )
+        book.setDescription(dto.getDescription());
+
+        return BookMapper.toDto(bookRepository.save(book));
+    }
+
+    public BookResponseDto getById(Long id){
+
+        Book book=bookRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("Knjiga nije pronadjena"));
+
+        return BookMapper.toDto(book);
+    }
+
+    public Page<BookResponseDto> getAll(int page, int size){
+
+        Pageable pageable= PageRequest.of(page,size, Sort.by("title").ascending());
+
+        return bookRepository.findAll(pageable)
                 .map(BookMapper::toDto);
     }
+
+    public Page<BookResponseDto> searchByTitle(String title, int page, int size){
+
+        Pageable pageable= PageRequest.of(page,size, Sort.by("title").ascending());
+
+        return bookRepository.findByTitleContainingIgnoreCase(title,pageable)
+                .map(BookMapper::toDto);
+    }
+
+     public Page<BookResponseDto> searchByAuthor(String authorName, int page, int size){
+
+        Pageable pageable= PageRequest.of(page,size, Sort.by("title").ascending());
+
+        return bookRepository.findByAuthors_NameContainingIgnoreCase(authorName,pageable)
+                .map(BookMapper::toDto);
+    }
+
 }

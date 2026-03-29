@@ -1,16 +1,21 @@
 package com.library.mapper;
 
-import com.library.dto.BookCreateRequestDto;
+import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
+import com.library.entity.Author;
 import com.library.entity.Book;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BookMapper {
 
-    public static Book toEntity(BookCreateRequestDto dto) {
+    public static Book toEntity(BookCreateDto dto, List<Author> authors) {
         return Book.builder()
                 .title(dto.getTitle())
-                .description(dto.getDescription())
                 .category(dto.getCategory())
+                .description(dto.getDescription())
+                .authors(authors)
                 .build();
     }
 
@@ -18,12 +23,12 @@ public class BookMapper {
         return BookResponseDto.builder()
                 .bookID(book.getBookID())
                 .title(book.getTitle())
-                .description(book.getDescription())
                 .category(book.getCategory())
+                .description(book.getDescription())
                 .authors(
                         book.getAuthors().stream()
-                                .map(a -> a.getName())
-                                .toList()
+                                .map(Author::getName)
+                                .collect(Collectors.toList())
                 )
                 .build();
     }

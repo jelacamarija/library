@@ -1,6 +1,6 @@
 package com.library.controller;
 
-import com.library.dto.BookCreateRequestDto;
+import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
 import com.library.dto.BookUpdateDescriptionDto;
 import com.library.service.BookService;
@@ -16,50 +16,61 @@ public class BookController {
 
     private final BookService bookService;
 
-    @PostMapping("/create")
-    public BookResponseDto createBook(@RequestBody BookCreateRequestDto dto,
-                                      HttpServletRequest request) {
-
+    private void checkLibrarian(HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Samo bibliotekar može dodati knjigu.");
-        }
 
+        if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
+            throw new RuntimeException("Pristup dozvoljen samo bibliotekaru");
+        }
+    }
+
+
+    @PostMapping("/create")
+    public BookResponseDto create(@RequestBody BookCreateDto dto,
+                                  HttpServletRequest request) {
+        checkLibrarian(request);
         return bookService.createBook(dto);
     }
 
-    @GetMapping
-    public Page<BookResponseDto> getBooksPaginated(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
 
-        return bookService.getBooksPaginated(page, size);
-    }
 
     @GetMapping("/{id}")
     public BookResponseDto getBookById(@PathVariable Long id) {
-        return bookService.getBookById(id);
+
+        return bookService.getById(id);
     }
 
-    @PutMapping("/{id}/description")
+    @PatchMapping("/{id}/description")
     public BookResponseDto updateDescription(@PathVariable Long id,
                                              @RequestBody BookUpdateDescriptionDto dto,
                                              HttpServletRequest request) {
-
-        String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Samo bibliotekar može mijenjati opis.");
-        }
-
-        return bookService.updateBookDescription(id, dto.getDescription());
+        checkLibrarian(request);
+        return bookService.updateDescription(id, dto);
     }
 
-    @GetMapping("/search")
-    public Page<BookResponseDto> searchBooks(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
 
-        return bookService.searchBooks(query, page, size);
+    @GetMapping("/all")
+    public Page<BookResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.getAll(page, size);
+    }
+
+
+    @GetMapping("/search/title")
+    public Page<BookResponseDto> searchByTitle(@RequestParam String title,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.searchByTitle(title, page, size);
+    }
+
+
+    @GetMapping("/search/author")
+    public Page<BookResponseDto> searchByAuthor(@RequestParam String name,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.searchByAuthor(name, page, size);
     }
 }

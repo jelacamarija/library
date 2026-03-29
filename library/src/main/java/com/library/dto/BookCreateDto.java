@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class BookCreateRequestDto {
+public class BookCreateDto {
 
     @NotBlank(message = "Naslov je obavezan")
     private String title;
@@ -16,6 +16,6 @@ public class BookCreateRequestDto {
     @NotBlank(message = "Kategorija je obavezna")
     private String category;
 
-    @NotEmpty(message = "Autori su obavezni")
+    @NotEmpty(message = "Morate uneti bar jednog autora")
     private List<Long> authorIds;
 }
