@@ -1,9 +1,12 @@
 package com.library.controller;
 
+import com.library.dto.PublicationCreateDto;
+import com.library.dto.PublicationResponseDto;
 import com.library.entity.Publication;
 import com.library.service.PublicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,19 +15,44 @@ import org.springframework.web.bind.annotation.*;
 public class PublicationController {
 
     private final PublicationService publicationService;
-    @PostMapping("/{bookId}")
-    public Publication createPublication(@PathVariable Long bookId,
-                                         @RequestBody Publication publication,
-                                         HttpServletRequest request) {
+
+    private void checkLibrarian(HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
-        if (!"LIBRARIAN".equals(role)) {
-            throw new RuntimeException("Samo bibliotekar može dodati izdanje.");
+
+        if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
+            throw new RuntimeException("Pristup dozvoljen samo bibliotekaru");
         }
-        return publicationService.createPublication(bookId, publication);
     }
 
-    @GetMapping("/isbn/{isbn}")
-    public Publication getByIsbn(@PathVariable String isbn) {
-        return publicationService.getByIsbn(isbn);
+    @PostMapping("/add")
+    public PublicationResponseDto createPublication(@RequestBody PublicationCreateDto dto,
+                                                    HttpServletRequest request) {
+       checkLibrarian(request);
+       return publicationService.createPublication(dto);
+    }
+
+    @GetMapping("/{id}")
+    public PublicationResponseDto getById(@PathVariable Long id) {
+        return publicationService.getById(id);
+    }
+
+    @GetMapping("/all")
+    public Page<PublicationResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return publicationService.getAll(page, size);
+    }
+
+    @GetMapping("/search")
+    public Page<PublicationResponseDto> search(@RequestParam String isbn,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return publicationService.searchByIsbn(isbn, page, size);
+    }
+
+    @GetMapping("/book/{bookId}")
+    public Page<PublicationResponseDto> getByBook(@PathVariable Long bookId,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "10") int size) {
+        return publicationService.getByBook(bookId, page, size);
     }
 }
