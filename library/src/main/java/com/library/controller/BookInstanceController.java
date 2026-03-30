@@ -1,6 +1,9 @@
 package com.library.controller;
 
-import com.library.dto.*;
+import com.library.dto.BookInstanceCreateDto;
+import com.library.dto.BookInstanceResponseDto;
+import com.library.dto.BookInstanceUpdateLocationDto;
+import com.library.dto.BookInstanceUserDto;
 import com.library.service.BookInstanceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -8,42 +11,40 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/instances")
+@RequestMapping("/api/book-instances")
 @RequiredArgsConstructor
 public class BookInstanceController {
 
     private final BookInstanceService bookInstanceService;
 
-    private void checkLibrarian(HttpServletRequest request) {
-        String role = (String) request.getAttribute("userRole");
 
-        if (role == null || !role.equalsIgnoreCase("LIBRARIAN")) {
-            throw new RuntimeException("Pristup dozvoljen samo bibliotekaru");
-        }
-    }
-
-    // 🔹 CREATE
     @PostMapping
     public BookInstanceResponseDto create(@RequestBody BookInstanceCreateDto dto,
                                           HttpServletRequest request) {
-        checkLibrarian(request);
+
+        String role = (String) request.getAttribute("userRole");
+
+        if (!"LIBRARIAN".equals(role)) {
+            throw new RuntimeException("Samo bibliotekar može dodavati primjerke");
+        }
+
         return bookInstanceService.create(dto);
     }
 
-    // 🔹 GET BY ID
+
     @GetMapping("/{id}")
     public BookInstanceResponseDto getById(@PathVariable Long id) {
         return bookInstanceService.getById(id);
     }
 
-    // 🔹 GET ALL
+
     @GetMapping
     public Page<BookInstanceResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
         return bookInstanceService.getAll(page, size);
     }
 
-    // 🔹 GET BY PUBLICATION
+
     @GetMapping("/publication/{publicationId}")
     public Page<BookInstanceResponseDto> getByPublication(@PathVariable Long publicationId,
                                                           @RequestParam(defaultValue = "0") int page,
@@ -51,12 +52,53 @@ public class BookInstanceController {
         return bookInstanceService.getByPublication(publicationId, page, size);
     }
 
-    // 🔹 UPDATE LOCATION
+
     @PatchMapping("/{id}/location")
     public BookInstanceResponseDto updateLocation(@PathVariable Long id,
                                                   @RequestBody BookInstanceUpdateLocationDto dto,
                                                   HttpServletRequest request) {
-        checkLibrarian(request);
+
+        String role = (String) request.getAttribute("userRole");
+
+        if (!"LIBRARIAN".equals(role)) {
+            throw new RuntimeException("Samo bibliotekar može mijenjati lokaciju");
+        }
+
         return bookInstanceService.updateLocation(id, dto);
+    }
+
+
+    @GetMapping("/search")
+    public BookInstanceResponseDto getByInventoryNumber(@RequestParam String inventoryNumber) {
+        return bookInstanceService.getByInventoryNumber(inventoryNumber);
+    }
+
+
+    @GetMapping("/book/{bookId}/available-count")
+    public long countAvailableByBook(@PathVariable Long bookId) {
+        return bookInstanceService.countAvailableByBook(bookId);
+    }
+
+
+    @PatchMapping("/{id}/status")
+    public BookInstanceResponseDto updateStatus(@PathVariable Long id,String status,
+                                                HttpServletRequest request) {
+
+        String role = (String) request.getAttribute("userRole");
+
+        if (!"LIBRARIAN".equals(role)) {
+            throw new RuntimeException("Samo bibliotekar može mijenjati status");
+        }
+
+        return bookInstanceService.markAsDamagedOrLost(id, status);
+    }
+
+    @GetMapping("/book/{bookId}/available-user")
+    public Page<BookInstanceUserDto> getAvailableInstancesForUser(
+            @PathVariable Long bookId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return bookInstanceService.getAvailableInstancesForUser(bookId, page, size);
     }
 }

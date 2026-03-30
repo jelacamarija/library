@@ -11,8 +11,5 @@ public class BookInstanceCreateDto {
     private Long publicationId;
 
     @NotBlank
-    private String inventoryNumber;
-
-    @NotBlank
     private String location;
 }

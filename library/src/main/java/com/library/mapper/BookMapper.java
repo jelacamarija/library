@@ -2,6 +2,7 @@ package com.library.mapper;
 
 import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
+import com.library.dto.BookUserDto;
 import com.library.entity.Author;
 import com.library.entity.Book;
 
@@ -29,6 +30,19 @@ public class BookMapper {
                         book.getAuthors().stream()
                                 .map(Author::getName)
                                 .collect(Collectors.toList())
+                )
+                .build();
+    }
+
+    public static BookUserDto toUserDto(Book book) {
+        return BookUserDto.builder()
+                .bookID(book.getBookID())
+                .title(book.getTitle())
+                .authors(
+                        book.getAuthors()
+                                .stream()
+                                .map(Author::getName)
+                                .toList()
                 )
                 .build();
     }

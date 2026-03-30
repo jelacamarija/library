@@ -3,6 +3,7 @@ package com.library.service;
 import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
 import com.library.dto.BookUpdateDescriptionDto;
+import com.library.dto.BookUserDto;
 import com.library.entity.Author;
 import com.library.entity.Book;
 import com.library.mapper.BookMapper;
@@ -78,6 +79,15 @@ public class BookService {
 
         return bookRepository.findByAuthors_NameContainingIgnoreCase(authorName,pageable)
                 .map(BookMapper::toDto);
+    }
+
+    public Page<BookUserDto> getAvailableBooksForUser(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return bookRepository
+                .findBooksWithAvailableInstances(pageable)
+                .map(BookMapper::toUserDto);
     }
 
 }

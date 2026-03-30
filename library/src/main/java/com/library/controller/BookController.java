@@ -3,6 +3,7 @@ package com.library.controller;
 import com.library.dto.BookCreateDto;
 import com.library.dto.BookResponseDto;
 import com.library.dto.BookUpdateDescriptionDto;
+import com.library.dto.BookUserDto;
 import com.library.service.BookService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -72,5 +73,13 @@ public class BookController {
                                                 @RequestParam(defaultValue = "10") int size) {
 
         return bookService.searchByAuthor(name, page, size);
+    }
+
+    @GetMapping("/available")
+    public Page<BookUserDto> getAvailableBooksForUser(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.getAvailableBooksForUser(page, size);
     }
 }
