@@ -23,12 +23,18 @@ public class MembershipService {
     @Value("${library.membership.duration-days}")
     private int membershipDurationDays;
 
+    //placanje kesom
     @Transactional
     public String activateMembershipCash(String membershipNumber) {
 
+
+        if (membershipNumber == null || membershipNumber.trim().isEmpty()) {
+            throw new RuntimeException("Broj članske karte je obavezan.");
+        }
+
         membershipNumber = membershipNumber.trim();
 
-         Client client = clientRepository.findByMembershipNumber(membershipNumber)
+        Client client = clientRepository.findByMembershipNumber(membershipNumber)
                 .orElseThrow(() -> new RuntimeException("Ne postoji korisnik sa ovom članskom kartom."));
 
 
@@ -40,9 +46,13 @@ public class MembershipService {
                 .findFirstByClientOrderByCreatedAtDesc(client)
                 .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
 
-        if (membership.getStatus() == MembershipStatus.ACTIVE) {
-            throw new RuntimeException("Članarina je već aktivna.");
+
+        if (membership.getStatus() != MembershipStatus.PENDING) {
+            throw new RuntimeException("Članarina nije u stanju za aktivaciju.");
         }
+
+
+
 
         LocalDate start = LocalDate.now();
         LocalDate end = start.plusDays(membershipDurationDays);
@@ -50,8 +60,10 @@ public class MembershipService {
         membership.setStatus(MembershipStatus.ACTIVE);
         membership.setStartDate(start);
         membership.setEndDate(end);
+        membership.setUpdatedAt(LocalDateTime.now());
 
         membershipRepository.save(membership);
+
 
         Payment payment = Payment.builder()
                 .membership(membership)
@@ -65,5 +77,44 @@ public class MembershipService {
         paymentRepository.save(payment);
 
         return "Članarina uspešno aktivirana.";
+    }
+
+
+    @Transactional
+    public String cancelMembership(String membershipNumber) {
+
+        if (membershipNumber == null || membershipNumber.trim().isEmpty()) {
+            throw new RuntimeException("Broj članske karte je obavezan.");
+        }
+
+        Client client = clientRepository.findByMembershipNumber(membershipNumber.trim())
+                .orElseThrow(() -> new RuntimeException("Korisnik ne postoji."));
+
+        Membership membership = membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
+
+        if (membership.getStatus() == MembershipStatus.CANCELED) {
+            throw new RuntimeException("Članarina je već otkazana.");
+        }
+
+        membership.setStatus(MembershipStatus.CANCELED);
+        membership.setEndDate(LocalDate.now());
+        membership.setUpdatedAt(LocalDateTime.now());
+
+        membershipRepository.save(membership);
+
+        return "Članarina otkazana.";
+    }
+
+
+    public boolean hasActiveMembership(Client client) {
+
+        return membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .map(m -> m.getStatus() == MembershipStatus.ACTIVE
+                        && m.getEndDate() != null
+                        && !m.getEndDate().isBefore(LocalDate.now()))
+                .orElse(false);
     }
 }

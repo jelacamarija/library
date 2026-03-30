@@ -29,6 +29,10 @@ public interface MembershipRepository extends JpaRepository<Membership,Long> {
 
 
     Optional<Membership> findFirstByClientOrderByCreatedAtDesc(Client client);
+
+    List<Membership> findByStatus(MembershipStatus status);
+
 }
+
 
 

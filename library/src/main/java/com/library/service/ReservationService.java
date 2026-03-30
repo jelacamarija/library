@@ -65,6 +65,7 @@ public class ReservationService {
         }
 
         instance.setStatus(BookStatus.RESERVED);
+        bookInstanceRepository.save(instance);
 
         Reservation reservation = Reservation.builder()
                 .user(user)
@@ -74,6 +75,7 @@ public class ReservationService {
                 .status(ReservationStatus.PENDING)
                 .used(false)
                 .build();
+
 
         reservationRepository.save(reservation);
 
