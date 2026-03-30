@@ -15,7 +15,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.includes('/api/login') ||
     req.url.includes('/api/register') ||
     req.url.includes('/api/verify') ||
-    req.url.includes('/set-password')
+    req.url.includes('/api/register/set-password')
   ) {
     return next(req);
   }

@@ -111,7 +111,11 @@ export class LoginComponent {
       this.loading = false;
       const role = this.auth.getRole();
       if (role === 'LIBRARIAN') this.router.navigateByUrl('/librarian/books');
-      else this.router.navigateByUrl('/client/books');
+      else if(role=='CLIENT'){
+          this.router.navigateByUrl('/client/books');
+      }else{
+        this.openModal('error','Greska','Nepoznata uloga korisnika');
+      } 
     },
     error: (err) => {
       this.loading = false;
