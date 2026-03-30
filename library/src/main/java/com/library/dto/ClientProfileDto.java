@@ -23,7 +23,6 @@ public class ClientProfileDto {
 
     private Boolean isVerified;
     private Boolean active;
-
     private LocalDateTime createdAt;
 
 
