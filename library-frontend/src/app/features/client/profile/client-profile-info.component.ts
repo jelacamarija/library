@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService, UserProfileDto } from '../../../core/services/auth.service';
+import { AuthService, ClientProfileDto } from '../../../core/services/auth.service';
 
 @Component({
   standalone: true,
@@ -31,7 +31,7 @@ import { AuthService, UserProfileDto } from '../../../core/services/auth.service
           <p class="font-medium text-gray-900">{{ user.phoneNumber || '-' }}</p>
         </div>
 
-        <div class="border rounded-lg p-4" *ngIf="user.role === 'CLIENT'">
+        <div class="border rounded-lg p-4">
           <p class="text-sm text-gray-500">Broj članske karte</p>
           <p class="font-medium text-gray-900">{{ user.membershipNumber || '-' }}</p>
         </div>
@@ -47,6 +47,45 @@ import { AuthService, UserProfileDto } from '../../../core/services/auth.service
         </div>
       </div>
 
+    <div class="border rounded-lg p-4 mt-4">
+
+  <p class="text-sm text-gray-500 mb-1">Status članarine</p>
+
+  <!-- TEKST -->
+  <p class="text-sm font-medium"
+     [ngClass]="{
+       'text-green-600': user.membershipStatus === 'ACTIVE',
+       'text-red-600': user.membershipStatus === 'PENDING' || user.membershipStatus === 'EXPIRED',
+       'text-gray-600': user.membershipStatus === 'CANCELED'
+     }">
+    {{ getMembershipMessage() }}
+  </p>
+
+  <!-- AKTIVNA -->
+  <div *ngIf="user.membershipStatus === 'ACTIVE'" class="mt-2 text-sm text-green-600">
+    Važi do: {{ formatDateEU(user.membershipEndDate) }}
+  </div>
+
+  <!-- PLAĆANJE -->
+  <button
+    *ngIf="user.membershipStatus === 'PENDING' || user.membershipStatus === 'EXPIRED'"
+    (click)="payMembership()"
+    class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    Plati članarinu
+  </button>
+
+  <!-- OTKAZIVANJE -->
+  <button
+    *ngIf="user.membershipStatus === 'ACTIVE'"
+    (click)="cancelMembership()"
+    class="mt-4 w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+  >
+    Otkaži članarinu
+  </button>
+
+</div>
+
     </div>
 
   `,
@@ -55,7 +94,7 @@ export class ClientProfileInfoComponent implements OnInit {
   private auth = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
-  user: UserProfileDto | null = null;
+  user: ClientProfileDto | null = null;
   initials = '';
   loading = true;
   errorMsg = '';
@@ -85,6 +124,40 @@ export class ClientProfileInfoComponent implements OnInit {
   private getInitials(name: string): string {
     return name.trim().split(/\s+/).map(p => p.charAt(0)).join('').toUpperCase().slice(0, 2);
   }
+
+  payMembership() {
+         console.log('Pokreni plaćanje');
+
+        // kasnije ćemo povezati PayPal
+  }
+
+  getMembershipMessage() {
+  if (!this.user) return '';
+
+  switch (this.user.membershipStatus) {
+    case 'PENDING':
+      return 'Članarina nije plaćena. Plaćanje možete izvršiti u biblioteci ili putem sajta PayPalom. Iznos je 100 dolara.';
+
+    case 'EXPIRED':
+      return 'Članarina je istekla. Potrebno je da je obnovite kako biste mogli koristiti usluge.';
+
+    case 'ACTIVE':
+      return 'Članarina je aktivna.';
+
+    case 'CANCELED':
+      return 'Članarina je otkazana.';
+
+    default:
+      return '';
+  }
+}
+
+cancelMembership() {
+  console.log('Otkazivanje članarine');
+
+  // kasnije:
+  // poziv backenda
+}
 
   formatDateEU(value?: string | null): string {
     if (!value) return '-';

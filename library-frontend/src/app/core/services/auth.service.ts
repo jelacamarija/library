@@ -14,18 +14,22 @@ export type LoginResponseDto = {
   token: string;
 };
 
-export type UserProfileDto = {
+export type ClientProfileDto = {
   userID: number;
   name: string;
   email: string;
-  phoneNumber: string | null;
-  membershipNumber: string | null;
-  membershipDate: string | null; 
+  phoneNumber: string;
+  membershipNumber: string;
+
   isVerified: boolean;
   active: boolean;
-  createdAt: string;             
-  role: 'CLIENT' | 'LIBRARIAN';
-}
+  createdAt: string;
+
+  membershipStatus: 'ACTIVE' | 'PENDING' | 'EXPIRED' | 'CANCELED';
+  membershipAmount: number;
+  membershipStartDate: string;
+  membershipEndDate: string;
+};
 
 
 
@@ -105,7 +109,7 @@ export class AuthService {
   }
 
   getMyProfile() {
-    return this.http.get<UserProfileDto>('/api/users/me');
+    return this.http.get<ClientProfileDto>('/api/users/me');
   }
 
   register(body: RegisterRequest) {
