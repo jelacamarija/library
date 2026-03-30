@@ -51,16 +51,16 @@ export class VerifyComponent {
     }
 
     this.http.get(`http://localhost:8080/api/register/verify?code=${encodeURIComponent(code)}`, { responseType: 'text' })
-      .subscribe({
-        next: (res) => {
-          if (res.toLowerCase().includes('uspešno')) {
-            this.status = 'success';
-            setTimeout(() => this.router.navigate(['/login'], { queryParams: { verified: '1' } }), 1200);
-          } else {
-            this.status = 'error';
-            this.message = res;
-          }
-        },
+      .subscribe({next: () => {
+  this.status = 'success';
+
+  setTimeout(() => {
+    this.router.navigate(['/login'], {
+      queryParams: { verified: '1' }
+    });
+  }, 1200);
+}
+       ,
         error: () => {
           this.status = 'error';
           this.message = 'Greška pri verifikaciji. Pokušajte ponovo.';
