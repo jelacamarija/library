@@ -81,8 +81,8 @@ public class PayPalService {
         body.put("purchase_units", List.of(purchaseUnit));
 
         body.put("application_context", Map.of(
-                "return_url", "http://localhost:8080/api/payments/success",
-                "cancel_url", "http://localhost:8080/api/payments/cancel"
+                "return_url", "http://localhost:4200/payment-success",
+                "cancel_url", "http://localhost:4200/payment-cancel"
         ));
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);

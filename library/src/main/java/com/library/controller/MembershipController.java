@@ -24,6 +24,11 @@ public class MembershipController {
         return membershipService.activateMembershipCash(dto.getMembershipNumber());
     }
 
+    @PatchMapping("/cancel/{membershipId}")
+    public String cancelMembership(@PathVariable Long membershipId) {
+        return membershipService.cancelMembership(membershipId);
+    }
+
     private void requireLibrarian(HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
 

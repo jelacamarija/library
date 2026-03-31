@@ -19,6 +19,8 @@ public class ClientProfileDto {
     private String name;
     private String email;
     private String phoneNumber;
+
+    private Long membershipID;
     private String membershipNumber;
 
     private Boolean isVerified;

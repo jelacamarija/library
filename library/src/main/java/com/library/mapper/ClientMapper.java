@@ -17,10 +17,12 @@ public class ClientMapper {
                 client.getName(),
                 client.getEmail(),
                 client.getPhoneNumber(),
+                membership!=null ? membership.getMembershipID():null,
                 client.getMembershipNumber(),
                 client.getIsVerified(),
                 client.getActive(),
                 client.getCreatedAt(),
+
 
                 membership != null ? membership.getStatus() : null,
                 membership != null ? membership.getAmount() : null,

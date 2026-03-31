@@ -81,30 +81,21 @@ public class MembershipService {
 
 
     @Transactional
-    public String cancelMembership(String membershipNumber) {
+    public String cancelMembership(Long membershipId) {
 
-        if (membershipNumber == null || membershipNumber.trim().isEmpty()) {
-            throw new RuntimeException("Broj članske karte je obavezan.");
-        }
+        Membership membership = membershipRepository.findById(membershipId)
+                .orElseThrow(() -> new RuntimeException("Membership not found"));
 
-        Client client = clientRepository.findByMembershipNumber(membershipNumber.trim())
-                .orElseThrow(() -> new RuntimeException("Korisnik ne postoji."));
-
-        Membership membership = membershipRepository
-                .findFirstByClientOrderByCreatedAtDesc(client)
-                .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
-
-        if (membership.getStatus() == MembershipStatus.CANCELED) {
-            throw new RuntimeException("Članarina je već otkazana.");
+        if (membership.getStatus() != MembershipStatus.ACTIVE) {
+            throw new RuntimeException("Samo aktivna članarina može biti otkazana.");
         }
 
         membership.setStatus(MembershipStatus.CANCELED);
         membership.setEndDate(LocalDate.now());
-        membership.setUpdatedAt(LocalDateTime.now());
 
         membershipRepository.save(membership);
 
-        return "Članarina otkazana.";
+        return "Članarina je uspešno otkazana.";
     }
 
 
