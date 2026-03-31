@@ -19,6 +19,7 @@ export type ClientProfileDto = {
   name: string;
   email: string;
   phoneNumber: string;
+  membershipID:number;
   membershipNumber: string;
 
   isVerified: boolean;
@@ -115,4 +116,21 @@ export class AuthService {
   register(body: RegisterRequest) {
     return this.http.post('/api/register', body, { responseType: 'text' as const });
   }
+
+  createPaypalOrder(membershipID: number) {
+  return this.http.post(
+    `/api/payments/create/${membershipID}`,
+    {},
+    { responseType: 'text' }
+  );
+ }
+
+ cancelMembership(membershipId: number) {
+  return this.http.patch(
+    `/api/memberships/cancel/${membershipId}`,
+    {},
+    { responseType: 'text' }
+  );
+}
+
 }

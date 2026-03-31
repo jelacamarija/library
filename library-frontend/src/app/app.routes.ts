@@ -29,6 +29,19 @@ export const routes: Routes = [
       import('./features/auth/set-password/set-password.component')
         .then(m => m.SetPasswordComponent),
   },
+           {
+  path: 'payment-success',
+  loadComponent: () =>
+    import('./features/client/payment/payment-success-component')
+      .then(m => m.PaymentSuccessComponent),
+},
+{
+  path: 'payment-cancel',
+  loadComponent: () =>
+    import('./features/client/payment/payment-cancel-component')
+      .then(m => m.PaymentCancelComponent),
+},
+
 
   {
     path: 'forbidden',
@@ -50,6 +63,7 @@ export const routes: Routes = [
         canActivateChild: [roleChildGuard],
         data: { roles: ['CLIENT'] },
         children: [
+ 
           {
             path: 'books',
             loadComponent: () =>
