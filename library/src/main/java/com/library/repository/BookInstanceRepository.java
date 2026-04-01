@@ -23,5 +23,10 @@ public interface BookInstanceRepository extends JpaRepository<BookInstance, Long
 
     long countByPublication_Book_BookIDAndStatus(Long bookId, BookStatus status);
 
+    Optional<BookInstance> findFirstByPublication_PublicationIDAndStatus(
+            Long publicationId,
+            BookStatus status
+    );
+
     Page<BookInstance> findByPublication_Book_BookIDAndStatus(Long  id, BookStatus status,Pageable pageable);
 }

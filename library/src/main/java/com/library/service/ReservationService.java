@@ -82,6 +82,19 @@ public class ReservationService {
         return ReservationMapper.toDto(reservation);
     }
 
+    @Transactional
+    public ReservationResponseDto reserveByPublication(Long userID, Long publicationId) {
+
+        BookInstance instance = bookInstanceRepository
+                .findFirstByPublication_PublicationIDAndStatus(
+                        publicationId,
+                        BookStatus.AVAILABLE
+                )
+                .orElseThrow(() -> new RuntimeException("Nema dostupnih primjeraka."));
+
+        return createReservation(userID, instance.getInstanceID());
+    }
+
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
 
         return reservationRepository.findByUserIdWithInstance(userID)

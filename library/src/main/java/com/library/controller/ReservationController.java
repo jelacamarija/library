@@ -122,4 +122,13 @@ public class ReservationController {
             throw new RuntimeException("Zabranjen pristup");
         }
     }
+
+    @PostMapping("/reserve-by-publication/{publicationId}")
+    public ReservationResponseDto reserveByPublication(
+            @PathVariable Long publicationId,
+            HttpServletRequest request
+    ) {
+        Long userID = (Long) request.getAttribute("userId");
+        return reservationService.reserveByPublication(userID, publicationId);
+    }
 }

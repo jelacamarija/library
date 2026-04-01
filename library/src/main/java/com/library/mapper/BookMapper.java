@@ -38,6 +38,8 @@ public class BookMapper {
         return BookUserDto.builder()
                 .bookID(book.getBookID())
                 .title(book.getTitle())
+                .description(book.getDescription())
+                .category(book.getCategory())
                 .authors(
                         book.getAuthors()
                                 .stream()

@@ -11,5 +11,7 @@ public class BookUserDto {
 
     private Long bookID;
     private String title;
+    private String description;
+    private String category;
     private List<String> authors;
 }
