@@ -10,9 +10,21 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
     <div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
       <div class="flex gap-2">
-        <a routerLink="users" [ngClass]="tabClass('users')" class="px-3 py-2 rounded transition">Korisnici</a>
-        <a routerLink="reservations" [ngClass]="tabClass('reservations')" class="px-3 py-2 rounded transition">Rezervacije</a>
-        <a routerLink="loans" [ngClass]="tabClass('loans')" class="px-3 py-2 rounded transition">Iznajmljivanja</a>
+        <a routerLink="users" [ngClass]="tabClass('users')" class="px-3 py-2 rounded transition">
+          Korisnici
+        </a>
+
+        <a routerLink="librarians" [ngClass]="tabClass('librarians')" class="px-3 py-2 rounded transition">
+          Bibliotekari
+        </a>
+
+        <a routerLink="reservations" [ngClass]="tabClass('reservations')" class="px-3 py-2 rounded transition">
+          Rezervacije
+        </a>
+
+        <a routerLink="loans" [ngClass]="tabClass('loans')" class="px-3 py-2 rounded transition">
+          Iznajmljivanja
+        </a>
       </div>
 
       <div class="bg-white rounded-xl shadow p-6">
@@ -24,8 +36,9 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 export class LibrarianDashboardLayoutComponent {
   private router = inject(Router);
 
-  tabClass(child: 'users' | 'reservations' | 'loans') {
+  tabClass(child: 'users' | 'librarians' | 'reservations' | 'loans') {
     const url = `/librarian/dashboard/${child}`;
+
     const active = this.router.isActive(url, {
       paths: 'exact',
       queryParams: 'ignored',

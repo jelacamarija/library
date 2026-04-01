@@ -1,10 +1,7 @@
 package com.library.controller;
 
 
-import com.library.dto.LibrarianCreateUserDto;
-import com.library.dto.UpdatePhoneDto;
-import com.library.dto.UserListDto;
-import com.library.dto.ClientProfileDto;
+import com.library.dto.*;
 import com.library.service.AuthService;
 import com.library.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("/clients")
-    public Page<UserListDto> allClients(
+    public Page<ClientListDto> allClients(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
@@ -39,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("/clients/search")
-    public Page<UserListDto> searchClients(
+    public Page<ClientListDto> searchClients(
             @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -50,7 +47,7 @@ public class UserController {
     }
 
     @GetMapping("/clients/by-membership/{membershipNumber}")
-    public UserListDto byMembership(
+    public ClientListDto byMembership(
             @PathVariable String membershipNumber,
             HttpServletRequest request
     ) {
@@ -82,13 +79,44 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/phone")
-    public UserListDto updatePhone(
+    public ClientListDto updatePhone(
             @PathVariable Long id,
             @Valid @RequestBody UpdatePhoneDto dto,
             HttpServletRequest request
     ) {
         requireLibrarian(request);
         return userService.updateUserPhone(id, dto.getPhoneNumber());
+    }
+
+    @GetMapping("/librarians")
+    public Page<LibrarianListDto> allLibrarians(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return userService.getAllLibrarians(page, size);
+    }
+
+    @GetMapping("/librarians/search")
+    public Page<LibrarianListDto> searchLibrarians(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return userService.searchLibrariansByEmployeeCode(q, page, size);
+    }
+
+    @PatchMapping("/librarians/{id}/phone")
+    public LibrarianListDto updateLibrarianPhone(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePhoneDto dto,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+        return userService.updateLibrarianPhone(id, dto.getPhoneNumber());
     }
 
 }

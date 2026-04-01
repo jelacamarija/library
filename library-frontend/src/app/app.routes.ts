@@ -145,6 +145,18 @@ export const routes: Routes = [
                     .then(m => m.LibrarianDashboardUserCreateComponent),
               },
               {
+                path: 'librarians',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-librarians.component')
+                    .then(m => m.LibrarianDashboardLibrariansComponent),
+              },
+              {
+                path: 'librarians/new',
+                loadComponent: () =>
+                  import('./features/librarian/dashboard/librarian-dashboard-librarian-create.component')  
+                    .then(m => m.LibrarianDashboardLibrarianCreateComponent),
+              },
+              {
                 path: 'reservations',
                 loadComponent: () =>
                   import('./features/librarian/dashboard/librarian-dashboard-reservations.component')

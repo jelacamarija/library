@@ -5,15 +5,15 @@ import { Router } from '@angular/router';
 import { LibrarianUsersService } from '../../../core/services/librarian-users.service';
 
 @Component({
-  selector: 'app-librarian-user-create',
+  selector: 'app-librarian-librarian-create',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
   <div class="mx-auto max-w-2xl px-4 py-6">
     <div class="mb-4">
-      <h1 class="text-2xl font-bold">Dodaj novog korisnika</h1>
+      <h1 class="text-2xl font-bold">Dodaj bibliotekara</h1>
       <p class="text-sm text-gray-600">
-        Unesite podatke. Korisniku će stići mejl za postavljanje lozinke.
+        Bibliotekaru će biti poslat mejl za postavljanje lozinke.
       </p>
     </div>
 
@@ -77,13 +77,13 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
           [disabled]="form.invalid || loading()"
           class="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50"
         >
-          {{ loading() ? 'Kreiram korisnika...' : 'Kreiraj korisnika' }}
+          {{ loading() ? 'Kreiram bibliotekara...' : 'Kreiraj bibliotekara' }}
         </button>
       </div>
     </form>
   </div>
 
-  <!-- ===== MODAL ===== -->
+  <!-- MODAL -->
   <div
     *ngIf="modalOpen()"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -122,7 +122,8 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
   </div>
   `,
 })
-export class LibrarianDashboardUserCreateComponent {
+export class LibrarianDashboardLibrarianCreateComponent {
+
   private api = inject(LibrarianUsersService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -153,30 +154,30 @@ export class LibrarianDashboardUserCreateComponent {
       phoneNumber: this.form.value.phoneNumber || null
     };
 
-    this.api.createUser(payload).subscribe({
+    this.api.createLibrarian(payload).subscribe({
       next: (msg) => {
         this.loading.set(false);
 
         this.openModal(
           'success',
           'Uspešno',
-          msg || 'Korisnik kreiran. Poslat mejl za postavljanje lozinke.'
+          msg || 'Bibliotekar kreiran. Poslat mejl za lozinku.'
         );
 
         setTimeout(() => {
-          this.router.navigateByUrl('/librarian/dashboard/users');
+          this.router.navigateByUrl('/librarian/dashboard/librarians');
         }, 1500);
       },
       error: (err) => {
         this.loading.set(false);
-        const parsed = this.parseCreateUserError(err);
+        const parsed = this.parseError(err);
         this.openModal('error', parsed.title, parsed.text);
       },
     });
   }
 
   back(): void {
-    this.router.navigateByUrl('/librarian/dashboard/users');
+    this.router.navigateByUrl('/librarian/dashboard/librarians');
   }
 
   private openModal(type: 'error' | 'info' | 'success', title: string, text: string) {
@@ -188,32 +189,21 @@ export class LibrarianDashboardUserCreateComponent {
 
   closeModal() {
     this.modalOpen.set(false);
-    this.modalTitle.set('');
-    this.modalText.set('');
-    this.modalType.set('info');
   }
 
-  private parseCreateUserError(err: any): { title: string; text: string } {
+  private parseError(err: any): { title: string; text: string } {
     const raw =
       (err?.error?.message ??
-        err?.error?.error ??
-        (typeof err?.error === 'string' ? err.error : null) ??
-        'Neuspešno kreiranje korisnika.'
+        err?.error ??
+        'Neuspešno kreiranje bibliotekara.'
       ).toString();
 
     const msg = raw.toLowerCase();
 
-    if (err?.status === 409 || msg.includes('vec postoji') || msg.includes('već postoji')) {
+    if (msg.includes('vec postoji') || msg.includes('već postoji')) {
       return {
-        title: 'Email je zauzet',
-        text: 'Korisnik sa ovim emailom već postoji. Unesite drugi email.',
-      };
-    }
-
-    if (err?.status === 400) {
-      return {
-        title: 'Neispravni podaci',
-        text: 'Proverite unete podatke.',
+        title: 'Email postoji',
+        text: 'Bibliotekar sa ovim emailom već postoji.',
       };
     }
 

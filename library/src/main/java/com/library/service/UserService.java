@@ -1,13 +1,17 @@
 package com.library.service;
 
 
-import com.library.dto.UserListDto;
+import com.library.dto.ClientListDto;
 import com.library.dto.ClientProfileDto;
+import com.library.dto.LibrarianListDto;
 import com.library.entity.Client;
+import com.library.entity.Librarian;
 import com.library.entity.Membership;
 import com.library.entity.User;
 import com.library.mapper.ClientMapper;
+import com.library.mapper.LibrarianMapper;
 import com.library.repository.ClientRepository;
+import com.library.repository.LibrarianRepository;
 import com.library.repository.MembershipRepository;
 import com.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -26,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
     private final MembershipRepository membershipRepository;
+    private final LibrarianRepository librarianRepository;
 
     public ClientProfileDto getMyProfile(Long userID) {
         Client client=clientRepository.findById(userID).orElseThrow(
@@ -38,7 +43,7 @@ public class UserService {
 
     }
 
-    public Page<UserListDto> getAllClients(int page, int size) {
+    public Page<ClientListDto> getAllClients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return clientRepository.findAll(pageable)
                 .map(client -> {
@@ -50,7 +55,7 @@ public class UserService {
 
     }
 
-    public Page<UserListDto> searchClientsByMembership(String q, int page, int size) {
+    public Page<ClientListDto> searchClientsByMembership(String q, int page, int size) {
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -68,7 +73,7 @@ public class UserService {
                 });
     }
 
-    public UserListDto findClientByExactMembership(String membershipNumber) {
+    public ClientListDto findClientByExactMembership(String membershipNumber) {
 
         Client client = clientRepository.findByMembershipNumber(membershipNumber)
                 .orElseThrow(() ->
@@ -84,7 +89,7 @@ public class UserService {
 
 
     @Transactional
-    public UserListDto updateUserPhone(Long userId, String phoneNumber) {
+    public ClientListDto updateUserPhone(Long userId, String phoneNumber) {
 
         Client client = clientRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Klijent nije pronađen."));
@@ -97,5 +102,42 @@ public class UserService {
                 .orElse(null);
 
         return ClientMapper.toListDto(client, membership);
+    }
+
+    public Page<LibrarianListDto> getAllLibrarians(int page, int size) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return librarianRepository.findAll(pageable)
+                .map(LibrarianMapper::toListDto);
+    }
+
+    public Page<LibrarianListDto> searchLibrariansByEmployeeCode(String q, int page, int size) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return librarianRepository
+                .findByEmployeeCodeContainingIgnoreCase(q, pageable)
+                .map(LibrarianMapper::toListDto);
+    }
+
+    @Transactional
+    public LibrarianListDto updateLibrarianPhone(Long userId, String phoneNumber) {
+
+        Librarian librarian = librarianRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Bibliotekar nije pronađen."));
+
+        librarian.setPhoneNumber(phoneNumber);
+        librarianRepository.save(librarian);
+
+        return LibrarianMapper.toListDto(librarian);
     }
 }

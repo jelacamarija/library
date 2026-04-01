@@ -1,7 +1,7 @@
 package com.library.mapper;
 
+import com.library.dto.ClientListDto;
 import com.library.dto.ClientProfileDto;
-import com.library.dto.UserListDto;
 import com.library.entity.Client;
 import com.library.entity.Membership;
 
@@ -32,8 +32,8 @@ public class ClientMapper {
     }
 
 
-    public static UserListDto toListDto(Client client, Membership membership) {
-        return new UserListDto(
+    public static ClientListDto toListDto(Client client, Membership membership) {
+        return new ClientListDto(
                 client.getUserID(),
                 client.getName(),
                 client.getEmail(),
@@ -43,8 +43,7 @@ public class ClientMapper {
                 membership != null ? membership.getStatus() : null,
 
                 client.getActive(),
-                client.getIsVerified(),
-                client.getCreatedAt()
+                client.getIsVerified()
         );
     }
 }

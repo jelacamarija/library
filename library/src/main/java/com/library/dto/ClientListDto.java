@@ -6,14 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserListDto {
+public class ClientListDto {
 
     private Long userID;
     private String name;
@@ -25,6 +22,4 @@ public class UserListDto {
 
     private Boolean active;
     private Boolean isVerified;
-
-    private LocalDateTime createdAt;
 }

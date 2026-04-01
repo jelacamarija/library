@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { LibrarianUsersService, ClientRow } from '../../../core/services/librarian-users.service';
+import { RouterLink } from '@angular/router';
+import { LibrarianUsersService, LibrarianRow } from '../../../core/services/librarian-users.service';
 
 @Component({
-  selector: 'app-librarian-dashboard-users',
+  selector: 'app-librarian-dashboard-librarians',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
@@ -13,22 +13,28 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
 
     <!-- HEADER -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-      <h1 class="text-2xl font-bold">Korisnici</h1>
+      <div>
+        <h1 class="text-2xl font-bold">Bibliotekari</h1>
+      </div>
 
       <div class="flex items-center gap-2">
-        <button class="px-4 py-2 rounded-xl border" (click)="reload()" [disabled]="loading()">
+        <button
+          class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          (click)="reload()"
+          [disabled]="loading()"
+        >
           Osvježi
         </button>
 
         <button
-          class="px-4 py-2 rounded-xl bg-blue-600 text-white"
-          [routerLink]="['/librarian/dashboard/users/new']"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+          [routerLink]="['/librarian/dashboard/librarians/new']"
         >
-          Dodaj korisnika
+          Dodaj bibliotekara
         </button>
 
         <select
-          class="px-3 py-2 rounded-xl border"
+          class="px-3 py-2 rounded-xl border border-gray-300 bg-white"
           [value]="size()"
           (change)="onSizeChange($any($event.target).value)"
         >
@@ -41,20 +47,25 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
     </div>
 
     <!-- SEARCH -->
-    <div class="mb-4 flex gap-2">
+    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
       <input
-        class="flex-1 border rounded-xl px-4 py-2"
+        type="text"
+        class="w-full sm:flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
         [value]="query()"
         (input)="onQueryChange($any($event.target).value)"
-        placeholder="Pretraga po članskoj karti..."
+        placeholder="Pretraži po kodu zaposlenog..."
       />
-      <button *ngIf="query()" class="px-4 py-2 border rounded-xl" (click)="clearQuery()">
+      <button
+        *ngIf="query()"
+        class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+        (click)="clearQuery()"
+      >
         Obriši
       </button>
     </div>
 
     <!-- ERROR -->
-    <div *ngIf="error()" class="mb-4 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl">
+    <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
       {{ error() }}
     </div>
 
@@ -67,8 +78,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
               <th class="px-4 py-3 text-left">Ime i prezime</th>
               <th class="px-4 py-3 text-left">Email</th>
               <th class="px-4 py-3 text-left">Telefon</th>
-              <th class="px-4 py-3 text-left">Članska karta</th>
-              <th class="px-4 py-3 text-left">Status članarine</th>
+              <th class="px-4 py-3 text-left">Kod zaposlenog</th>
               <th class="px-4 py-3 text-left">Verifikovan</th>
               <th class="px-4 py-3 text-right"></th>
             </tr>
@@ -76,54 +86,45 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
 
           <tbody>
             <tr *ngIf="loading()">
-              <td colspan="8" class="px-4 py-6">Učitavanje...</td>
+              <td colspan="7" class="px-4 py-6 text-gray-600">Učitavanje...</td>
             </tr>
 
             <tr *ngIf="!loading() && rows().length === 0">
-              <td colspan="8" class="px-4 py-6">Nema korisnika.</td>
+              <td colspan="7" class="px-4 py-6 text-gray-600">Nema bibliotekara.</td>
             </tr>
 
             <tr *ngFor="let u of rows()" class="border-t">
-              <td class="px-4 py-3 font-medium">{{ u.name }}</td>
-              <td class="px-4 py-3">{{ u.email }}</td>
-              <td class="px-4 py-3">{{ u.phoneNumber || '—' }}</td>
-              <td class="px-4 py-3">{{ u.membershipNumber || '—' }}</td>
-
-              <!-- STATUS -->
               <td class="px-4 py-3">
-                <span class="px-2 py-1 rounded-full text-xs border"
-                  [ngClass]="getMembershipClass(u.membershipStatus)">
-                  {{ formatStatus(u.membershipStatus) }}
-                </span>
+                <div class="font-medium text-gray-900">{{ u.name }}</div>
+              </td>
+
+              <td class="px-4 py-3 text-gray-800">{{ u.email }}</td>
+
+              <td class="px-4 py-3 text-gray-800">
+                {{ u.phoneNumber || '—' }}
+              </td>
+
+              <td class="px-4 py-3 text-gray-800">
+                <span class="font-medium">{{ u.employeeCode || '—' }}</span>
               </td>
 
               <!-- VERIFIKOVAN -->
               <td class="px-4 py-3">
-                <span class="px-2 py-1 rounded-full text-xs border"
-                  [ngClass]="u.isVerified ? green : yellow">
+                <span
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
+                  [ngClass]="u.isVerified ? green : yellow"
+                >
                   {{ u.isVerified ? 'DA' : 'NE' }}
                 </span>
               </td>
 
               <td class="px-4 py-3 text-right">
-                <div class="flex justify-end gap-2">
-
-                  <button
-                    class="px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-                    (click)="openEditModal(u)"
-                  >
-                    Uredi
-                  </button>
-
-                  <button
-                    *ngIf="u.membershipStatus !== 'ACTIVE'"
-                    class="px-3 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700"
-                    (click)="activateMembership(u)"
-                  >
-                    Aktiviraj
-                  </button>
-
-                </div>
+                <button
+                  class="px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+                  (click)="openEditModal(u)"
+                >
+                  Uredi
+                </button>
               </td>
             </tr>
           </tbody>
@@ -138,13 +139,15 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
         </div>
 
         <div class="flex gap-2">
-          <button class="px-3 py-2 border rounded"
-                  (click)="prevPage()"
-                  [disabled]="page()===0">Prethodna</button>
+          <button
+            class="px-3 py-2 border rounded"
+            (click)="prevPage()"
+            [disabled]="page()===0">Prethodna</button>
 
-          <button class="px-3 py-2 border rounded"
-                  (click)="nextPage()"
-                  [disabled]="page()+1>=totalPages()">Sledeća</button>
+          <button
+            class="px-3 py-2 border rounded"
+            (click)="nextPage()"
+            [disabled]="page()+1>=totalPages()">Sledeća</button>
         </div>
       </div>
     </div>
@@ -159,9 +162,9 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
           <div class="p-5 border-b">
             <div class="flex justify-between">
               <div>
-                <h2 class="text-lg font-bold">Uredi korisnika</h2>
+                <h2 class="text-lg font-bold">Uredi bibliotekara</h2>
                 <p class="text-sm text-gray-600" *ngIf="selected() as s">
-                  {{ s.name }} • {{ s.membershipNumber || 'bez koda' }}
+                  {{ s.name }} • {{ s.employeeCode || 'bez koda' }}
                 </p>
               </div>
               <button (click)="closeEditModal()">✕</button>
@@ -194,12 +197,12 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
   </div>
   `
 })
-export class LibrarianDashboardUsersComponent {
+export class LibrarianDashboardLibrariansComponent {
 
   private api = inject(LibrarianUsersService);
   private fb = inject(FormBuilder);
 
-  rows = signal<ClientRow[]>([]);
+  rows = signal<LibrarianRow[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -211,12 +214,11 @@ export class LibrarianDashboardUsersComponent {
   query = signal('');
 
   editOpen = signal(false);
-  selected = signal<ClientRow | null>(null);
-  modalError = signal<string | null>(null);
+  selected = signal<LibrarianRow | null>(null);
 
-  green = 'bg-green-50 border-green-300 text-green-800';
-  red = 'bg-red-50 border-red-300 text-red-800';
-  yellow = 'bg-yellow-50 border-yellow-300 text-yellow-800';
+  green = 'border-green-300 bg-green-50 text-green-800';
+  red = 'border-red-300 bg-red-50 text-red-800';
+  yellow = 'border-yellow-300 bg-yellow-50 text-yellow-800';
 
   editForm = this.fb.nonNullable.group({
     phoneNumber: ['', Validators.required],
@@ -231,8 +233,8 @@ export class LibrarianDashboardUsersComponent {
 
     const q = this.query().trim();
     const obs = q
-      ? this.api.searchByMembership(q, this.page(), this.size())
-      : this.api.getAll(this.page(), this.size());
+      ? this.api.searchLibrarians(q, this.page(), this.size())
+      : this.api.getAllLibrarians(this.page(), this.size());
 
     obs.subscribe({
       next: res => {
@@ -268,7 +270,7 @@ export class LibrarianDashboardUsersComponent {
     this.fetch();
   }
 
-  openEditModal(u: ClientRow) {
+  openEditModal(u: LibrarianRow) {
     this.selected.set(u);
     this.editForm.patchValue({ phoneNumber: u.phoneNumber || '' });
     this.editOpen.set(true);
@@ -283,46 +285,9 @@ export class LibrarianDashboardUsersComponent {
     const s = this.selected();
     if (!s) return;
 
-    this.api.updatePhone(s.userID, this.editForm.value.phoneNumber!).subscribe({
-      next: () => {
-        this.editOpen.set(false);
-        this.fetch();
-      },
-      error: err => {
-        this.modalError.set(err?.error?.message || 'Greška.');
-      }
+    this.api.updateLibrarianPhone(s.userID, this.editForm.value.phoneNumber!).subscribe(() => {
+      this.editOpen.set(false);
+      this.fetch();
     });
-  }
-
-  formatStatus(status: string | null): string {
-    switch (status) {
-      case 'ACTIVE': return 'Aktivna';
-      case 'PENDING': return 'Na čekanju';
-      case 'EXPIRED': return 'Istekla';
-      case 'CANCELED': return 'Otkazana';
-      default: return '—';
-    }
-  }
-
-  getMembershipClass(status: string | null) {
-    switch (status) {
-      case 'ACTIVE': return this.green;
-      case 'PENDING': return this.yellow;
-      case 'EXPIRED': return 'bg-gray-100 border-gray-300 text-gray-700';
-      case 'CANCELED': return this.red;
-      default: return 'bg-gray-50 border-gray-200 text-gray-600';
-    }
-  }
-
-  activateMembership(u: ClientRow) {
-    if (!u.membershipNumber) return;
-
-    if (!confirm('Da li želite da aktivirate članarinu (keš)?')) return;
-
-    this.api.activateMembershipCash(u.membershipNumber)
-      .subscribe({
-        next: () => {this.fetch();},
-        error: err => {console.error(err);}
-      });
   }
 }

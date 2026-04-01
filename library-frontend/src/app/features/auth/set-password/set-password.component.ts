@@ -15,6 +15,10 @@ import { HttpClient } from '@angular/common/http';
         Unesi lozinku da aktiviraš nalog.
       </p>
 
+      <div *ngIf="!code" class="mb-4 text-red-600 text-sm">
+        Nevažeći link. Nedostaje kod.
+      </div>
+
       <div *ngIf="error()" class="mb-4 p-3 rounded border border-red-200 bg-red-50 text-red-700 text-sm">
         {{ error() }}
       </div>
@@ -28,12 +32,13 @@ import { HttpClient } from '@angular/common/http';
           <label class="block text-sm text-gray-700 mb-1">Lozinka</label>
           <input
             type="password"
-            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            autofocus
+            class="w-full border rounded px-3 py-2"
             formControlName="password"
           />
           <div *ngIf="form.controls.password.touched && form.controls.password.invalid"
                class="text-xs text-red-600 mt-1">
-            Lozinka je obavezna (min 6 karaktera).
+            Lozinka mora imati minimum 6 karaktera.
           </div>
         </div>
 
@@ -41,30 +46,27 @@ import { HttpClient } from '@angular/common/http';
           <label class="block text-sm text-gray-700 mb-1">Potvrdi lozinku</label>
           <input
             type="password"
-            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            class="w-full border rounded px-3 py-2"
             formControlName="confirm"
           />
-          <div *ngIf="form.controls.confirm.touched && form.controls.confirm.invalid"
-               class="text-xs text-red-600 mt-1">
-            Potvrda lozinke je obavezna.
-          </div>
-          <div *ngIf="passwordMismatch()" class="text-xs text-red-600 mt-1">
-            Lozinke se ne poklapaju.
-          </div>
+        </div>
+
+        <div *ngIf="form.errors?.['mismatch'] && form.touched"
+             class="text-xs text-red-600 mt-1">
+          Lozinke se ne poklapaju.
         </div>
 
         <button
           type="submit"
-          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          [disabled]="loading() || form.invalid || passwordMismatch() || !code"
+          class="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
+          [disabled]="loading() || form.invalid || !code"
         >
-          <span *ngIf="loading()">Snima...</span>
-          <span *ngIf="!loading()">Sačuvaj lozinku</span>
+          {{ loading() ? 'Postavljam lozinku...' : 'Sačuvaj lozinku' }}
         </button>
 
         <button
           type="button"
-          class="w-full border border-gray-300 py-2 rounded hover:bg-gray-50"
+          class="w-full border py-2 rounded"
           (click)="goToLogin()"
         >
           Nazad na prijavu
@@ -84,16 +86,25 @@ export class SetPasswordComponent {
   error = signal<string | null>(null);
   success = signal<string | null>(null);
 
-  code = this.route.snapshot.queryParamMap.get('code') ?? '';
+  code = '';
 
   form = this.fb.nonNullable.group({
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirm: ['', [Validators.required]],
+  }, {
+    validators: this.passwordMatchValidator
   });
 
-  passwordMismatch(): boolean {
-    const { password, confirm } = this.form.getRawValue();
-    return !!password && !!confirm && password !== confirm;
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.code = params['code'] || '';
+    });
+  }
+
+  passwordMatchValidator(group: any) {
+    const pass = group.get('password')?.value;
+    const confirm = group.get('confirm')?.value;
+    return pass === confirm ? null : { mismatch: true };
   }
 
   submit(): void {
@@ -101,10 +112,11 @@ export class SetPasswordComponent {
     this.success.set(null);
 
     if (!this.code) {
-      this.error.set('Nedostaje verifikacioni kod u linku.');
+      this.error.set('Nedostaje verifikacioni kod.');
       return;
     }
-    if (this.form.invalid || this.passwordMismatch()) {
+
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
@@ -117,14 +129,24 @@ export class SetPasswordComponent {
       .subscribe({
         next: (msg) => {
           this.loading.set(false);
-          this.success.set(msg || 'Lozinka postavljena. Nalog je aktiviran.');
-          setTimeout(() => this.router.navigateByUrl('/login'), 800);
+          this.success.set(msg || 'Lozinka postavljena.');
+
+          setTimeout(() => this.router.navigateByUrl('/login'), 1000);
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err?.error?.message ?? err?.error ?? 'Neuspješno postavljanje lozinke.');
+          this.error.set(this.parseError(err));
         }
       });
+  }
+
+  private parseError(err: any): string {
+    const msg = (err?.error?.message ?? err?.error ?? '').toString().toLowerCase();
+
+    if (msg.includes('istekao')) return 'Link je istekao. Zatražite novi.';
+    if (msg.includes('invalid') || msg.includes('ne postoji')) return 'Link nije validan.';
+
+    return err?.error?.message ?? err?.error ?? 'Greška pri postavljanju lozinke.';
   }
 
   goToLogin(): void {
