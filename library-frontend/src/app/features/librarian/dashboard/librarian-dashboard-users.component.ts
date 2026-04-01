@@ -191,6 +191,53 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
       </div>
     </div>
 
+    <!-- CONFIRM MODAL -->
+    <div
+      *ngIf="confirmOpen()"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl p-8">
+
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+          Aktivacija članarine
+        </h3>
+
+        <div class="text-sm text-gray-700 space-y-1">
+          <p>
+            Da li ste sigurni da želite da aktivirate članarinu za korisnika
+            <span class="font-semibold">
+              {{ selectedClient()?.name }}
+            </span>?
+          </p>
+
+          <p *ngIf="selectedClient()?.membershipNumber">
+            Broj članske karte:
+            <span class="font-semibold">
+              {{ selectedClient()?.membershipNumber }}
+            </span>
+          </p>
+        </div>
+
+        <div class="mt-8 flex justify-end gap-3">
+          <button
+            (click)="closeConfirm()"
+            class="px-6 py-2 rounded-xl border text-sm hover:bg-gray-50 disabled:opacity-50"
+            [disabled]="cashLoading()"
+          >
+            Ne
+          </button>
+
+          <button
+            (click)="confirmActivate()"
+            class="px-6 py-2 rounded-xl bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50"
+            [disabled]="cashLoading()"
+          >
+            {{ cashLoading() ? 'Aktiviram...' : 'Da, aktiviraj' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
   </div>
   `
 })
@@ -213,6 +260,10 @@ export class LibrarianDashboardUsersComponent {
   editOpen = signal(false);
   selected = signal<ClientRow | null>(null);
   modalError = signal<string | null>(null);
+
+  confirmOpen = signal(false);
+  selectedClient = signal<ClientRow | null>(null);
+  cashLoading = signal(false);
 
   green = 'bg-green-50 border-green-300 text-green-800';
   red = 'bg-red-50 border-red-300 text-red-800';
@@ -314,15 +365,33 @@ export class LibrarianDashboardUsersComponent {
     }
   }
 
-  activateMembership(u: ClientRow) {
-    if (!u.membershipNumber) return;
+  closeConfirm() {
+    this.confirmOpen.set(false);
+    this.selectedClient.set(null);
+  }
 
-    if (!confirm('Da li želite da aktivirate članarinu (keš)?')) return;
+  confirmActivate() {
+    const client = this.selectedClient();
+    if (!client?.membershipNumber) return;
 
-    this.api.activateMembershipCash(u.membershipNumber)
+    this.cashLoading.set(true);
+
+    this.api.activateMembershipCash(client.membershipNumber)
       .subscribe({
-        next: () => {this.fetch();},
-        error: err => {console.error(err);}
+        next: () => {
+          this.cashLoading.set(false);
+          this.closeConfirm();
+          this.fetch();
+        },
+        error: err => {
+          this.cashLoading.set(false);
+          console.error(err);
+        }
       });
+  }
+
+  activateMembership(u: ClientRow) {
+    this.selectedClient.set(u);
+    this.confirmOpen.set(true);
   }
 }
