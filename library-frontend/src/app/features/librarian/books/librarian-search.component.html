@@ -1,5 +1,6 @@
+<!--
 <div class="mx-auto max-w-6xl px-4 py-6">
-  <!-- HEADER -->
+  
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Pretraga</h1>
@@ -15,7 +16,6 @@
     </button>
   </div>
 
-  <!-- SEARCH BAR -->
   <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
     <input
       type="text"
@@ -34,20 +34,20 @@
     </button>
   </div>
 
-  <!-- LOADING -->
+ 
   <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
 
-  <!-- ERROR -->
+   ERROR 
   <div *ngIf="isError()" class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
     {{ errorMessage() }}
   </div>
 
-  <!-- NO RESULTS -->
+   NO RESULTS
   <div *ngIf="noResults()" class="p-4 rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800">
     Nemamo to u ponudi.
   </div>
 
-  <!-- LISTA -->
+   LISTA
   <div *ngIf="!isLoading() && !isError() && !noResults()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div
       *ngFor="let b of books()"
@@ -90,7 +90,7 @@
   </div>
 </div>
 
-<!-- DETAILS MODAL -->
+ DETAILS MODAL
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
 
@@ -154,7 +154,7 @@
   </div>
 </div>
 
-<!-- ✅ ADD BOOK MODAL (isti stil kao LibrarianBooks, bez "Dostupno") -->
+ ✅ ADD BOOK MODAL (isti stil kao LibrarianBooks, bez "Dostupno") 
 <div *ngIf="showAddModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
 
@@ -245,7 +245,7 @@
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+ EDIT MODAL 
 <div *ngIf="showEditModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
 
@@ -335,7 +335,7 @@
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
+ CONFIRM MODAL 
 <div *ngIf="showConfirm()" class="fixed inset-0 z-[60]">
   <div class="absolute inset-0 bg-black/40" (click)="closeConfirm()"></div>
 
@@ -376,3 +376,4 @@
     </div>
   </div>
 </div>
+

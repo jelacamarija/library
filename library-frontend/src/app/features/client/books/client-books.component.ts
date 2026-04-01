@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BookService } from '../../../core/services/book.service';
 import { BookDto } from '../../../core/models/book.model';
 import { ReservationService } from '../../../core/services/reservation.service';
+import { PublicationDto} from '../../../core/models/publication.model';
 
 type UiState =
   | { status: 'loading' }
@@ -18,13 +19,15 @@ type UiState =
 export class ClientBooksComponent {
   private bookService = inject(BookService);
   private reservationService = inject(ReservationService);
+  publications=signal<PublicationDto[]>([]);
 
   state = signal<UiState>({ status: 'loading' });
+  selectedPublication=signal<PublicationDto | null>(null);
 
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
 
-  showConfirmReserve = signal(false);
+  showReserveConfirm = signal(false);
 
   messageOpen = signal(false);
   messageTitle = signal('');
@@ -61,14 +64,21 @@ export class ClientBooksComponent {
     });
   }
 
-  openDetails(book: BookDto) {
-    this.selectedBook.set(book);
-    this.showConfirmReserve.set(false);
-  }
+openDetails(book: BookDto) {
+  this.selectedBook.set(book);
+  this.publications.set([]);
+
+  this.bookService.getPublications(book.bookID).subscribe({
+    next: (res: any) => {
+      this.publications.set(res.content); // 🔥 OVO JE KLJUČ
+    },
+    error: () => this.publications.set([]),
+  });
+}
 
   closeDetails() {
     this.selectedBook.set(null);
-    this.showConfirmReserve.set(false);
+    this.showReserveConfirm.set(false);
   }
 
   private openMessage(type: 'success' | 'error' | 'info', title: string, text: string) {
@@ -85,21 +95,43 @@ export class ClientBooksComponent {
     this.messageType.set('info');
   }
 
-  clickReserveFromDetails() {
-    const b = this.selectedBook();
-    if (!b) return;
-
-    if (b.copiesAvailable <= 0) {
-      this.openMessage('error', 'Rezervacija nije moguća', 'Nema dostupnih primjeraka ove knjige.');
-      return;
-    }
-
-    this.showConfirmReserve.set(true);
-  }
+ openReserveConfirm(p: PublicationDto) {
+  this.selectedPublication.set(p);
+  this.showReserveConfirm.set(true);
+}
 
   cancelReserveConfirm() {
-    this.showConfirmReserve.set(false);
+    this.showReserveConfirm.set(false);
   }
+
+  confirmReservePublication() {
+  const p = this.selectedPublication();
+  if (!p) return;
+
+  this.bookService.reserveByPublication(p.publicationID).subscribe({
+    next: () => {
+      this.showReserveConfirm.set(false);
+
+      this.openMessage(
+        'success',
+        'Uspješno',
+        `Uspješno ste napravili rezervaciju za knjigu "${this.selectedBook()?.title}".
+Imate 3 dana da je preuzmete.`
+      );
+    },
+    error: (err) => {
+      this.showReserveConfirm.set(false);
+
+      const parsed = this.parseReserveError(err);
+
+      this.openMessage(
+        'error',
+        parsed.title,
+        parsed.text
+      );
+    },
+  });
+}
 
   private parseReserveError(err: any): { title: string; text: string } {
   const raw =
@@ -107,16 +139,16 @@ export class ClientBooksComponent {
 
   const msg = raw.toLowerCase();
 
-  //nema dostupnih primeraka
-  if (msg.includes('nije dostupna') || msg.includes('nema dostup') || msg.includes('dostupna za rezervaciju')) {
+  //morate imati aktivnu clanarinu
+  if (msg.includes('imati aktivnu') || msg.includes('clan') || msg.includes('clanarinu')) {
     return {
       title: 'Rezervacija nije moguća',
-      text: 'Trenutno nema dostupnih primjeraka ove knjige.',
+      text: 'Morate imati aktivnu clanarinu kako biste napravili rezervaciju.',
     };
   }
 
   //već postoji rezervacija (pending)
-  if (msg.includes('već imate rezervaciju') || msg.includes('vec imate rezervaciju')) {
+  if (msg.includes('već imate rezervaciju') || msg.includes('za ovaj primerak')) {
     return {
       title: 'Već imate rezervaciju',
       text: 'Već imate rezervaciju na čekanju za ovu knjigu. Pogledajte "Moje rezervacije".',
@@ -134,42 +166,5 @@ export class ClientBooksComponent {
 }
 
 
-  confirmReserve() {
-    const b = this.selectedBook();
-    if (!b) return;
-    if (b.copiesAvailable <= 0) {
-      this.openMessage('error', 'Rezervacija nije moguća', 'Trenutno nema dostupnih primjeraka ove knjige.');
-      this.showConfirmReserve.set(false);
-      return;
-    }
 
-    this.reserving.set(true);
-    this.showConfirmReserve.set(false);
-
-    this.reservationService.reserve({ bookID: b.bookID }).subscribe({
-      next: (res) => {
-        this.reserving.set(false);
-
-       
-        const expiresAt = res?.expiresAt ? new Date(res.expiresAt) : null;
-        const fmt = (d: Date) => d.toLocaleDateString('sr-RS');
-
-        const msg = expiresAt
-          ? `Rezervacija je uspješna! Rok za preuzimanje je do ${fmt(expiresAt)} (3 dana od rezervacije).`
-          : `Rezervacija je uspješna! Imate 3 dana od rezervacije da preuzmete knjigu.`;
-
-      
-        this.closeDetails();
-        this.openMessage('success', 'Uspješno', msg);
-
-        
-        this.loadBooks();
-      },
-      error: (err) => {
-        this.reserving.set(false);
-        const parsed = this.parseReserveError(err);
-        this.openMessage('error', parsed.title, parsed.text);
-      },
-    });
-  }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BookDto } from '../models/book.model';
-
+import { PublicationDto } from '../models/publication.model';
 export type PageDto<T> = {
   content: T[];
   totalElements: number;
@@ -16,7 +16,7 @@ export class BookService {
   constructor(private http: HttpClient) {}
 
   getPage(page = 0, size = 12): Observable<PageDto<BookDto>> {
-    return this.http.get<PageDto<BookDto>>('/api/books', {
+    return this.http.get<PageDto<BookDto>>('/api/books/all', {
       params: { page, size },
     });
   }
@@ -46,5 +46,17 @@ export class BookService {
   updateCopies(id: number, copiesToAdd: number) {
     return this.http.put<BookDto>('/api/books/' + id + '/copies', { copiesToAdd });
   }
+
+  getById(id: number) {
+  return this.http.get<BookDto>('/api/books/' + id);
+}
+
+getPublications(bookId: number) {
+  return this.http.get<PublicationDto[]>(`/api/publications/book/${bookId}`);
+}
+
+reserveByPublication(publicationId: number) {
+  return this.http.post(`/api/reservations/reserve-by-publication/${publicationId}`, {});
+}
 
 }

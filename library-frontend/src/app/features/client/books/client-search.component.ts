@@ -178,10 +178,7 @@ export class ClientSearchComponent {
     const b = this.selectedBook();
     if (!b) return;
 
-    if (b.copiesAvailable <= 0) {
-      this.openMessage('error', 'Rezervacija nije moguća', 'Nema dostupnih primjeraka ove knjige.');
-      return;
-    }
+   
 
     this.showConfirmReserve.set(true);
   }

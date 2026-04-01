@@ -38,12 +38,10 @@
     <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow p-5">
       <div class="mb-3">
         <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
-        <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
-        <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
-        <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
-        <p class="text-sm text-gray-600">
-          Dostupno: <span class="font-medium">{{ b.copiesAvailable }}</span> / {{ b.copiesTotal }}
-        </p>
+        <p class="text-sm text-gray-600">Autor: {{ b.authors }}</p>
+        
+      
+       
       </div>
 
       <div class="flex gap-2 mt-4">
@@ -54,18 +52,12 @@
           Detalji
         </button>
 
-        <button
-          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
-          [disabled]="b.copiesAvailable === 0"
-          (click)="openDetails(b)"
-        >
-          Rezerviši
-        </button>
+        
+
       </div>
 
-      <p *ngIf="b.copiesAvailable === 0" class="mt-2 text-sm text-red-600">
-        Nema dostupnih knjiga.
-      </p>
+      
+      
     </div>
   </div>
 </div>
@@ -81,7 +73,7 @@
         <h2 class="text-xl font-semibold text-gray-900">
           {{ selectedBook()?.title }}
         </h2>
-        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.author }}</p>
+        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.authors }}</p>
       </div>
 
       <button
@@ -94,18 +86,12 @@
     </div>
 
     <div class="mt-4 space-y-2 text-sm text-gray-700">
-      <p><span class="font-medium">ISBN:</span> {{ selectedBook()?.isbn }}</p>
-      <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
-      <p><span class="font-medium">Godina:</span> {{ selectedBook()?.publishedYear }}</p>
-      <p>
-        <span class="font-medium">Kopije:</span>
-        {{ selectedBook()?.copiesAvailable }} dostupno / {{ selectedBook()?.copiesTotal }} ukupno
-      </p>
+      
+      
+      
+     
 
-      <p class="pt-2 text-gray-800">
-        <span class="font-medium">Opis:</span><br />
-        {{ selectedBook()?.description }}
-      </p>
+      
     </div>
 
     <div class="mt-6 flex gap-2">
@@ -116,13 +102,7 @@
         Zatvori
       </button>
 
-      <button
-        (click)="clickReserveFromDetails()"
-        class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
-        [disabled]="(selectedBook()?.copiesAvailable ?? 0) === 0"
-      >
-        Rezerviši
-      </button>
+      
     </div>
   </div>
 </div>

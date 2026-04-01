@@ -1,3 +1,4 @@
+/*
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -342,4 +343,13 @@ export class LibrarianSearchComponent {
       },
     });
   }
-}
+}*/
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-librarian-books',
+  standalone: true,
+  template: `<p>Librarian books works</p>`
+})
+export class LibrarianSearchComponent {}

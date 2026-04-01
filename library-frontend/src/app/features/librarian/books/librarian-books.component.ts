@@ -1,3 +1,4 @@
+/*
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../../../core/services/book.service';
@@ -291,3 +292,13 @@ export class LibrarianBooksComponent {
     });
   }
 }
+*/
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-librarian-books',
+  standalone: true,
+  template: `<p>Librarian books works</p>`
+})
+export class LibrarianBooksComponent {}

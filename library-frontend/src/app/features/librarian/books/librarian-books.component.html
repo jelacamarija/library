@@ -1,5 +1,6 @@
+<!--
 <div class="mx-auto max-w-6xl px-4 py-6">
-  <!-- HEADER -->
+
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Knjige</h1>
@@ -15,15 +16,15 @@
     </button>
   </div>
 
-  <!-- LOADING -->
+  <! LOADING 
   <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
 
-  <!-- ERROR -->
+  <! ERROR 
   <div *ngIf="isError()" class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
     {{ errorMessage() }}
   </div>
 
-  <!-- LISTA  -->
+  <! LISTA  
   <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div
       *ngFor="let b of books()"
@@ -35,23 +36,7 @@
         <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
         <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
 
-        <div class="mt-2 flex items-center justify-between">
-          <p class="text-sm text-gray-600">
-            Dostupno:
-            <span class="font-semibold text-gray-900">{{ b.copiesAvailable }}</span>
-            / {{ b.copiesTotal }}
-          </p>
-
-          <span
-            class="text-xs px-2 py-1 rounded-full border"
-            [ngClass]="{
-              'bg-green-50 text-green-700 border-green-200': b.copiesAvailable > 0,
-              'bg-red-50 text-red-700 border-red-200': b.copiesAvailable === 0
-            }"
-          >
-            {{ b.copiesAvailable > 0 ? 'Dostupno' : 'Nema primjeraka' }}
-          </span>
-        </div>
+       
       </div>
 
       <div class="flex gap-2 mt-4">
@@ -66,7 +51,7 @@
   </div>
 </div>
 
-<!-- DETAILS MODAL -->
+
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
 
@@ -89,13 +74,10 @@
     </div>
 
     <div class="mt-4 space-y-2 text-sm text-gray-700">
-      <p><span class="font-medium">ISBN:</span> {{ selectedBook()?.isbn }}</p>
+     
       <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
-      <p><span class="font-medium">Godina:</span> {{ selectedBook()?.publishedYear }}</p>
-      <p>
-        <span class="font-medium">Kopije:</span>
-        {{ selectedBook()?.copiesAvailable }} dostupno / {{ selectedBook()?.copiesTotal }} ukupno
-      </p>
+     
+      
 
       <p class="pt-2 text-gray-800">
         <span class="font-medium">Opis:</span><br />
@@ -130,7 +112,6 @@
   </div>
 </div>
 
-<!-- ADD BOOK MODAL -->
 <div *ngIf="showAddModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
 
@@ -268,7 +249,7 @@
   </div>
 </div>
 
-<!-- EDIT MODAL (tvoj postojeći) -->
+
 <div *ngIf="showEditModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
 
@@ -362,7 +343,7 @@
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
+
 <div *ngIf="showConfirm()" class="fixed inset-0 z-[60]">
   <div class="absolute inset-0 bg-black/40" (click)="closeConfirm()"></div>
 
@@ -403,3 +384,5 @@
     </div>
   </div>
 </div>
+
+
