@@ -65,19 +65,12 @@ public class BookService {
                 .map(BookMapper::toDto);
     }
 
-    public Page<BookResponseDto> searchByTitle(String title, int page, int size){
+    public Page<BookResponseDto> search(String query, int page, int size) {
 
-        Pageable pageable= PageRequest.of(page,size, Sort.by("title").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
 
-        return bookRepository.findByTitleContainingIgnoreCase(title,pageable)
-                .map(BookMapper::toDto);
-    }
-
-     public Page<BookResponseDto> searchByAuthor(String authorName, int page, int size){
-
-        Pageable pageable= PageRequest.of(page,size, Sort.by("title").ascending());
-
-        return bookRepository.findByAuthors_NameContainingIgnoreCase(authorName,pageable)
+        return bookRepository
+                .findByTitleContainingIgnoreCaseOrAuthors_NameContainingIgnoreCase(query, query, pageable)
                 .map(BookMapper::toDto);
     }
 

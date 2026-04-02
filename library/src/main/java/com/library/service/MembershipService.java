@@ -91,7 +91,7 @@ public class MembershipService {
         }
 
         membership.setStatus(MembershipStatus.CANCELED);
-        membership.setEndDate(LocalDate.now());
+
 
         membershipRepository.save(membership);
 

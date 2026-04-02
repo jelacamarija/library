@@ -24,4 +24,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     WHERE bi.status = 'AVAILABLE'
 """)
     Page<Book> findBooksWithAvailableInstances(Pageable pageable);
+
+    Page<Book> findByTitleContainingIgnoreCaseOrAuthors_NameContainingIgnoreCase(
+            String title,
+            String author,
+            Pageable pageable
+    );
+
 }

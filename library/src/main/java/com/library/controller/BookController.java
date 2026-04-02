@@ -57,23 +57,15 @@ public class BookController {
         return bookService.getAll(page, size);
     }
 
-
-    @GetMapping("/search/title")
-    public Page<BookResponseDto> searchByTitle(@RequestParam String title,
-                                               @RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size) {
-
-        return bookService.searchByTitle(title, page, size);
+    @GetMapping("/search")
+    public Page<BookResponseDto> search(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return bookService.search(query, page, size);
     }
 
-
-    @GetMapping("/search/author")
-    public Page<BookResponseDto> searchByAuthor(@RequestParam String name,
-                                                @RequestParam(defaultValue = "0") int page,
-                                                @RequestParam(defaultValue = "10") int size) {
-
-        return bookService.searchByAuthor(name, page, size);
-    }
 
     @GetMapping("/available")
     public Page<BookUserDto> getAvailableBooksForUser(
