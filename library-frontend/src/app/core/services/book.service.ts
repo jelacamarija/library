@@ -21,11 +21,11 @@ export class BookService {
     });
   }
 
-  search(query: string, page = 0, size = 12) {
-   return this.http.get<PageDto<BookDto>>('/api/books/search', {
-      params: {query, page, size },
-    });
-  }
+  search(query: string, page = 0, size = 12): Observable<PageDto<BookDto>> {
+  return this.http.get<PageDto<BookDto>>('/api/books/search', {
+    params: { query, page, size },
+  });
+}
 
   create(payload: {
     title: string;

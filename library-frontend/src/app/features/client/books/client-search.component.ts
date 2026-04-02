@@ -7,6 +7,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { BookService } from '../../../core/services/book.service';
 import { ReservationService } from '../../../core/services/reservation.service';
 import { BookDto } from '../../../core/models/book.model';
+import { PublicationDto } from '../../../core/models/publication.model';
 
 type UiState =
   | { status: 'loading' }
@@ -31,8 +32,9 @@ export class ClientSearchComponent {
 
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
-
-  showConfirmReserve = signal(false);
+  publications = signal<PublicationDto[]>([]);
+  selectedPublication = signal<PublicationDto | null>(null);
+  showReserveConfirm = signal(false);
 
   messageOpen = signal(false);
   messageTitle = signal('');
@@ -59,30 +61,31 @@ export class ClientSearchComponent {
   );
 
   ngOnInit() {
-    this.loadAll();
+  this.loadAll();
 
-    this.search$
-      .pipe(debounceTime(350), distinctUntilChanged())
-      .subscribe((raw) => {
-        const q = raw.trim();
+  this.search$
+    .pipe(debounceTime(350), distinctUntilChanged())
+    .subscribe((raw) => {
+      const q = raw.trim();
 
-        if (!q) {
-          this.loadAll();
-          return;
-        }
+      if (!q) {
+        this.loadAll();
+        return;
+      }
 
-        this.state.set({ status: 'loading' });
-        this.bookService.search(q, 0, 12).subscribe({
-          next: (page: any) => {
-            this.state.set({ status: 'ready', books: page.content ?? [] });
-          },
-          error: (err: any) => {
-            const msg = err?.error?.message ?? 'Greška pri pretrazi.';
-            this.state.set({ status: 'error', message: msg });
-          },
-        });
+      this.state.set({ status: 'loading' });
+
+      this.bookService.search(q, 0, 12).subscribe({
+        next: (page) => {
+          this.state.set({ status: 'ready', books: page.content });
+        },
+        error: (err) => {
+          const msg = err?.error?.message ?? 'Greška pri pretrazi.';
+          this.state.set({ status: 'error', message: msg });
+        },
       });
-  }
+    });
+}
 
   private loadAll() {
     this.state.set({ status: 'loading' });
@@ -107,15 +110,52 @@ export class ClientSearchComponent {
     this.search$.next('');
   }
 
-  openDetails(book: BookDto) {
-    this.selectedBook.set(book);
-    this.showConfirmReserve.set(false);
-  }
+ openDetails(book: BookDto) {
+  this.selectedBook.set(book);
+  this.publications.set([]);
+
+  this.bookService.getPublications(book.bookID).subscribe({
+    next: (res: any) => {
+      this.publications.set(res.content ?? res);
+    },
+    error: () => this.publications.set([]),
+  });
+}
 
   closeDetails() {
     this.selectedBook.set(null);
-    this.showConfirmReserve.set(false);
+    this.showReserveConfirm.set(false);
   }
+
+  openReserveConfirm(p: PublicationDto) {
+  this.selectedPublication.set(p);
+  this.showReserveConfirm.set(true);
+}
+
+confirmReservePublication() {
+  const p = this.selectedPublication();
+  if (!p) return;
+
+  this.bookService.reserveByPublication(p.publicationID).subscribe({
+    next: () => {
+      this.showReserveConfirm.set(false);
+
+      this.openMessage(
+        'success',
+        'Uspješno',
+        `Uspješno ste napravili rezervaciju za knjigu "${this.selectedBook()?.title}". 
+Imate 3 dana da je preuzmete.`
+      );
+    },
+    error: (err) => {
+      this.showReserveConfirm.set(false);
+
+      const parsed = this.parseReserveError(err);
+
+      this.openMessage('error', parsed.title, parsed.text);
+    },
+  });
+}
 
   private openMessage(type: 'success' | 'error' | 'info', title: string, text: string) {
     this.messageType.set(type);
@@ -124,45 +164,35 @@ export class ClientSearchComponent {
     this.messageOpen.set(true);
   }
 
-  private parseReserveError(err: any): { title: string; text: string } {
+   private parseReserveError(err: any): { title: string; text: string } {
   const raw =
     (err?.error?.message || err?.message || 'Greška pri rezervaciji.').toString();
 
   const msg = raw.toLowerCase();
 
-  // nema dostupnih knjiga
-  if (
-    msg.includes('nije dostupna') ||
-    msg.includes('nema dostup') ||
-    msg.includes('dostupna za rezervaciju')
-  ) {
+  //morate imati aktivnu clanarinu
+  if (msg.includes('imati aktivnu') || msg.includes('clan') || msg.includes('clanarinu')) {
     return {
       title: 'Rezervacija nije moguća',
-      text: 'Trenutno nema dostupnih primjeraka ove knjige.',
+      text: 'Morate imati aktivnu clanarinu kako biste napravili rezervaciju.',
     };
   }
 
-  // već ima rezervaciju
-  if (msg.includes('već imate rezervaciju') || msg.includes('vec imate rezervaciju')) {
+  //već postoji rezervacija (pending)
+  if (msg.includes('već imate rezervaciju') || msg.includes('za ovaj primerak')) {
     return {
       title: 'Već imate rezervaciju',
       text: 'Već imate rezervaciju na čekanju za ovu knjigu. Pogledajte "Moje rezervacije".',
     };
   }
 
-  // već ima iznajmljenu
-  if (
-    msg.includes('iznajmljen') ||
-    msg.includes('iznajmljenu') ||
-    msg.includes('aktivno iznajmljivanje') ||
-    msg.includes('already') && msg.includes('loan')
-  ) {
+  //već iznajmljena
+  if (msg.includes('već ima') && (msg.includes('iznajmlj') || msg.includes('loan'))) {
     return {
       title: 'Knjiga je već izdata',
-      text: 'Ovu knjigu već imate iznajmljenu. Ne možete je rezervisati dok je ne vratite.',
+      text: 'Ovu knjigu već imate iznajmljenu. Ne možete je ponovo rezervisati dok je ne vratite.',
     };
   }
-
   return { title: 'Greška', text: raw };
 }
 
@@ -180,11 +210,11 @@ export class ClientSearchComponent {
 
    
 
-    this.showConfirmReserve.set(true);
+    this.showReserveConfirm.set(true);
   }
 
   cancelReserveConfirm() {
-    this.showConfirmReserve.set(false);
+    this.showReserveConfirm.set(false);
   }
 
   confirmReserve() {
@@ -192,7 +222,7 @@ export class ClientSearchComponent {
     if (!b) return;
 
     this.reserving.set(true);
-    this.showConfirmReserve.set(false);
+    this.showReserveConfirm.set(false);
 
     this.reservationService.reserve({ bookID: b.bookID }).subscribe({
       next: (res: any) => {

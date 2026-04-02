@@ -33,112 +33,138 @@
     Nemamo to u ponudi.
   </div>
 
-  <!-- LISTA -->
-  <div *ngIf="!isLoading() && !isError() && !noResults()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow p-5">
-      <div class="mb-3">
-        <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
-        <p class="text-sm text-gray-600">Autor: {{ b.authors }}</p>
-        
-      
-       
+  <!-- ISTI GRID KAO BOOKS -->
+  <div *ngIf="!isLoading() && !isError() && !noResults()" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+    <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition">
+
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ b.title }}
+        </h2>
+
+        <p class="text-base text-gray-700 mt-1">
+          {{ b.authors.join(', ') }}
+        </p>
+
+        <p class="text-sm text-gray-600 mt-3">
+          <span class="font-medium">Kategorija:</span> {{ b.category }}
+        </p>
+
+        <p class="text-sm text-gray-700 mt-2 line-clamp-3">
+          <span class="font-medium">Kratak opis:</span>
+          {{ b.description }}
+        </p>
       </div>
 
-      <div class="flex gap-2 mt-4">
-        <button
-          (click)="openDetails(b)"
-          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-        >
-          Detalji
-        </button>
+      <button
+        (click)="openDetails(b)"
+        class="mt-5 w-full px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+      >
+        Detalji
+      </button>
 
-        
-
-      </div>
-
-      
-      
     </div>
+
   </div>
 </div>
 
 <!-- DETAILS MODAL -->
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
-  <!-- overlay -->
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
 
   <div class="relative mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
-    <div class="flex items-start justify-between gap-4">
+
+    <div class="flex justify-between items-start">
       <div>
-        <h2 class="text-xl font-semibold text-gray-900">
+        <h2 class="text-xl font-semibold">
           {{ selectedBook()?.title }}
         </h2>
-        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.authors }}</p>
+        <p class="text-sm text-gray-600">
+          {{ selectedBook()?.authors?.join(', ') }}
+        </p>
       </div>
 
-      <button
-        (click)="closeDetails()"
-        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
-        aria-label="Zatvori"
-      >
-        ✕
-      </button>
+      <button (click)="closeDetails()">✕</button>
     </div>
 
-    <div class="mt-4 space-y-2 text-sm text-gray-700">
-      
-      
-      
-     
+    <!-- PUBLIKACIJE -->
+    <div class="mt-6">
+      <h3 class="font-semibold mb-2">Publikacije</h3>
 
-      
+      <div *ngIf="publications().length === 0" class="text-sm text-gray-500">
+        Nema publikacija.
+      </div>
+
+      <table *ngIf="publications().length > 0" class="w-full text-sm border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="p-2 text-left">ISBN</th>
+            <th class="p-2 text-left">Godina</th>
+            <th class="p-2 text-left">Izdavač</th>
+            <th class="p-2 text-left">Jezik</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of publications()" class="border-t">
+            <td class="p-2">{{ p.isbn }}</td>
+            <td class="p-2">{{ p.publishedYear }}</td>
+            <td class="p-2">{{ p.publisher }}</td>
+            <td class="p-2">{{ p.language }}</td>
+            <td class="p-2">
+              <button
+                (click)="openReserveConfirm(p)"
+                class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              >
+                Rezerviši
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="mt-6 flex gap-2">
-      <button
-        (click)="closeDetails()"
-        class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-      >
-        Zatvori
-      </button>
-
-      
-    </div>
   </div>
 </div>
 
-<!-- CONFIRM RESERVE MODAL -->
-<div *ngIf="showConfirmReserve()" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+<div *ngIf="showReserveConfirm()" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+
   <div class="bg-white rounded-2xl shadow-xl w-[92%] max-w-md p-6">
-    <h2 class="text-lg font-semibold mb-2">Da li ste sigurni?</h2>
+
+    <h2 class="text-lg font-semibold mb-2">
+      Da li ste sigurni?
+    </h2>
 
     <p class="text-gray-700 mb-5">
       Želite da rezervišete knjigu
       <span class="font-medium">{{ selectedBook()?.title }}</span>?
       <br />
-      Rok za preuzimanje je 3 dana od dana rezervacije.
+      ISBN: {{ selectedPublication()?.isbn }}
+      <br />
+      Imate 3 dana da je preuzmete.
     </p>
 
     <div class="flex justify-end gap-2">
-      <button (click)="cancelReserveConfirm()" class="px-4 py-2 border rounded-xl">Ne</button>
+      <button (click)="showReserveConfirm.set(false)" class="px-4 py-2 border rounded-xl">
+        Ne
+      </button>
+
       <button
-        (click)="confirmReserve()"
+        (click)="confirmReservePublication()"
         class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-        [disabled]="reserving()"
       >
         Da, rezerviši
       </button>
     </div>
+
   </div>
 </div>
 
-<!-- MESSAGE MODAL -->
 <div *ngIf="messageOpen()" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
   <div class="bg-white rounded-2xl shadow-xl w-[92%] max-w-md p-6 relative">
-    <button
-      (click)="closeMessage()"
-      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-    >
+
+    <button (click)="closeMessage()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
       ✕
     </button>
 
@@ -146,14 +172,15 @@
       class="text-lg font-semibold mb-2"
       [ngClass]="{
         'text-green-600': messageType() === 'success',
-        'text-red-600': messageType() === 'error',
-        'text-gray-800': messageType() === 'info'
+        'text-red-600': messageType() === 'error'
       }"
     >
       {{ messageTitle() }}
     </h2>
 
-    <p class="text-gray-700 mb-6">{{ messageText() }}</p>
+    <p class="text-gray-700 mb-6">
+      {{ messageText() }}
+    </p>
 
     <div class="flex justify-end">
       <button
@@ -163,5 +190,7 @@
         OK
       </button>
     </div>
+
   </div>
 </div>
+
