@@ -129,7 +129,7 @@ export class ClientProfileInfoComponent implements OnInit {
     });
   }
 
-  // 🔤 inicijali
+  // inicijali
   private getInitials(name: string): string {
     return name
       .trim()
@@ -140,7 +140,7 @@ export class ClientProfileInfoComponent implements OnInit {
       .slice(0, 2);
   }
 
-  // 📅 format datuma
+
   formatDateEU(value?: string | null): string {
     if (!value) return '-';
     const d = new Date(value);
@@ -153,7 +153,7 @@ export class ClientProfileInfoComponent implements OnInit {
     return `${day}.${month}.${year}`;
   }
 
-  // 🧠 status poruka
+
   getMembershipMessage(): string {
     if (!this.user) return '';
 
@@ -184,7 +184,7 @@ export class ClientProfileInfoComponent implements OnInit {
     }
   }
 
-  // 🔁 obnovi / plati
+
   renewMembership() {
     if (!this.user?.membershipID) return;
 
