@@ -53,7 +53,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
           class="w-full sm:flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
           [value]="query()"
           (input)="onQueryChange($any($event.target).value)"
-          placeholder="Pretraži po broju članske karte (npr. LIB000123)"
+          placeholder="Pretraži po broju članske karte (npr. CL0000123)"
         />
         <button
           *ngIf="query()"
@@ -79,6 +79,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                 <th class="text-left font-semibold px-4 py-3">Broj clanske karte</th>
                 <th class="text-left font-semibold px-4 py-3">Naslov</th>
                 <th class="text-left font-semibold px-4 py-3">Autor</th>
+                <th class="text-left font-semibold px-4 py-3">Inventarski broj</th>
 
                 <th class="text-left font-semibold px-4 py-3">
                   <button type="button" class="hover:underline" (click)="toggleSort('dueDate')">
@@ -97,45 +98,33 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
             </thead>
 
             <tbody class="divide-y">
-              <!-- LOADING -->
+
               <tr *ngIf="loading()">
-                <td colspan="9" class="px-4 py-6 text-gray-600">Učitavanje...</td>
+                <td colspan="10" class="px-4 py-6 text-gray-600">Učitavanje...</td>
               </tr>
 
-              <!-- EMPTY -->
               <tr *ngIf="!loading() && rows().length === 0">
-                <td colspan="9" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
+                <td colspan="10" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
               </tr>
 
-              <!-- ROWS -->
               <tr *ngFor="let l of rows()" class="hover:bg-gray-50/60">
-                <!-- Korisnik -->
                 <td class="px-4 py-3">
                   <div class="font-medium text-gray-900">{{ l.userName || ($any(l).name) || ($any(l).user?.name) || '—' }}
-</div>
-                  
+                  </div>
                 </td>
-
-                <!-- Članska -->
                 <td class="px-4 py-3 text-gray-800">
                   <span class="font-medium">{{ l.membershipNumber || '—' }}</span>
                 </td>
-
-                <!-- Knjiga -->
                 <td class="px-4 py-3">
                   <div class="font-medium text-gray-900">{{ l.bookTitle }}</div>
-                  
                 </td>
-
-                <!-- Autor -->
                 <td class="px-4 py-3 text-gray-800">{{ l.bookAuthor }}</td>
-
-                <!-- Rok -->
+                <td class="px-4 py-3 text-gray-800">
+                  {{ l.inventoryNumber || '—' }}
+                </td>
                 <td class="px-4 py-3 text-gray-800">
                   {{ l.dueDate | date:'dd.MM.yyyy' }}
                 </td>
-
-                <!-- Vraćena -->
                 <td class="px-4 py-3">
                   <span
                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
@@ -143,18 +132,13 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                       ? 'border-green-300 bg-green-50 text-green-800'
                       : (isExpired(l)
                           ? 'border-red-300 bg-red-50 text-red-800'
-                          : 'border-yellow-300 bg-yellow-50 text-yellow-800')"
-                  >
+                          : 'border-yellow-300 bg-yellow-50 text-yellow-800')">
                     {{ isReturned(l) ? 'DA' : 'NE' }}
                   </span>
                 </td>
-
-                <!-- Datum vraćanja -->
                 <td class="px-4 py-3 text-gray-800">
                   {{ l.returnedAt ? (l.returnedAt | date:'dd.MM.yyyy') : '—' }}
                 </td>
-
-                <!-- Status -->
                 <td class="px-4 py-3">
                   <span
                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border"
@@ -164,8 +148,6 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
 
                   </span>
                 </td>
-
-                <!-- Akcije -->
                 <td class="px-4 py-3 text-right">
                   <button
                     type="button"
@@ -185,7 +167,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
           </table>
         </div>
 
-        <!-- FOOTER PAGINATION -->
+        <!-- FOOTER -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
             Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
@@ -211,7 +193,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
         </div>
       </div>
 
-      <!-- RETURN CONFIRM MODAL -->
+      <!-- CONFIRM MODAL -->
       <div *ngIf="returnModalOpen()" class="fixed inset-0 z-50">
         <div class="absolute inset-0 bg-black/40" (click)="closeReturnModal()"></div>
 

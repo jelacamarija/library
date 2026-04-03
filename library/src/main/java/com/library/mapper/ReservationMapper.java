@@ -7,37 +7,31 @@ import com.library.entity.Reservation;
 import com.library.entity.User;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
 public class ReservationMapper {
 
-    public static ReservationResponseDto toDto(Reservation reservation) {
-
-        var instance = reservation.getBookInstance();
-        var publication = instance.getPublication();
-        var book = publication.getBook();
-        var user = reservation.getUser();
+    public static ReservationResponseDto toDto(Reservation r) {
         return ReservationResponseDto.builder()
-                .reservationID(reservation.getReservationID())
-                .userID(user.getUserID())
-                .userName(user.getName())
-                .membershipNumber(extractMembershipNumber(user))
-                .bookID(book.getBookID())
-                .bookTitle(book.getTitle())
+                .reservationID(r.getReservationID())
+                .userID(r.getUser().getUserID())
+                .userName(r.getUser().getName())
+                .membershipNumber(r.getUser() instanceof Client c ? c.getMembershipNumber() : null)
+                .bookID(r.getBookInstance().getPublication().getBook().getBookID())
+                .bookTitle(r.getBookInstance().getPublication().getBook().getTitle())
                 .bookAuthor(
-                        book.getAuthors().stream()
+                        r.getBookInstance().getPublication().getBook()
+                                .getAuthors().stream()
                                 .map(a -> a.getName())
-                                .reduce((a, b) -> a + ", " + b)
-                                .orElse("")
+                                .collect(Collectors.joining(", "))
                 )
-                .inventoryNumber(instance.getInventoryNumber())
-                .reservedAt(reservation.getReservedAt())
-                .expiresAt(reservation.getExpiresAt())
-                .status(reservation.getStatus().name())
-                .loanID(
-                        reservation.getLoan() != null
-                                ? reservation.getLoan().getLoanId()
-                                : null
-                )
+                .isbn(r.getBookInstance().getPublication().getIsbn())
+                .inventoryNumber(r.getBookInstance().getInventoryNumber())
+                .location(r.getBookInstance().getLocation())
+                .reservedAt(r.getReservedAt())
+                .expiresAt(r.getExpiresAt())
+                .status(r.getStatus().name())
+                .loanID(r.getLoan() != null ? r.getLoan().getLoanId() : null)
                 .build();
     }
 

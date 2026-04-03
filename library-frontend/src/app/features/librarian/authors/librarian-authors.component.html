@@ -1,0 +1,202 @@
+<div class="mx-auto max-w-6xl px-4 py-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Autori</h1>
+      <p class="text-sm text-gray-600">Pregled svih autora.</p>
+    </div>
+
+    <button
+      (click)="openAdd()"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
+      <span class="text-lg">＋</span>
+      <span>Dodaj autora</span>
+    </button>
+  </div>
+
+  <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
+
+  <div *ngIf="isError()" class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
+    {{ errorMessage() }}
+  </div>
+
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+    <input
+        type="text" class="w-full sm:flex-1 border rounded-xl px-4 py-2"
+        [value]="query()" (input)="onQueryChange($any($event.target).value)"
+        placeholder="Pretraži autora po imenu"/>
+
+    <button *ngIf="query()" (click)="clearQuery()" class="px-4 py-2 rounded-xl border hover:bg-gray-50">
+        Obriši</button>
+ </div>
+
+  <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+      *ngFor="let a of authors()"
+      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
+      <h2 class="text-lg font-semibold text-gray-900">{{ a.name }}</h2>
+      <p class="text-sm text-gray-600 line-clamp-3">
+        {{ a.biography || 'Nema biografije' }}
+      </p>
+      <button
+        (click)="openDetails(a)"
+        class="mt-3 w-full px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
+        Detalji
+        </button>
+    </div>
+  </div>
+</div>
+
+<!--DETAILS MODAL -->
+<div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
+  <div class="relative mx-auto mt-16 w-[92%] max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden">
+    <div class="px-6 py-4 bg-blue-600 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-lg font-semibold">Detalji autora</h2>
+        <p class="text-sm text-blue-100">Pregled informacija o autoru</p>
+      </div>
+      <button
+        (click)="closeDetails()"
+        class="px-3 py-1 border border-white/30 rounded-lg hover:bg-white/10">
+        ✕
+      </button>
+    </div>
+    <div class="p-6 space-y-4" *ngIf="selectedAuthor() as a">
+      <div>
+        <label class="block text-sm text-gray-500 mb-1">Ime autora</label>
+        <div class="w-full border rounded-xl px-3 py-2 bg-gray-50 text-gray-900">
+          {{ a.name }}
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-500 mb-1">Biografija</label>
+        <div class="w-full border rounded-xl px-3 py-2 bg-gray-50 text-gray-900 min-h-[80px] whitespace-pre-line">
+          {{ a.biography || 'Autor nema biografiju.' }}
+        </div>
+      </div>
+      <div class="pt-4">
+        <button
+          (click)="openEdit()"
+          class="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+          Izmeni biografiju
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--ADD MODAL -->
+<div *ngIf="showAddModal()" class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
+  <div class="relative mx-auto mt-16 w-[92%] max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden">
+    <div class="px-6 py-4 bg-blue-600 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-lg font-semibold">Dodaj autora</h2>
+        <p class="text-sm text-blue-100">Unesite podatke o autoru.</p>
+      </div>
+      <button (click)="closeAdd()" class="px-3 py-1 border border-white/30 rounded-lg hover:bg-white/10">
+        ✕
+      </button>
+    </div>
+    <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="p-6 space-y-4">
+      <div *ngIf="addError()" class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+        {{ addError() }}
+      </div>
+      <div *ngIf="addForm.touched && addForm.invalid"
+           class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+        Popunite obavezna polja ispravno.
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Ime autora *</label>
+        <input
+          type="text"
+          formControlName="name"
+          class="w-full border rounded-xl px-3 py-2"/>
+        <p *ngIf="addForm.controls.name.touched && addForm.controls.name.invalid"
+           class="text-xs text-red-600 mt-1">
+          Ime mora imati najmanje 2 karaktera.
+        </p>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Biografija</label>
+        <textarea
+          formControlName="biography"
+          rows="4"
+          class="w-full border rounded-xl px-3 py-2">
+        </textarea>
+      </div>
+      <div class="pt-2 flex gap-3">
+        <button
+          type="button"
+          (click)="closeAdd()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="addLoading()">
+          Otkaži
+        </button>
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          [disabled]="addLoading()">
+          {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!--EDIT MODAL -->
+<div *ngIf="showEditModal()" class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
+  <div class="relative mx-auto mt-16 w-[92%] max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden">
+    <div class="px-6 py-4 bg-blue-600 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-lg font-semibold">Izmena biografije</h2>
+        <p class="text-sm text-blue-100">
+          {{ selectedAuthor()?.name }}
+        </p>
+      </div>
+      <button
+        (click)="closeEdit()"
+        class="px-3 py-1 border border-white/30 rounded-lg hover:bg-white/10">
+        ✕
+      </button>
+    </div>
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()" class="p-6 space-y-4">
+      <div *ngIf="editError()" class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+        {{ editError() }}
+      </div>
+      <div *ngIf="editForm.touched && editForm.invalid"
+           class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+        Biografija mora imati najmanje 3 karaktera.
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Biografija *</label>
+        <textarea
+          formControlName="biography"
+          rows="5"
+          class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </textarea>
+
+        <p *ngIf="editForm.controls.biography.touched && editForm.controls.biography.invalid"
+           class="text-xs text-red-600 mt-1">
+          Biografija mora imati najmanje 3 karaktera.
+        </p>
+      </div>
+      <div class="pt-2 flex gap-3">
+        <button
+          type="button"
+          (click)="closeEdit()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+          [disabled]="editLoading()">
+          Otkaži
+        </button>
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          [disabled]="editLoading()">
+          {{ editLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -23,7 +23,9 @@ public class ReservationResponseDto {
     private String bookTitle;
     private String bookAuthor;
 
+    private String isbn;
     private String inventoryNumber;
+    private String location;
 
     private Date reservedAt;
     private Date expiresAt;

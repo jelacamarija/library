@@ -126,6 +126,12 @@ export const routes: Routes = [
                 .then(m => m.LibrarianSearchComponent),
           },
           {
+            path: 'authors',
+            loadComponent: () =>
+              import('./features/librarian/authors/librarian-authors.component')
+                .then(m => m.LibrarianAuthorsComponent),
+          },
+          {
             path: 'dashboard',
             loadComponent: () =>
               import('./features/librarian/dashboard/librarian-dashboard-layout.component')

@@ -13,6 +13,10 @@ export interface ReservationRow {
   bookTitle: string;
   bookAuthor: string;
 
+  isbn?: string;
+  inventoryNumber?: string;
+  location?: string;
+
   reservedAt: string;
   expiresAt: string | null;
 

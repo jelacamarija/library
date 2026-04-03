@@ -13,6 +13,8 @@ export interface LoanRow {
   bookTitle: string;
   bookAuthor: string;
 
+  inventoryNumber?: string;
+
   reservationId: number | null;
 
   loanedAt: string;
