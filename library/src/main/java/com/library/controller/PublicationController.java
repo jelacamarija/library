@@ -55,4 +55,13 @@ public class PublicationController {
                                                   @RequestParam(defaultValue = "10") int size) {
         return publicationService.getByBook(bookId, page, size);
     }
+
+    @GetMapping("/book/{bookId}/available")
+    public Page<PublicationResponseDto> getAvailableByBook(
+            @PathVariable Long bookId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return publicationService.getAvailableByBook(bookId, page, size);
+    }
 }

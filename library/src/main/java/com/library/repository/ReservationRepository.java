@@ -58,4 +58,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             User user, BookInstance instance, ReservationStatus status
     );
 
+    boolean existsByUser_UserIDAndBookInstance_Publication_Book_BookIDAndStatus(Long userId, Long bookId, ReservationStatus reservationStatus);
 }

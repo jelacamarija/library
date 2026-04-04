@@ -11,6 +11,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -21,78 +22,95 @@ import java.util.Optional;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final UserRepository userRepository;
-    private final BookRepository bookRepository;
+    private final ClientRepository clientRepository;
     private final LoanRepository loanRepository;
     private final MembershipRepository membershipRepository;
     private final BookInstanceRepository bookInstanceRepository;
+    private final PublicationRepository publicationRepository;
 
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
 
     @Transactional
-    public ReservationResponseDto createReservation(Long userID, Long instanceId) {
+    public ReservationResponseDto createReservation(Long publicationId, Long userId) {
 
-        User user = userRepository.findById(userID)
+        // 1. USER
+        Client client = clientRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
 
-        if (!(user instanceof Client client)) {
-            throw new RuntimeException("Samo klijent može rezervisati");
+        if (Boolean.FALSE.equals(client.getIsVerified())) {
+            throw new RuntimeException("Korisnik nije verifikovan");
         }
 
+        // 2. MEMBERSHIP VALIDACIJA
         Membership membership = membershipRepository
-                .findFirstByClientOrderByCreatedAtDesc(client)
-                .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
+                .findTopByClient_UserIDOrderByEndDateDesc(client.getUserID())
+                .orElseThrow(() -> new RuntimeException("Nemate aktivnu članarinu"));
 
-        if (membership.getStatus() != MembershipStatus.ACTIVE) {
-            throw new RuntimeException("Morate imati aktivnu članarinu.");
+        if (membership.getStatus() != MembershipStatus.ACTIVE ||
+                membership.getEndDate().isBefore(LocalDate.now())) {
+
+            throw new RuntimeException("Morate imati aktivnu članarinu");
         }
 
-        BookInstance instance = bookInstanceRepository.findById(instanceId)
-                .orElseThrow(() -> new RuntimeException("Primerak ne postoji"));
+        // 3. PUBLICATION
+        Publication publication = publicationRepository.findById(publicationId)
+                .orElseThrow(() -> new RuntimeException("Publikacija ne postoji"));
 
-        if (instance.getStatus() != BookStatus.AVAILABLE) {
-            throw new RuntimeException("Knjiga nije dostupna");
-        }
+        Long bookId = publication.getBook().getBookID();
 
-        Optional<Reservation> existing =
-                reservationRepository.findByUserAndBookInstanceAndStatus(
-                        user, instance, ReservationStatus.PENDING
+        // 4. CHECK: VEĆ IMA REZERVACIJU (po BOOK)
+        boolean alreadyReserved =
+                reservationRepository.existsByUser_UserIDAndBookInstance_Publication_Book_BookIDAndStatus(
+                        userId,
+                        bookId,
+                        ReservationStatus.PENDING
                 );
 
-        if (existing.isPresent()) {
-            throw new RuntimeException("Već imate rezervaciju za ovaj primerak.");
+        if (alreadyReserved) {
+            throw new RuntimeException("Već imate rezervaciju za ovu knjigu");
         }
 
-        instance.setStatus(BookStatus.RESERVED);
-        bookInstanceRepository.save(instance);
+        // 5. CHECK: VEĆ IMA LOAN (po BOOK)
+        boolean alreadyLoaned =
+                loanRepository.existsByUser_UserIDAndBookInstance_Publication_Book_BookIDAndStatus(
+                        userId,
+                        bookId,
+                        LoanStatus.ACTIVE
+                );
 
+        if (alreadyLoaned) {
+            throw new RuntimeException("Već imate ovu knjigu iznajmljenu");
+        }
+
+        // 6. NAĐI AVAILABLE BOOK INSTANCE (NAJBITNIJE 🔥)
+        BookInstance instance = bookInstanceRepository
+                .findFirstByPublication_PublicationIDAndStatus(publicationId, BookStatus.AVAILABLE)
+                .orElseThrow(() -> new RuntimeException("Nema dostupnih primjeraka"));
+
+        // 🔒 7. RACE CONDITION PROTECTION
+        if (instance.getStatus() != BookStatus.AVAILABLE) {
+            throw new RuntimeException("Primjerak više nije dostupan");
+        }
+
+        // 8. KREIRAJ REZERVACIJU
         Reservation reservation = Reservation.builder()
-                .user(user)
+                .user(client)
                 .bookInstance(instance)
                 .reservedAt(new Date())
-                .expiresAt(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000))
+                .expiresAt(new Date(System.currentTimeMillis() + 3L*2460*60*1000)) // 48h
                 .status(ReservationStatus.PENDING)
                 .used(false)
                 .build();
 
+        // 9. PROMIJENI STATUS INSTANCE
+        instance.setStatus(BookStatus.RESERVED);
 
+        // 10. SAVE
         reservationRepository.save(reservation);
+        bookInstanceRepository.save(instance);
 
         return ReservationMapper.toDto(reservation);
-    }
-
-    @Transactional
-    public ReservationResponseDto reserveByPublication(Long userID, Long publicationId) {
-
-        BookInstance instance = bookInstanceRepository
-                .findFirstByPublication_PublicationIDAndStatus(
-                        publicationId,
-                        BookStatus.AVAILABLE
-                )
-                .orElseThrow(() -> new RuntimeException("Nema dostupnih primjeraka."));
-
-        return createReservation(userID, instance.getInstanceID());
     }
 
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {

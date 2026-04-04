@@ -18,23 +18,20 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    @PostMapping("/reserve")
-    public ReservationResponseDto reserveBook(
-            @RequestBody ReservationCreateDto dto,
+    @PostMapping("/create/{publicationId}")
+    public ReservationResponseDto createReservation(
+            @PathVariable Long publicationId,
             HttpServletRequest request
     ) {
-        Long userID = (Long) request.getAttribute("userId");
+
+        Long userId = (Long) request.getAttribute("userId");
         String role = (String) request.getAttribute("userRole");
 
-        if (userID == null) {
-            throw new RuntimeException("Niste ulogovani");
+        if (!"CLIENT".equals(role)) {
+            throw new RuntimeException("Samo klijent može praviti rezervacije");
         }
 
-        if (!"CLIENT".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Samo klijent može rezervisati");
-        }
-
-        return reservationService.createReservation(userID, dto.getInstanceID());
+        return reservationService.createReservation(publicationId, userId);
     }
 
     @GetMapping("/my")
@@ -123,12 +120,5 @@ public class ReservationController {
         }
     }
 
-    @PostMapping("/reserve-by-publication/{publicationId}")
-    public ReservationResponseDto reserveByPublication(
-            @PathVariable Long publicationId,
-            HttpServletRequest request
-    ) {
-        Long userID = (Long) request.getAttribute("userId");
-        return reservationService.reserveByPublication(userID, publicationId);
-    }
+
 }

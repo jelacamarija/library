@@ -32,6 +32,7 @@ public interface MembershipRepository extends JpaRepository<Membership,Long> {
 
     List<Membership> findByStatus(MembershipStatus status);
 
+    Optional<Membership> findTopByClient_UserIDOrderByEndDateDesc(Long userId);
 }
 
 

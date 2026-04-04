@@ -13,6 +13,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Service
 @RequiredArgsConstructor
@@ -72,4 +75,15 @@ public class PublicationService {
                 .findByBook_BookID(bookID,pageable)
                 .map(PublicationMapper::toDto);
     }
+
+    public Page<PublicationResponseDto> getAvailableByBook(Long bookID, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return publicationRepository
+                .findAvailableByBook(bookID, pageable)
+                .map(PublicationMapper::toDto);
+    }
+
+
 }
