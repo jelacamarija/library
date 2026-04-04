@@ -114,7 +114,7 @@ export class ClientSearchComponent {
   this.selectedBook.set(book);
   this.publications.set([]);
 
-  this.bookService.getPublications(book.bookID).subscribe({
+  this.bookService.getAvailablePublications(book.bookID).subscribe({
     next: (res: any) => {
       this.publications.set(res.content ?? res);
     },
@@ -164,36 +164,106 @@ Imate 3 dana da je preuzmete.`
     this.messageOpen.set(true);
   }
 
-   private parseReserveError(err: any): { title: string; text: string } {
+  private parseReserveError(err: any): { title: string; text: string } {
   const raw =
     (err?.error?.message || err?.message || 'Greška pri rezervaciji.').toString();
 
   const msg = raw.toLowerCase();
 
-  //morate imati aktivnu clanarinu
-  if (msg.includes('imati aktivnu') || msg.includes('clan') || msg.includes('clanarinu')) {
+  // 🔒 članarina
+  if (
+    msg.includes('clanar') ||
+    msg.includes('članar') ||
+    msg.includes('membership') ||
+    msg.includes('aktivnu')
+  ) {
     return {
       title: 'Rezervacija nije moguća',
-      text: 'Morate imati aktivnu clanarinu kako biste napravili rezervaciju.',
+      text: 'Morate imati aktivnu članarinu kako biste napravili rezervaciju.',
     };
   }
 
-  //već postoji rezervacija (pending)
-  if (msg.includes('već imate rezervaciju') || msg.includes('za ovaj primerak')) {
+  // 📚 već ima rezervaciju za isti NASLOV
+  if (msg.includes('već imate rezervaciju')) {
     return {
       title: 'Već imate rezervaciju',
-      text: 'Već imate rezervaciju na čekanju za ovu knjigu. Pogledajte "Moje rezervacije".',
+      text: 'Već imate aktivnu rezervaciju za ovu knjigu. Pogledajte "Moje rezervacije".',
     };
   }
 
-  //već iznajmljena
-  if (msg.includes('već ima') && (msg.includes('iznajmlj') || msg.includes('loan'))) {
+  // 📖 već ima loan za isti NASLOV
+  if (
+    msg.includes('već imate ovu knjigu') ||
+    (msg.includes('već ima') && (msg.includes('iznajmlj') || msg.includes('loan')))
+  ) {
     return {
-      title: 'Knjiga je već izdata',
+      title: 'Knjiga je već kod vas',
       text: 'Ovu knjigu već imate iznajmljenu. Ne možete je ponovo rezervisati dok je ne vratite.',
     };
   }
-  return { title: 'Greška', text: raw };
+
+  // ❌ nema dostupnih primjeraka
+  if (
+    msg.includes('nema dostupnih') ||
+    msg.includes('nije dostupan') ||
+    msg.includes('no available')
+  ) {
+    return {
+      title: 'Nema dostupnih primjeraka',
+      text: 'Trenutno nema slobodnih primjeraka ove knjige. Pokušajte kasnije.',
+    };
+  }
+
+  // ⚡ race condition (neko je brži bio)
+  if (
+    msg.includes('više nije dostupan') ||
+    msg.includes('already reserved') ||
+    msg.includes('not available anymore')
+  ) {
+    return {
+      title: 'Knjiga je upravo rezervisana',
+      text: 'Nažalost, neko drugi je upravo rezervisao ovu knjigu prije vas.',
+    };
+  }
+
+  // ⏳ rezervacija istekla u međuvremenu
+  if (
+    msg.includes('istekla') ||
+    msg.includes('expired')
+  ) {
+    return {
+      title: 'Rezervacija je istekla',
+      text: 'Vaša prethodna rezervacija je istekla. Možete pokušati ponovo.',
+    };
+  }
+
+  // 🚫 korisnik nije verifikovan
+  if (
+    msg.includes('nije verifikovan') ||
+    msg.includes('not verified')
+  ) {
+    return {
+      title: 'Nalog nije aktiviran',
+      text: 'Morate verifikovati nalog prije nego što napravite rezervaciju.',
+    };
+  }
+
+  // 🚫 publikacija ne postoji (edge, ali moguće)
+  if (
+    msg.includes('publikacija ne postoji') ||
+    msg.includes('not found')
+  ) {
+    return {
+      title: 'Greška',
+      text: 'Odabrana publikacija više nije dostupna.',
+    };
+  }
+
+  // ⚠ fallback
+  return {
+    title: 'Greška',
+    text: raw,
+  };
 }
 
 

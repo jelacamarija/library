@@ -1,388 +1,46 @@
-<!--
-<div class="mx-auto max-w-6xl px-4 py-6">
+<div *ngIf="!isLoading() && !isError()" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+  <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition">
+  <div class="mb-3 space-y-1">
+    <!-- GORNJI DIO -->
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Knjige</h1>
-      <p class="text-sm text-gray-600">Pregled svih knjiga u biblioteci.</p>
-    </div>
+      <!-- NASLOV -->
+      <h2 class="text-xl font-bold text-gray-900">
+        {{ b.title }}
+      </h2>
 
-    <button
-      (click)="openAdd()"
-      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-    >
-      <span class="text-lg leading-none">＋</span>
-      <span>Dodaj novu knjigu</span>
-    </button>
-  </div>
+      <!-- AUTORI -->
+      <p class="text-base text-gray-700 mt-1">
+        {{ b.authors.join(', ') }}
+      </p>
 
-  <! LOADING 
-  <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
+      <!-- KATEGORIJA -->
+      <p class="text-sm text-gray-600 mt-3">
+        <span class="font-medium">Kategorija:</span> {{ b.category }}
+      </p>
 
-  <! ERROR 
-  <div *ngIf="isError()" class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
-    {{ errorMessage() }}
-  </div>
-
-  <! LISTA  
-  <div *ngIf="!isLoading() && !isError()" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div
-      *ngFor="let b of books()"
-      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition"
-    >
-      <div class="mb-3">
-        <h2 class="text-lg font-semibold text-gray-900">{{ b.title }}</h2>
-        <p class="text-sm text-gray-600">Autor: {{ b.author }}</p>
-        <p class="text-sm text-gray-600">ISBN: {{ b.isbn }}</p>
-        <p class="text-sm text-gray-600">Godina: {{ b.publishedYear }}</p>
-
-       
-      </div>
-
-      <div class="flex gap-2 mt-4">
-        <button
-          (click)="openDetails(b)"
-          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-        >
-          Detalji
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
-
-  <div class="relative mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-xl">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900">
-          {{ selectedBook()?.title }}
-        </h2>
-        <p class="text-sm text-gray-600">Autor: {{ selectedBook()?.author }}</p>
-      </div>
-
-      <button
-        (click)="closeDetails()"
-        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
-        aria-label="Zatvori"
-      >
-        ✕
-      </button>
-    </div>
-
-    <div class="mt-4 space-y-2 text-sm text-gray-700">
-     
-      <p><span class="font-medium">Kategorija:</span> {{ selectedBook()?.category }}</p>
-     
-      
-
-      <p class="pt-2 text-gray-800">
-        <span class="font-medium">Opis:</span><br />
-        {{ selectedBook()?.description }}
+      <!-- OPIS -->
+      <p class="text-sm text-gray-700 mt-2 line-clamp-3">
+        <span class="font-medium">Kratak opis:</span>
+        {{ b.description }}
       </p>
     </div>
 
-    <div class="mt-6 flex gap-3">
-      <button
-        (click)="openEdit('description')"
-        class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-      >
-        Izmeni opis
-      </button>
-
-      <button
-        (click)="openEdit('copies')"
-        class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-      >
-        Dodaj kopije
-      </button>
-    </div>
-
-    <div class="mt-4">
-      <button
-        (click)="closeDetails()"
-        class="w-full px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-      >
-        Zatvori
-      </button>
-    </div>
-  </div>
-</div>
-
-<div *ngIf="showAddModal()" class="fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-black/40" (click)="closeAdd()"></div>
-
-  <div class="relative mx-auto mt-16 w-[92%] max-w-2xl rounded-2xl bg-white p-0 shadow-xl overflow-hidden">
-    <div class="px-6 py-4 bg-blue-600 text-white">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h2 class="text-xl font-semibold">Dodaj novu knjigu</h2>
-          <p class="text-sm text-blue-100">Popuni podatke i sačuvaj.</p>
-        </div>
-
-        <button
-          (click)="closeAdd()"
-          class="rounded-lg px-3 py-1 border border-white/30 hover:bg-white/10"
-          aria-label="Zatvori"
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-
-    <div class="p-6">
-      <div *ngIf="addError()" class="mb-4 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
-        {{ addError() }}
-      </div>
-
-      <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="space-y-4">
-        <div *ngIf="addForm.touched && addForm.invalid"
-             class="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
-          Sva polja moraju biti popunjena ispravno.
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">Naslov *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="title" type="text" />
-
-            <p *ngIf="addForm.controls.title.touched && addForm.controls.title.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.title.errors?.['required']">Naslov je obavezan.</span>
-              <span *ngIf="addForm.controls.title.errors?.['minlength']">Naslov mora imati najmanje 2 karaktera.</span>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">Autor *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="author" type="text" />
-
-            <p *ngIf="addForm.controls.author.touched && addForm.controls.author.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.author.errors?.['required']">Autor je obavezan.</span>
-              <span *ngIf="addForm.controls.author.errors?.['minlength']">Autor mora imati najmanje 2 karaktera.</span>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">ISBN *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="isbn" type="text" inputmode="numeric" />
-
-            <p *ngIf="addForm.controls.isbn.touched && addForm.controls.isbn.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.isbn.errors?.['required']">ISBN je obavezan.</span>
-              <span *ngIf="addForm.controls.isbn.errors?.['pattern']">ISBN mora imati tačno 13 cifara.</span>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">Kategorija *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="category" type="text" />
-
-            <p *ngIf="addForm.controls.category.touched && addForm.controls.category.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.category.errors?.['required']">Kategorija je obavezna.</span>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">Godina *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="publishedYear" type="number" />
-
-            <p *ngIf="addForm.controls.publishedYear.touched && addForm.controls.publishedYear.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.publishedYear.errors?.['required']">Godina izdanja je obavezna.</span>
-              <span *ngIf="addForm.controls.publishedYear.errors?.['min']">Godina izdanja nije ispravna.</span>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">Ukupno *</label>
-            <input class="w-full border rounded-xl px-3 py-2" formControlName="copiesTotal" type="number" min="1" />
-
-            <p *ngIf="addForm.controls.copiesTotal.touched && addForm.controls.copiesTotal.invalid"
-               class="text-xs text-red-600 mt-1">
-              <span *ngIf="addForm.controls.copiesTotal.errors?.['required']">Ukupan broj kopija je obavezan.</span>
-              <span *ngIf="addForm.controls.copiesTotal.errors?.['min']">Ukupan broj kopija mora biti najmanje 1.</span>
-            </p>
-
-            <p class="text-xs text-gray-500 mt-1">
-              Dostupne kopije se automatski postavljaju na isti broj.
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">Opis *</label>
-          <textarea class="w-full border rounded-xl px-3 py-2" formControlName="description" rows="4"></textarea>
-
-          <p *ngIf="addForm.controls.description.touched && addForm.controls.description.invalid"
-             class="text-xs text-red-600 mt-1">
-            <span *ngIf="addForm.controls.description.errors?.['required']">Opis je obavezan.</span>
-            <span *ngIf="addForm.controls.description.errors?.['minlength']">Opis mora imati najmanje 3 karaktera.</span>
-          </p>
-        </div>
-
-        <div class="pt-2 flex gap-3">
-          <button
-            type="button"
-            (click)="closeAdd()"
-            class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-            [disabled]="addLoading()"
-          >
-            Otkaži
-          </button>
-
-          <button
-            type="submit"
-            class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-            [disabled]="addLoading()"
-          >
-            {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-
-<div *ngIf="showEditModal()" class="fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
-
-  <div class="relative mx-auto mt-20 w-[92%] max-w-xl rounded-2xl bg-white p-6 shadow-lg">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900">
-          {{ editMode() === 'description' ? 'Izmijeni opis' : 'Dodaj kopije' }}
-        </h2>
-        <p class="text-sm text-gray-600">{{ selectedBook()?.title }}</p>
-      </div>
-
-      <button
-        (click)="closeEdit()"
-        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
-        aria-label="Zatvori"
-      >
-        ✕
-      </button>
-    </div>
-
-    <div *ngIf="editError()" class="mt-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-      {{ editError() }}
-    </div>
-
-    <form
-      *ngIf="editMode() === 'description'"
-      [formGroup]="editDescriptionForm"
-      (ngSubmit)="submitEditDescription()"
-      class="mt-5 space-y-4"
+  <!-- DUGMAD -->
+  <div class="flex gap-2 mt-4">
+    <button
+      (click)="openDetails(b)"
+      class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
     >
-      <div>
-        <label class="block text-sm text-gray-700 mb-1">Opis *</label>
-        <textarea class="w-full border rounded-xl px-3 py-2" rows="5" formControlName="description"></textarea>
+      Detalji
+    </button>
 
-        <p *ngIf="editDescriptionForm.controls.description.touched && editDescriptionForm.controls.description.invalid"
-           class="text-xs text-red-600 mt-1">
-          Opis mora imati najmanje 3 karaktera.
-        </p>
-      </div>
-
-      <div class="pt-2 flex gap-3">
-        <button type="button" (click)="closeEdit()"
-          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-          [disabled]="editLoading()"
-        >
-          Otkaži
-        </button>
-
-        <button type="submit"
-          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-          [disabled]="editLoading()"
-        >
-          {{ editLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
-        </button>
-      </div>
-    </form>
-
-    <form
-      *ngIf="editMode() === 'copies'"
-      [formGroup]="editCopiesForm"
-      (ngSubmit)="submitEditCopies()"
-      class="mt-5 space-y-4"
+    <button
+      (click)="openPublications(b)"
+      class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
     >
-      <div>
-        <label class="block text-sm text-gray-700 mb-1">Broj kopija za dodavanje *</label>
-        <input class="w-full border rounded-xl px-3 py-2" type="number" min="1" formControlName="copiesToAdd" />
-
-        <p *ngIf="editCopiesForm.controls.copiesToAdd.touched && editCopiesForm.controls.copiesToAdd.invalid"
-           class="text-xs text-red-600 mt-1">
-          Broj kopija mora biti veći od 0.
-        </p>
-      </div>
-
-      <div class="pt-2 flex gap-3">
-        <button type="button" (click)="closeEdit()"
-          class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-          [disabled]="editLoading()"
-        >
-          Otkaži
-        </button>
-
-        <button type="submit"
-          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-          [disabled]="editLoading()"
-        >
-          {{ editLoading() ? 'Čuvanje...' : 'Dodaj' }}
-        </button>
-      </div>
-    </form>
+      Publikacije
+    </button>
   </div>
 </div>
-
-
-<div *ngIf="showConfirm()" class="fixed inset-0 z-[60]">
-  <div class="absolute inset-0 bg-black/40" (click)="closeConfirm()"></div>
-
-  <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-2xl bg-white p-6 shadow-xl">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900">{{ confirmTitle() }}</h3>
-        <p class="mt-1 text-sm text-gray-600">{{ confirmMessage() }}</p>
-      </div>
-
-      <button
-        (click)="closeConfirm()"
-        class="rounded-lg px-3 py-1 border border-gray-300 hover:bg-gray-50"
-        aria-label="Zatvori"
-      >
-        ✕
-      </button>
-    </div>
-
-    <div class="mt-6 flex gap-3">
-      <button
-        type="button"
-        (click)="closeConfirm()"
-        class="flex-1 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
-        [disabled]="confirmLoading()"
-      >
-        Otkaži
-      </button>
-
-      <button
-        type="button"
-        (click)="confirmProceed()"
-        class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-        [disabled]="confirmLoading()"
-      >
-        {{ confirmLoading() ? 'Obrada...' : confirmOkText() }}
-      </button>
-    </div>
-  </div>
 </div>
-
-

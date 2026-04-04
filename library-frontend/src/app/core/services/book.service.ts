@@ -51,12 +51,14 @@ export class BookService {
   return this.http.get<BookDto>('/api/books/' + id);
 }
 
-getPublications(bookId: number) {
-  return this.http.get<PublicationDto[]>(`/api/publications/book/${bookId}`);
+getAvailablePublications(bookId: number, page = 0, size = 10) {
+  return this.http.get<PageDto<PublicationDto>>(
+    `/api/publications/book/${bookId}/available?page=${page}&size=${size}`
+  );
 }
 
 reserveByPublication(publicationId: number) {
-  return this.http.post(`/api/reservations/reserve-by-publication/${publicationId}`, {});
+  return this.http.post(`/api/reservations/create/${publicationId}`, {});
 }
 
 }
