@@ -81,7 +81,8 @@ public class BookInstanceController {
 
 
     @PatchMapping("/{id}/status")
-    public BookInstanceResponseDto updateStatus(@PathVariable Long id,String status,
+    public BookInstanceResponseDto updateStatus(@PathVariable Long id,
+                                                @RequestBody String status,
                                                 HttpServletRequest request) {
 
         String role = (String) request.getAttribute("userRole");

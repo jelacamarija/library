@@ -5,6 +5,7 @@ import com.library.dto.PublicationResponseDto;
 import com.library.entity.Publication;
 import com.library.service.PublicationService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class PublicationController {
     }
 
     @PostMapping("/add")
-    public PublicationResponseDto createPublication(@RequestBody PublicationCreateDto dto,
+    public PublicationResponseDto createPublication(@RequestBody @Valid PublicationCreateDto dto,
                                                     HttpServletRequest request) {
        checkLibrarian(request);
        return publicationService.createPublication(dto);
