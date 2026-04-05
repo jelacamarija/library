@@ -28,4 +28,8 @@ export class LoanService {
   getMyLoans(): Observable<LoanResponseDto[]> {
     return this.http.get<LoanResponseDto[]>(`${this.baseUrl}/my`);
   }
+
+  createLoan(payload: { userId: number; instanceId: number }) {
+  return this.http.post('/api/loans/create', payload);
+}
 }

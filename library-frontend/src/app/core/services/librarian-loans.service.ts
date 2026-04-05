@@ -49,8 +49,7 @@ export interface BookOption {
 
 export interface LoanCreateRequest {
   userId: number;
-  bookId: number;
- 
+  instanceId: number; 
 }
 
 @Injectable({ providedIn: 'root' })
@@ -85,12 +84,14 @@ export class LibrarianLoansService {
     return this.http.get<PageResponse<any>>(`${this.booksUrl}/search`, { params });
   }
 
-  createLoan(payload: LoanCreateRequest): Observable<any> {
-    return this.http.post(`${this.baseUrl}/create`, payload);
-  }
+  
 
   getLoanConfig(): Observable<{ loanDurationDays: number }> {
   return this.http.get<{ loanDurationDays: number }>(`${this.baseUrl}/config`);
+}
+
+createLoan(payload: { userId: number; instanceId: number }) {
+  return this.http.post('/api/loans/create', payload);
 }
 
 }

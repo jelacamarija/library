@@ -125,6 +125,12 @@ export const routes: Routes = [
     import('./features/librarian/publications/librarian-publications.component')
       .then(m => m.LibrarianPublicationsComponent),
 },
+{
+  path: 'instances/:publicationID',
+  loadComponent: () =>
+    import('./features/librarian/instances/librarian-instances.component')
+      .then(m => m.LibrarianInstancesComponent),
+},
           {
             path: 'search',
             loadComponent: () =>
@@ -180,12 +186,8 @@ export const routes: Routes = [
                   import('./features/librarian/dashboard/librarian-dashboard-loans.component')
                     .then(m => m.LibrarianDashboardLoansComponent),
               },
-              {
-  path: 'loans/new',
-  loadComponent: () =>
-    import('./features/librarian/dashboard/librarian-dashboard-create-loan.component')
-      .then(m => m.LibrarianDashboardCreateLoanComponent),
-}
+              
+
 
             ],
           },

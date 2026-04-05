@@ -25,13 +25,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
             Osvježi
           </button>
 
-          <button
-            (click)="goToCreate()"
-            class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            [disabled]="loading()"
-          >
-            Dodaj novo iznajmljivanje
-          </button>
+          
 
           <select
             class="px-3 py-2 rounded-xl border border-gray-300 bg-white"
@@ -282,9 +276,7 @@ export class LibrarianDashboardLoansComponent {
     effect(() => this.fetch());
   }
 
-  goToCreate(): void {
-    this.router.navigateByUrl('/librarian/dashboard/loans/new');
-  }
+  
 
   fetch(): void {
     this.loading.set(true);

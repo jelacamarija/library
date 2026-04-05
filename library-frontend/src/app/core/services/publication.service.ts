@@ -25,4 +25,12 @@ export class PublicationService {
   create(payload: any) {
   return this.http.post('/api/publications/add', payload);
 }
+
+search(isbn: string) {
+  return this.http.get<any>(`/api/publications/search?isbn=${isbn}`);
+}
+
+getById(id:number){
+  return this.http.get<PublicationDto>('/api/publications/' + id);
+}
 }

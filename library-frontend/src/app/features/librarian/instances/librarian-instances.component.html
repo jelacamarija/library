@@ -1,0 +1,272 @@
+<div class="mx-auto max-w-6xl px-4 py-6">
+
+  <div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">
+    Primjerci publikacije
+  </h1>
+
+  <div *ngIf="publication()" class="mt-2 text-sm text-gray-600 space-y-1">
+    <p>
+      <span class="font-medium text-gray-800">Naslov:</span>
+      {{ publication()?.bookTitle }}
+    </p>
+    <p>
+      <span class="font-medium text-gray-800">ISBN:</span>
+      {{ publication()?.isbn }}
+    </p>
+  </div>
+</div>
+
+<button
+    (click)="openAdd()"
+    class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+  >
+    + Dodaj primjerak
+  </button>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading()" class="text-gray-600">
+    Učitavanje...
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="isError()" class="p-4 bg-red-50 text-red-700 rounded-xl">
+    Greška pri učitavanju.
+  </div>
+
+  <!-- TABELA -->
+  <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden">
+
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600">
+        <tr>
+          <th class="text-left px-4 py-3">Inventory</th>
+          <th class="text-left px-4 py-3">Status</th>
+          <th class="text-left px-4 py-3">Lokacija</th>
+          <th class="text-right px-4 py-3"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let i of instances()" class="border-t hover:bg-gray-50">
+
+          <td class="px-4 py-3 font-medium">
+            {{ i.inventoryNumber }}
+          </td>
+
+          <td class="px-4 py-3">
+            <span
+              class="px-2 py-1 rounded-full text-xs font-semibold"
+              [ngClass]="{
+                'bg-green-100 text-green-700': i.status === 'AVAILABLE',
+                'bg-yellow-100 text-yellow-700': i.status === 'RESERVED',
+                'bg-blue-100 text-blue-700': i.status === 'LOANED',
+                'bg-red-100 text-red-700': i.status === 'LOST',
+                'bg-gray-200 text-gray-700': i.status === 'DAMAGED'
+              }"
+            >
+              {{ i.status }}
+            </span>
+          </td>
+
+          <td class="px-4 py-3">
+            {{ i.location }}
+          </td>
+
+          <td class="px-4 py-3 text-right flex gap-2 justify-end">
+
+          <button
+  *ngIf="i.status === 'AVAILABLE'"
+  (click)="openLoanModal(i)"
+  class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700"
+>
+  Iznajmi
+</button>
+
+         <div class="flex gap-2">
+
+
+            <button
+  (click)="openStatusModal(i)"
+  class="px-3 py-1.5 rounded-lg border text-xs hover:bg-gray-50 transition"
+>
+  Izmijeni status
+</button>
+
+
+</div>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="instances().length === 0" class="p-6 text-center text-gray-500">
+      Nema primjeraka.
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="showStatusModal()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <h3 class="text-lg font-semibold mb-4">
+      Izmjena statusa
+    </h3>
+
+    <p class="text-sm text-gray-600 mb-4">
+      Odaberite novi status za primjerak:
+    </p>
+
+    <div class="space-y-3">
+
+      <button
+        (click)="confirmStatusChange('DAMAGED')"
+        class="w-full px-4 py-2 rounded-xl bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+        [disabled]="statusLoading()"
+      >
+        Označi kao oštećena
+      </button>
+
+      <button
+        (click)="confirmStatusChange('LOST')"
+        class="w-full px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200"
+        [disabled]="statusLoading()"
+      >
+        Označi kao izgubljena
+      </button>
+
+    </div>
+
+    <div class="mt-6 flex justify-end">
+      <button
+        (click)="closeStatusModal()"
+        class="px-4 py-2 border rounded-xl"
+        [disabled]="statusLoading()"
+      >
+        Otkaži
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="showAddModal()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">Dodaj novi primjerak</h2>
+      <button (click)="closeAdd()">✕</button>
+    </div>
+
+    <div *ngIf="addError()" class="mb-3 text-red-600 text-sm">
+      {{ addError() }}
+    </div>
+
+    <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="space-y-4">
+
+      <input
+        class="w-full border px-3 py-2 rounded-xl"
+        placeholder="Lokacija (npr. Polica A-3)"
+        formControlName="location"
+      />
+
+      <div *ngIf="addForm.controls.location.touched && addForm.controls.location.invalid"
+           class="text-red-500 text-xs">
+        Lokacija je obavezna.
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button
+          type="button"
+          (click)="closeAdd()"
+          class="flex-1 px-4 py-2 rounded-xl border"
+          [disabled]="addLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+          [disabled]="addLoading()"
+        >
+          {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div *ngIf="showLoanModal()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <h2 class="text-lg font-semibold mb-3">
+      Iznajmljivanje knjige
+    </h2>
+
+    <p class="text-sm text-gray-600 mb-4">
+      {{ selectedInstance()?.bookTitle }} <br>
+      <span class="text-xs text-gray-500">
+        {{ selectedInstance()?.inventoryNumber }}
+      </span>
+    </p>
+
+    <!-- USER INPUT -->
+    <input
+      class="w-full border px-3 py-2 rounded-xl"
+      placeholder="Broj članske karte"
+      [value]="userQuery()"
+      (input)="onUserQueryChange($any($event.target).value)"
+    />
+
+    <!-- DROPDOWN -->
+    <div *ngIf="userDropdownOpen()" class="mt-2 border rounded-xl bg-white shadow">
+
+      <button
+        *ngFor="let u of userOptions()"
+        type="button"
+        class="w-full text-left px-4 py-2 hover:bg-gray-50"
+        (click)="selectUser(u)"
+      >
+        {{ u.membershipNumber }} — {{ u.name }}
+      </button>
+
+      <div *ngIf="!userLoading() && userOptions().length === 0"
+           class="px-4 py-2 text-sm text-gray-500">
+        Nema korisnika
+      </div>
+
+    </div>
+
+    <!-- SELECTED -->
+    <div *ngIf="selectedUser()" class="text-sm mt-2 text-gray-600">
+      Izabrano:
+      <b>{{ selectedUser()?.membershipNumber }}</b>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="mt-6 flex gap-3">
+      <button
+        (click)="closeLoanModal()"
+        class="flex-1 border rounded-xl py-2"
+      >
+        Otkaži
+      </button>
+
+      <button
+        (click)="submitLoan()"
+        class="flex-1 bg-blue-600 text-white rounded-xl py-2"
+        [disabled]="loanLoading() || !selectedUser()"
+      >
+        {{ loanLoading() ? 'Kreiranje...' : 'Iznajmi' }}
+      </button>
+    </div>
+
+  </div>
+</div>

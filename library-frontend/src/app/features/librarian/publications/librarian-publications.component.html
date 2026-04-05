@@ -2,11 +2,14 @@
 
   <div class="flex justify-between items-center mb-6">
   <div>
-    <h1 class="text-2xl font-bold text-gray-900">
-      Publikacije
-    </h1>
+   <h1 class="text-2xl font-bold text-gray-900">
+  
+  <span *ngIf="book()" class="text-blue-600">
+     {{ book()?.title }}
+  </span>
+</h1>
     <p class="text-sm text-gray-600">
-      Pregled svih izdanja za odabranu knjigu.
+      Pregled svih publikacija za odabranu knjigu.
     </p>
   </div>
 
@@ -26,6 +29,26 @@
   <div *ngIf="isError()" class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
     {{ errorMessage() }}
   </div>
+
+  <div *ngIf="successMessage()"
+     class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl">
+  {{ successMessage() }}
+</div>
+
+<div class="mb-4 flex gap-2">
+  <input
+    type="text"
+    placeholder="Pretraži po ISBN..."
+    class="px-4 py-2 border rounded-xl w-80"
+    (input)="onQueryChange($any($event.target).value)"
+  />
+
+  <button
+    (click)="onQueryChange('')"
+    class="px-4 py-2 border rounded-xl">
+    Obrisi
+  </button>
+</div>
 
   <!-- TABELA -->
   <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden">
@@ -93,7 +116,7 @@
   <div class="relative mx-auto mt-16 w-[92%] max-w-xl bg-white rounded-2xl shadow-xl p-6">
 
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Dodaj publikaciju</h2>
+      <h2 class="text-lg font-semibold">Dodaj novo publikaciju</h2>
       <button (click)="closeAdd()">✕</button>
     </div>
 
@@ -103,21 +126,61 @@
 
     <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="space-y-4">
 
-      <input class="w-full border px-3 py-2 rounded-xl" placeholder="ISBN"
-             formControlName="isbn" />
+      <input
+  class="w-full border px-3 py-2 rounded-xl"
+  placeholder="ISBN"
+  formControlName="isbn"
+/>
 
-      <input class="w-full border px-3 py-2 rounded-xl" placeholder="Izdavač"
-             formControlName="publisher" />
+<div *ngIf="addForm.controls.isbn.touched && addForm.controls.isbn.invalid"
+     class="text-red-500 text-xs mt-1">
 
-      <input type="number" class="w-full border px-3 py-2 rounded-xl"
-             placeholder="Godina"
-             formControlName="publishedYear" />
+  <div *ngIf="addForm.controls.isbn.errors?.['required']">
+    ISBN je obavezan.
+  </div>
 
-      <input class="w-full border px-3 py-2 rounded-xl" placeholder="Izdanje"
-             formControlName="edition" />
+  <div *ngIf="addForm.controls.isbn.errors?.['pattern']">
+    ISBN mora imati tačno 13 cifara.
+  </div>
 
-      <input class="w-full border px-3 py-2 rounded-xl" placeholder="Jezik"
-             formControlName="language" />
+</div>
+
+      <input class="w-full border px-3 py-2 rounded-xl"
+       placeholder="Izdavač"
+       formControlName="publisher" />
+
+<div *ngIf="addForm.controls.publisher.touched && addForm.controls.publisher.invalid"
+     class="text-red-500 text-xs mt-1">
+  Izdavač je obavezan.
+</div>
+
+      <input type="number"
+       class="w-full border px-3 py-2 rounded-xl"
+       placeholder="Godina"
+       formControlName="publishedYear" />
+
+<div *ngIf="addForm.controls.publishedYear.touched && addForm.controls.publishedYear.invalid"
+     class="text-red-500 text-xs mt-1">
+  Godina je obavezna.
+</div>
+
+      <input class="w-full border px-3 py-2 rounded-xl"
+       placeholder="Izdanje"
+       formControlName="edition" />
+
+<div *ngIf="addForm.controls.edition.touched && addForm.controls.edition.invalid"
+     class="text-red-500 text-xs mt-1">
+  Izdanje je obavezno.
+</div>
+
+     <input class="w-full border px-3 py-2 rounded-xl"
+       placeholder="Jezik"
+       formControlName="language" />
+
+<div *ngIf="addForm.controls.language.touched && addForm.controls.language.invalid"
+     class="text-red-500 text-xs mt-1">
+  Jezik je obavezan.
+</div>
 
       <div class="pt-2 flex gap-3">
         <button
