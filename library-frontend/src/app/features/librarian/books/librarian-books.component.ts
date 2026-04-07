@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../../core/services/book.service';
 import { BookDto } from '../../../core/models/book.model';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-
+import { AuthorService} from '../../../core/services/author.service';
 type UiState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
@@ -26,6 +26,10 @@ export class LibrarianBooksComponent {
 
   selectedBook = signal<BookDto | null>(null);
   showDetailsModal = computed(() => this.selectedBook() !== null);
+
+  private authorService=inject(AuthorService);
+
+  authors = signal<{ authorID: number; name: string }[]>([]);
 
   // ADD MODAL
   showAddModal = signal(false);
@@ -68,11 +72,11 @@ export class LibrarianBooksComponent {
 
   // ADD FORM
   addForm = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(2)]],
-    author: ['', [Validators.required, Validators.minLength(2)]],
-    category: ['', [Validators.required]],
-    description: [''],
-  });
+  title: ['', [Validators.required, Validators.minLength(2)]],
+  authorIds: this.fb.nonNullable.control<number[]>([], Validators.required),
+  category: ['', Validators.required],
+  description: [''],
+});
 
   // EDIT MODAL
   showEditModal = signal(false);
@@ -102,9 +106,17 @@ export class LibrarianBooksComponent {
     return s.status === 'ready' ? s.books : [];
   });
 
-  ngOnInit() {
-    this.loadBooks();
-  }
+ ngOnInit() {
+  this.loadBooks();
+  this.loadAuthors();
+}
+
+private loadAuthors() {
+  this.authorService.getAll(0, 100).subscribe({
+    next: (res) => this.authors.set(res.content),
+    error: () => this.authors.set([]),
+  });
+}
 
   private loadBooks() {
     this.state.set({ status: 'loading' });
@@ -130,6 +142,49 @@ export class LibrarianBooksComponent {
   this.router.navigate(['/librarian/publications', book.bookID]);
 }
 
+openAdd() {
+  this.showAddModal.set(true);
+  this.addError.set('');
+  this.addSuccess.set('');
+}
+
+closeAdd() {
+  if (this.addLoading()) return;
+  this.showAddModal.set(false);
+  this.addForm.reset({
+    title: '',
+    authorIds: [],
+    category: '',
+    description: '',
+  });
+}
+
+submitAdd() {
+  if (this.addForm.invalid) return;
+
+  this.addLoading.set(true);
+  this.addError.set('');
+
+  const raw = this.addForm.getRawValue();
+
+  const payload = {
+    ...raw,
+    authorIds: raw.authorIds.map(id => Number(id)),
+  };
+
+  this.bookService.create(payload).subscribe({
+    next: () => {
+      this.addLoading.set(false);
+      this.addSuccess.set('Knjiga uspešno dodata!');
+      this.closeAdd();
+      this.loadBooks();
+    },
+    error: (err) => {
+      this.addLoading.set(false);
+      this.addError.set(err?.error?.message || 'Greška pri dodavanju.');
+    },
+  });
+}
 
 
  

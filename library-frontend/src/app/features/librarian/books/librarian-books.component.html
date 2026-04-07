@@ -1,5 +1,17 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-gray-900"></h1>
+
+  <button
+    (click)="openAdd()"
+    class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+  >
+    Dodaj novi naslov
+  </button>
+</div>
+
 <div *ngIf="!isLoading() && !isError()" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
+  
   <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition">
   <div class="mb-3 space-y-1">
     <!-- GORNJI DIO -->
@@ -43,4 +55,73 @@
     </button>
   </div>
 </div>
+</div>
+
+<div *ngIf="showAddModal()" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl p-6">
+
+    <h2 class="text-xl font-bold mb-4">Dodaj novu knjigu</h2>
+
+    <form (ngSubmit)="submitAdd()" class="space-y-4">
+
+      <!-- NASLOV -->
+      <input
+        type="text"
+        placeholder="Naslov"
+        formControlName="title"
+        class="w-full border rounded-xl p-2"
+      />
+
+      <!-- AUTORI MULTI SELECT -->
+     <select
+  multiple
+  formControlName="authorIds"
+  class="w-full border rounded-xl p-2 h-32"
+>
+  <option *ngFor="let a of authors()" [value]="a.authorID">
+    {{ a.name }}
+  </option>
+</select>
+
+      <!-- KATEGORIJA -->
+      <input
+        type="text"
+        placeholder="Kategorija"
+        formControlName="category"
+        class="w-full border rounded-xl p-2"
+      />
+
+      <!-- OPIS -->
+      <textarea
+        placeholder="Opis"
+        formControlName="description"
+        class="w-full border rounded-xl p-2"
+      ></textarea>
+
+      <!-- ERROR -->
+      <div *ngIf="addError()" class="text-red-600 text-sm">
+        {{ addError() }}
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          (click)="closeAdd()"
+          class="px-4 py-2 rounded-xl border"
+        >
+          Otkaži
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="addLoading()"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-white"
+        >
+          {{ addLoading() ? 'Dodavanje...' : 'Dodaj' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
 </div>

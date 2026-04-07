@@ -27,17 +27,14 @@ export class BookService {
   });
 }
 
-  create(payload: {
-    title: string;
-    author: string;
-    isbn: string;
-    category: string;
-    publishedYear: number;
-    copiesTotal: number;
-    description: string;
-  }) {
-  return this.http.post<BookDto>('/api/books/create', payload);
-  }
+ create(payload: {
+  title: string;
+  category: string;
+  description: string;
+  authorIds: number[];
+}) {
+  return this.http.post('/api/books/create', payload);
+}
 
   updateDescription(id: number, description: string) {
     return this.http.put<BookDto>('/api/books/' + id + '/description', { description });
