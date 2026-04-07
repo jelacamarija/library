@@ -13,7 +13,9 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -31,54 +33,86 @@ public class LoanService {
     private int loanDurationDays;
 
     @Transactional
-    public LoanResponseDto createLoan(LoanCreateDto dto){
+    public LoanResponseDto createLoan(LoanCreateDto dto) {
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
 
         if (!(user instanceof Client client)) {
             throw new RuntimeException("Samo klijent može iznajmiti knjige.");
-        }
-
-        Membership membership = membershipRepository
-                .findFirstByClientOrderByCreatedAtDesc(client)
-                .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
-        if (membership.getStatus() != MembershipStatus.ACTIVE) {
-            throw new RuntimeException("Morate imati aktivnu članarinu.");
         }
 
         if (Boolean.FALSE.equals(user.getIsVerified())) {
             throw new RuntimeException("Korisnik nije verifikovan.");
         }
 
+        Membership membership = membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .orElseThrow(() -> new RuntimeException("Članarina ne postoji."));
+
+        if (membership.getStatus() != MembershipStatus.ACTIVE ||
+                membership.getEndDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Korisnik nema aktivnu članarinu.");
+        }
+
         BookInstance instance = bookInstanceRepository.findById(dto.getInstanceId())
-                .orElseThrow(() -> new RuntimeException("Primerak ne postoji"));
-        if (instance.getStatus() != BookStatus.AVAILABLE &&
-                instance.getStatus() != BookStatus.RESERVED) {
-            throw new RuntimeException("Knjiga nije dostupna");
+                .orElseThrow(() -> new RuntimeException("Primerak ne postoji."));
+
+        if (instance.getStatus() != BookStatus.AVAILABLE) {
+            throw new RuntimeException("Primerak nije dostupan.");
         }
 
         Book book = instance.getPublication().getBook();
+
+
         boolean alreadyLoaned =
                 loanRepository.existsByUserAndBookAndStatus(user, book, LoanStatus.ACTIVE);
+
         if (alreadyLoaned) {
-            throw new RuntimeException("Već imate ovu knjigu.");
+            throw new RuntimeException("Korisnik već ima ovu knjigu.");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
+        // 🔍 rezervacija za ovaj instance
         Reservation reservation = reservationRepository
                 .findTopByUserAndBookInstanceAndStatusOrderByReservedAtDesc(
                         user, instance, ReservationStatus.PENDING
                 ).orElse(null);
 
+        // ⏰ ako je istekla → očisti
+        if (reservation != null && reservation.getExpiresAt().toInstant()
+                .isBefore(now.atZone(ZoneId.systemDefault()).toInstant())) {
+
+            reservation.setStatus(ReservationStatus.EXPIRED);
+            reservationRepository.save(reservation);
+            reservation = null;
+        }
+
+        // 🔥 rezervacija za isti naslov ali DRUGI primjerak
+        if (reservation == null) {
+            boolean hasOtherReservation =
+                    reservationRepository.existsByUserAndBookInstance_Publication_BookAndStatusAndBookInstanceNot(
+                            user, book, ReservationStatus.PENDING, instance
+                    );
+
+            if (hasOtherReservation) {
+                throw new RuntimeException("Korisnik ima rezervaciju za ovu knjigu. Obratite se bibliotekaru.");
+            }
+        }
+
+        // ✅ ako postoji rezervacija za ovaj instance → aktiviraj
         if (reservation != null) {
             reservation.setStatus(ReservationStatus.FULFILLED);
             reservation.setUsed(true);
             reservationRepository.save(reservation);
         }
+
+        // 📕 set status
         instance.setStatus(BookStatus.LOANED);
 
-        LocalDateTime now = LocalDateTime.now();
         LocalDateTime dueDate = now.plusDays(loanDurationDays);
+
         Loan loan = Loan.builder()
                 .user(user)
                 .bookInstance(instance)
@@ -87,7 +121,9 @@ public class LoanService {
                 .dueDate(dueDate)
                 .status(LoanStatus.ACTIVE)
                 .build();
+
         loanRepository.save(loan);
+
         return LoanMapper.toDto(loan);
     }
 

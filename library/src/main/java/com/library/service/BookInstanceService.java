@@ -51,16 +51,19 @@ public class BookInstanceService {
     }
 
 
-    public Page<BookInstanceResponseDto> getByPublication(Long publicationId, int page, int size) {
+    public Page<BookInstanceResponseDto> search(Long publicationId,
+                                                          String q,
+                                                          BookStatus status,
+                                                          int page,
+                                                          int size) {
 
-        if (!publicationRepository.existsById(publicationId)) {
-            throw new RuntimeException("Publication ne postoji");
-        }
         Pageable pageable = PageRequest.of(page, size);
 
-        return bookInstanceRepository
-                .findByPublication_PublicationID(publicationId, pageable)
-                .map(BookInstanceMapper::toDto);
+        Page<BookInstance> result = bookInstanceRepository.search(
+                publicationId, q, status, pageable
+        );
+
+        return result.map(BookInstanceMapper::toDto);
     }
 
 
@@ -152,4 +155,6 @@ public class BookInstanceService {
 
         return "INV-" + publication.getIsbn() + "-" + String.format("%03d", count + 1);
     }
+
+
 }

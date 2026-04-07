@@ -1,9 +1,7 @@
 package com.library.controller;
 
-import com.library.dto.BookInstanceCreateDto;
-import com.library.dto.BookInstanceResponseDto;
-import com.library.dto.BookInstanceUpdateLocationDto;
-import com.library.dto.BookInstanceUserDto;
+import com.library.dto.*;
+import com.library.entity.BookStatus;
 import com.library.service.BookInstanceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +44,14 @@ public class BookInstanceController {
 
 
     @GetMapping("/publication/{publicationId}")
-    public Page<BookInstanceResponseDto> getByPublication(@PathVariable Long publicationId,
-                                                          @RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
-        return bookInstanceService.getByPublication(publicationId, page, size);
+    public Page<BookInstanceResponseDto> searchInstances(
+            @PathVariable Long publicationId,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) BookStatus status,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return bookInstanceService.search(publicationId, q, status, page, size);
     }
 
 
@@ -81,9 +83,10 @@ public class BookInstanceController {
 
 
     @PatchMapping("/{id}/status")
-    public BookInstanceResponseDto updateStatus(@PathVariable Long id,
-                                                @RequestBody String status,
-                                                HttpServletRequest request) {
+    public BookInstanceResponseDto updateStatus(
+            @PathVariable Long id,
+            @RequestBody StatusUpdateDto dto,
+            HttpServletRequest request) {
 
         String role = (String) request.getAttribute("userRole");
 
@@ -91,7 +94,7 @@ public class BookInstanceController {
             throw new RuntimeException("Samo bibliotekar može mijenjati status");
         }
 
-        return bookInstanceService.markAsDamagedOrLost(id, status);
+        return bookInstanceService.markAsDamagedOrLost(id, dto.getStatus());
     }
 
     @GetMapping("/book/{bookId}/available-user")
