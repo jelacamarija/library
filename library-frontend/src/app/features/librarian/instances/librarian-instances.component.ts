@@ -41,6 +41,12 @@ export class LibrarianInstancesComponent implements OnInit {
   userDropdownOpen = signal(false);
   selectedUser = signal<any | null>(null);
 
+  query = signal('');
+selectedStatus = signal('');
+page = signal(0);
+size = signal(5);
+totalPages = signal(1);
+
   private fb=inject(FormBuilder);
 
 
@@ -75,25 +81,32 @@ export class LibrarianInstancesComponent implements OnInit {
     this.fetch();
   }
 
-  fetch(): void {
-    this.state.set({ status: 'loading' });
+fetch(): void {
+  this.state.set({ status: 'loading' });
 
-    this.service.getByPublication(this.publicationID).subscribe({
-      next: (res: any) => {
-        this.state.set({
-          status: 'ready',
-          data: res.content ?? [],
-        });
-      },
-      error: () => {
-        this.state.set({
-          status: 'error',
-          message: 'Greška pri učitavanju primjeraka.',
-        });
-      },
-    });
-  }
+  this.service.getAllFiltered(
+    this.publicationID,
+    this.query(),
+    this.selectedStatus(),
+    this.page(),
+    this.size()
+  ).subscribe({
+    next: (res: any) => {
+      this.state.set({
+        status: 'ready',
+        data: res.content ?? [],
+      });
 
+      this.totalPages.set(res.totalPages);
+    },
+    error: () => {
+      this.state.set({
+        status: 'error',
+        message: 'Greška pri učitavanju.',
+      });
+    },
+  });
+}
   loadPublication() {
   this.publicationService.getById(this.publicationID).subscribe({
     next: (p) => this.publication.set(p),
@@ -202,16 +215,16 @@ submitLoan() {
 
   this.loanService.createLoan(payload).subscribe({
     next: () => {
-      this.loanLoading.set(false);
-      this.showLoanModal.set(false);
-      this.fetch(); // refresh instances
+  this.loanLoading.set(false);
+  this.showLoanModal.set(false);
+  this.fetch();
 
-      alert('Uspješno iznajmljeno!');
-    },
-    error: (err) => {
-      this.loanLoading.set(false);
-      alert(err?.error?.message || 'Greška');
-    },
+  this.openSuccess('Knjiga je uspješno iznajmljena.');
+},
+   error: (err) => {
+  this.loanLoading.set(false);
+  this.openError(err?.error?.message || 'Greška pri iznajmljivanju.');
+},
   });
 }
 
@@ -259,4 +272,62 @@ fetchUsers(q: string) {
     },
   });
 }
+
+errorModalOpen = signal(false);
+errorMessage = signal('');
+
+openError(message: string) {
+  this.errorMessage.set(message);
+  this.errorModalOpen.set(true);
+}
+
+closeErrorModal() {
+  this.errorModalOpen.set(false);
+}
+
+successModalOpen = signal(false);
+successMessage = signal('');
+
+openSuccess(message: string) {
+  this.successMessage.set(message);
+  this.successModalOpen.set(true);
+}
+
+closeSuccessModal() {
+  this.successModalOpen.set(false);
+}
+
+private searchDebounce: any;
+
+onSearchChange(value: string) {
+  this.query.set(value);
+  this.page.set(0);
+
+  clearTimeout(this.searchDebounce);
+
+  this.searchDebounce = setTimeout(() => {
+    this.fetch();
+  }, 300);
+}
+
+onStatusChange(status: string) {
+  this.selectedStatus.set(status);
+  this.page.set(0);
+  this.fetch();
+}
+
+nextPage() {
+  if (this.page() < this.totalPages() - 1) {
+    this.page.update(p => p + 1);
+    this.fetch();
+  }
+}
+
+prevPage() {
+  if (this.page() > 0) {
+    this.page.update(p => p - 1);
+    this.fetch();
+  }
+}
+
 }

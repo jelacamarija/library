@@ -44,6 +44,12 @@ export class LibrarianPublicationsComponent {
   query = signal('');
   private debounceTimer: any;;
 
+
+  page = 0;
+size = 5;
+totalPages = 1;
+totalElements = 0;
+
   errorMessage = computed(() => {
     const s = this.state();
     return s.status === 'error' ? s.message : '';
@@ -68,16 +74,30 @@ export class LibrarianPublicationsComponent {
 
   const q = this.query().trim();
 
-  const obs = q
-    ? this.publicationService.search(q)
-    : this.publicationService.getByBook(this.bookId);
+  const obs = this.publicationService.getByBook(
+    this.bookId,
+    this.page,
+    this.size
+  );
 
   obs.subscribe({
-    next: (page) => {
+    next: (res: any) => {
+      let data = res.content ?? [];
+
+      // 🔥 FRONTEND FILTER (jer backend nema isbn filter po bookId)
+      if (q) {
+        data = data.filter((p: PublicationDto) =>
+  p.isbn.toLowerCase().includes(q.toLowerCase())
+);
+      }
+
       this.state.set({
         status: 'ready',
-        publications: page.content ?? [],
+        publications: data,
       });
+
+      this.totalPages = res.totalPages;
+      this.totalElements = res.totalElements;
     },
     error: () => {
       this.state.set({
@@ -96,6 +116,7 @@ export class LibrarianPublicationsComponent {
 
 onQueryChange(value: string) {
   this.query.set(value);
+  this.page = 0;
 
   clearTimeout(this.debounceTimer);
 
@@ -166,6 +187,29 @@ submitAdd() {
   });
 }
 
+nextPage() {
+  if (this.page < this.totalPages - 1) {
+    this.page++;
+    this.fetch();
+  }
+}
 
+prevPage() {
+  if (this.page > 0) {
+    this.page--;
+    this.fetch();
+  }
+}
+
+refresh() {
+  this.page = 0;
+  this.fetch();
+}
+
+onSizeChange(value: number) {
+  this.size = Number(value);
+  this.page = 0; // 🔥 reset stranice
+  this.fetch();
+}
 
 }

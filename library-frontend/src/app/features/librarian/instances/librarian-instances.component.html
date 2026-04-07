@@ -1,28 +1,44 @@
 <div class="mx-auto max-w-6xl px-4 py-6">
+<div class="flex justify-between items-center mb-6">
 
-  <div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">
-    Primjerci publikacije
-  </h1>
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">
+      Primjerci publikacije
+    </h1>
+    <p class="text-sm text-gray-600 mt-1">
+      {{ publication()?.bookTitle }} — {{ publication()?.isbn }}
+    </p>
+  </div>
 
-  <div *ngIf="publication()" class="mt-2 text-sm text-gray-600 space-y-1">
-    <p>
-      <span class="font-medium text-gray-800">Naslov:</span>
-      {{ publication()?.bookTitle }}
-    </p>
-    <p>
-      <span class="font-medium text-gray-800">ISBN:</span>
-      {{ publication()?.isbn }}
-    </p>
+  <div class="flex items-center gap-3">
+
+    <button
+      (click)="fetch()"
+      class="px-4 py-2 rounded-xl border hover:bg-gray-50"
+    >
+      Osvježi
+    </button>
+
+    <button
+      (click)="openAdd()"
+      class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+    >
+      Dodaj primjerak
+    </button>
+
+    <!-- SIZE -->
+    <select
+      class="border px-3 py-2 rounded-xl"
+      (change)="size.set($any($event.target).value); fetch()"
+    >
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+    </select>
+
   </div>
 </div>
 
-<button
-    (click)="openAdd()"
-    class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-  >
-    + Dodaj primjerak
-  </button>
 
   <!-- LOADING -->
   <div *ngIf="isLoading()" class="text-gray-600">
@@ -34,13 +50,36 @@
     Greška pri učitavanju.
   </div>
 
+<div class="mb-4 flex gap-3">
+
+  <input
+    class="flex-1 border px-4 py-2 rounded-xl bg-white"
+    placeholder="Pretraga po inventory broju..."
+    (input)="onSearchChange($any($event.target).value)"
+  />
+
+  <select
+    class="border px-3 py-2 rounded-xl"
+    (change)="onStatusChange($any($event.target).value)"
+  >
+    <option value="">Svi</option>
+    <option value="AVAILABLE">Available</option>
+    <option value="RESERVED">Reserved</option>
+    <option value="LOANED">Loaned</option>
+    <option value="DAMAGED">Damaged</option>
+    <option value="LOST">Lost</option>
+  </select>
+
+</div>
+
+
   <!-- TABELA -->
-  <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden">
+  <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden mt-2">
 
     <table class="w-full text-sm">
       <thead class="bg-gray-50 text-gray-600">
         <tr>
-          <th class="text-left px-4 py-3">Inventory</th>
+          <th class="text-left px-4 py-3">Inventarski broj</th>
           <th class="text-left px-4 py-3">Status</th>
           <th class="text-left px-4 py-3">Lokacija</th>
           <th class="text-right px-4 py-3"></th>
@@ -88,7 +127,7 @@
 
             <button
   (click)="openStatusModal(i)"
-  class="px-3 py-1.5 rounded-lg border text-xs hover:bg-gray-50 transition"
+ class="px-3 py-1.5 rounded-lg border text-xs hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
 >
   Izmijeni status
 </button>
@@ -270,3 +309,79 @@
 
   </div>
 </div>
+
+<div *ngIf="errorModalOpen()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <h3 class="text-lg font-semibold text-red-600 mb-3">
+      Greška
+    </h3>
+
+    <p class="text-sm text-gray-700 mb-6">
+      {{ errorMessage() }}
+    </p>
+
+    <div class="flex justify-end">
+      <button
+        (click)="closeErrorModal()"
+        class="px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800"
+      >
+        U redu
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="successModalOpen()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <h3 class="text-lg font-semibold text-green-600 mb-3">
+      Uspješno
+    </h3>
+
+    <p class="text-sm text-gray-700 mb-6">
+      {{ successMessage() }}
+    </p>
+
+    <div class="flex justify-end">
+      <button
+        (click)="closeSuccessModal()"
+        class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700"
+      >
+        U redu
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+
+  
+  <button
+    (click)="prevPage()"
+    [disabled]="page() === 0"
+    class="px-3 py-1 rounded-lg border disabled:opacity-40"
+  >
+    Prethodna
+  </button>
+
+  <span class="text-sm text-gray-600">
+    Stranica {{ page() + 1 }} / {{ totalPages() }}
+  </span>
+
+  <button
+    (click)="nextPage()"
+    [disabled]="page() >= totalPages() - 1"
+    class="px-3 py-1 rounded-lg border disabled:opacity-40"
+  >
+    Sljedeća
+  </button>
+
+  
+
+</div>
+
