@@ -120,7 +120,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
                 >
                   Detalji
                 </button>
-
+                
                 <!-- AKTIVIRAJ -->
                 <button
                   class="px-3 py-2 rounded-xl text-white"

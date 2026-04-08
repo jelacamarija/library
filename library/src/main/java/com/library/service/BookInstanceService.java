@@ -1,13 +1,12 @@
 package com.library.service;
 
 import com.library.dto.*;
-import com.library.entity.BookInstance;
-import com.library.entity.BookStatus;
-import com.library.entity.Publication;
+import com.library.entity.*;
 import com.library.mapper.BookInstanceMapper;
 import com.library.repository.BookInstanceRepository;
 import com.library.repository.BookRepository;
 import com.library.repository.PublicationRepository;
+import com.library.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ public class BookInstanceService {
     private final BookInstanceRepository bookInstanceRepository;
     private final PublicationRepository publicationRepository;
     private final BookRepository bookRepository;
+    private final ReservationRepository reservationRepository;
 
     public BookInstanceResponseDto create(BookInstanceCreateDto dto) {
 
@@ -107,14 +107,8 @@ public class BookInstanceService {
         BookInstance instance = bookInstanceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Primjerak nije pronađen"));
 
-
-        //ako je izdata ili rezervisana ne moze se promjeniti status u damaged ili lost
         if (instance.getStatus() == BookStatus.LOANED) {
             throw new RuntimeException("Knjiga je trenutno izdata i ne može biti označena kao oštećena ili izgubljena");
-        }
-
-        if (instance.getStatus() == BookStatus.RESERVED) {
-            throw new RuntimeException("Knjiga je rezervisana i ne može biti označena kao oštećena ili izgubljena");
         }
 
         BookStatus newStatus;
@@ -125,13 +119,22 @@ public class BookInstanceService {
             throw new RuntimeException("Neispravan status");
         }
 
-
         if (newStatus != BookStatus.DAMAGED && newStatus != BookStatus.LOST) {
             throw new RuntimeException("Dozvoljeno je samo DAMAGED ili LOST");
         }
 
-        instance.setStatus(newStatus);
+        BookStatus oldStatus = instance.getStatus();
 
+        if (oldStatus == BookStatus.RESERVED) {
+            Reservation reservation = reservationRepository
+                    .findByBookInstanceAndStatus(instance, ReservationStatus.PENDING)
+                    .orElse(null);
+            if (reservation != null) {
+                reservation.setStatus(ReservationStatus.CANCELED);
+                reservation.setUsed(false);
+            }
+        }
+        instance.setStatus(newStatus);
         return BookInstanceMapper.toDto(bookInstanceRepository.save(instance));
     }
 

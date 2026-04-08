@@ -57,19 +57,6 @@
     placeholder="Pretraga po inventory broju..."
     (input)="onSearchChange($any($event.target).value)"
   />
-
-  <select
-    class="border px-3 py-2 rounded-xl"
-    (change)="onStatusChange($any($event.target).value)"
-  >
-    <option value="">Svi</option>
-    <option value="AVAILABLE">Available</option>
-    <option value="RESERVED">Reserved</option>
-    <option value="LOANED">Loaned</option>
-    <option value="DAMAGED">Damaged</option>
-    <option value="LOST">Lost</option>
-  </select>
-
 </div>
 
 
@@ -95,16 +82,10 @@
 
           <td class="px-4 py-3">
             <span
-              class="px-2 py-1 rounded-full text-xs font-semibold"
-              [ngClass]="{
-                'bg-green-100 text-green-700': i.status === 'AVAILABLE',
-                'bg-yellow-100 text-yellow-700': i.status === 'RESERVED',
-                'bg-blue-100 text-blue-700': i.status === 'LOANED',
-                'bg-red-100 text-red-700': i.status === 'LOST',
-                'bg-gray-200 text-gray-700': i.status === 'DAMAGED'
-              }"
+              class="px-2 py-1 rounded-full text-xs font-medium"
+              [ngClass]="getStatusClass(i.status)"
             >
-              {{ i.status }}
+              {{ statusLabels[i.status] || i.status }}
             </span>
           </td>
 
@@ -131,6 +112,13 @@
 >
   Izmijeni status
 </button>
+
+  <button
+    (click)="openLocationModal(i)"
+    class="px-3 py-1.5 rounded-lg border text-xs hover:bg-gray-50"
+  >
+    Izmeni lokaciju
+  </button>
 
 
 </div>
@@ -358,30 +346,70 @@
   </div>
 </div>
 
-<div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+<div *ngIf="showLocationModal()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
 
-  
-  <button
-    (click)="prevPage()"
-    [disabled]="page() === 0"
-    class="px-3 py-1 rounded-lg border disabled:opacity-40"
-  >
-    Prethodna
-  </button>
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
 
-  <span class="text-sm text-gray-600">
-    Stranica {{ page() + 1 }} / {{ totalPages() }}
-  </span>
+    <h3 class="text-lg font-semibold mb-4">
+      Izmena lokacije
+    </h3>
 
-  <button
-    (click)="nextPage()"
-    [disabled]="page() >= totalPages() - 1"
-    class="px-3 py-1 rounded-lg border disabled:opacity-40"
-  >
-    Sljedeća
-  </button>
+    <form [formGroup]="locationForm" (ngSubmit)="submitLocation()" class="space-y-4">
 
-  
+      <input
+        class="w-full border px-3 py-2 rounded-xl"
+        placeholder="Nova lokacija"
+        formControlName="location"
+      />
 
+      <div *ngIf="locationForm.controls.location.touched && locationForm.controls.location.invalid"
+           class="text-red-500 text-xs">
+        Lokacija je obavezna.
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button
+          type="button"
+          (click)="closeLocationModal()"
+          class="px-4 py-2 border rounded-xl"
+          [disabled]="locationLoading()"
+        >
+          Otkaži
+        </button>
+
+        <button
+          type="submit"
+          class="px-4 py-2 bg-blue-600 text-white rounded-xl"
+          [disabled]="locationLoading()"
+        >
+          {{ locationLoading() ? 'Čuvanje...' : 'Sačuvaj' }}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<div class="mt-6 flex items-center justify-between text-sm text-gray-600">
+  <div class="text-sm text-gray-600">
+    Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+    • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="prevPage()"
+     [disabled]="isLoading() || page()===0">
+      Prethodna
+    </button>
+    <button
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="nextPage()"
+     [disabled]="isLoading() || page()+1>=totalPages()">
+       Sledeća
+    </button>
+  </div>
 </div>
 

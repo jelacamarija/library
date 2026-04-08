@@ -42,10 +42,11 @@ export class LibrarianInstancesComponent implements OnInit {
   selectedUser = signal<any | null>(null);
 
   query = signal('');
-selectedStatus = signal('');
-page = signal(0);
-size = signal(5);
-totalPages = signal(1);
+  selectedStatus = signal('');
+  page = signal(0);
+  size = signal(5);
+  totalPages = signal(1);
+  totalElements = signal(0);
 
   private fb=inject(FormBuilder);
 
@@ -60,6 +61,31 @@ totalPages = signal(1);
     const s = this.state();
     return s.status === 'ready' ? s.data : [];
   });
+
+  statusLabels: Record<string, string> = {
+    AVAILABLE: 'Dostupno',
+    RESERVED: 'Rezervisano',
+    LOANED: 'Pozajmljeno',
+    DAMAGED: 'Oštećeno',
+    LOST: 'Izgubljeno'
+  };
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'AVAILABLE':
+        return 'bg-green-100 text-green-700';
+      case 'RESERVED':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'LOANED':
+        return 'bg-blue-100 text-blue-700';
+      case 'DAMAGED':
+        return 'bg-red-100 text-red-700';
+      case 'LOST':
+        return 'bg-red-200 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  }
 
   addForm=this.fb.nonNullable.group({
     location:['',Validators.required],
@@ -96,7 +122,7 @@ fetch(): void {
         status: 'ready',
         data: res.content ?? [],
       });
-
+      this.totalElements.set(res.totalElements);
       this.totalPages.set(res.totalPages);
     },
     error: () => {
@@ -314,6 +340,55 @@ onStatusChange(status: string) {
   this.selectedStatus.set(status);
   this.page.set(0);
   this.fetch();
+}
+
+showLocationModal = signal(false);
+locationLoading = signal(false);
+
+locationForm = this.fb.nonNullable.group({
+  location: ['', Validators.required],
+});
+
+openLocationModal(instance: any) {
+  this.selectedInstance.set(instance);
+
+  this.locationForm.patchValue({
+    location: instance.location || ''
+  });
+
+  this.showLocationModal.set(true);
+}
+
+closeLocationModal() {
+  if (this.locationLoading()) return;
+  this.showLocationModal.set(false);
+}
+
+submitLocation() {
+  const instance = this.selectedInstance();
+  if (!instance || this.locationForm.invalid) {
+    this.locationForm.markAllAsTouched();
+    return;
+  }
+
+  this.locationLoading.set(true);
+
+  this.service.updateLocation(
+    instance.instanceID,
+    this.locationForm.value.location!
+  ).subscribe({
+    next: () => {
+      this.locationLoading.set(false);
+      this.showLocationModal.set(false);
+      this.fetch();
+
+      this.openSuccess('Lokacija uspešno izmenjena.');
+    },
+    error: (err) => {
+      this.locationLoading.set(false);
+      this.openError(err?.error?.message || 'Greška pri izmjeni.');
+    }
+  });
 }
 
 nextPage() {

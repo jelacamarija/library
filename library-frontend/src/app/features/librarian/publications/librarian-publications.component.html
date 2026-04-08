@@ -132,32 +132,26 @@
   </div>
 </div>
 
-<div class="flex justify-between items-center mt-4 text-sm text-gray-600">
-
-  <div>
-    Ukupno: {{ totalElements }} | Stranica {{ page + 1 }} / {{ totalPages }}
+<div class="mt-6 flex items-center justify-between text-sm text-gray-600">
+  <div class="text-sm text-gray-600">
+    Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+    • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
   </div>
 
-  <div class="flex gap-2">
-
+  <div class="flex items-center gap-2">
     <button
-      (click)="prevPage()"
-      [disabled]="page === 0"
-      class="px-3 py-1 rounded-lg border disabled:opacity-40"
-    >
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="prevPage()"
+     [disabled]="isLoading() || page()===0">
       Prethodna
     </button>
-
     <button
-      (click)="nextPage()"
-      [disabled]="page >= totalPages - 1"
-      class="px-3 py-1 rounded-lg border disabled:opacity-40"
-    >
-      Sledeća
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="nextPage()"
+     [disabled]="isLoading() || page()+1>=totalPages()">
+       Sledeća
     </button>
-
   </div>
-
 </div>
 
 

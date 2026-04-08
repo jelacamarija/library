@@ -13,23 +13,30 @@ export class BookInstanceService {
   }
 
   updateStatus(id: number, status: string) {
-    return this.http.put(`/api/book-instances/${id}/status?status=${status}`, {})
+    return this.http.patch(`/api/book-instances/${id}/status`, {
+      status: status
+    });
   }
 
   create(payload: { publicationId: number; location: string }) {
-  return this.http.post('/api/book-instances', payload);
-}
+    return this.http.post('/api/book-instances', payload);
+  }
 
-getAllFiltered(publicationId: number, q: string, status: string, page: number, size: number) {
-  let params = new HttpParams()
-    .set('page', page)
-    .set('size', size);
+  getAllFiltered(publicationId: number, q: string, status: string, page: number, size: number) {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
 
-  if (q) params = params.set('q', q);
-  if (status) params = params.set('status', status);
+    if (q) params = params.set('q', q);
+    if (status) params = params.set('status', status);
 
-  return this.http.get(`/api/book-instances/publication/${publicationId}`, { params });
-}
+    return this.http.get(`/api/book-instances/publication/${publicationId}`, { params });
+  }
 
+  updateLocation(id: number, location: string) {
+    return this.http.patch(`/api/book-instances/${id}/location`, {
+      location: location
+    });
+  }
 
 }

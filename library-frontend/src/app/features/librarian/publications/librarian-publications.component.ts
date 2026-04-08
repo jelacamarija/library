@@ -44,11 +44,10 @@ export class LibrarianPublicationsComponent {
   query = signal('');
   private debounceTimer: any;;
 
-
-  page = 0;
-size = 5;
-totalPages = 1;
-totalElements = 0;
+  page = signal(0);
+  size = signal(5);
+  totalPages = signal(1);
+  totalElements = signal(0);
 
   errorMessage = computed(() => {
     const s = this.state();
@@ -76,8 +75,8 @@ totalElements = 0;
 
   const obs = this.publicationService.getByBook(
     this.bookId,
-    this.page,
-    this.size
+    this.page(),
+    this.size()
   );
 
   obs.subscribe({
@@ -96,8 +95,8 @@ totalElements = 0;
         publications: data,
       });
 
-      this.totalPages = res.totalPages;
-      this.totalElements = res.totalElements;
+      this.totalPages.set(res.totalPages ?? 1);
+      this.totalElements.set(res.totalElements ?? 0);
     },
     error: () => {
       this.state.set({
@@ -116,7 +115,7 @@ totalElements = 0;
 
 onQueryChange(value: string) {
   this.query.set(value);
-  this.page = 0;
+  this.page.set(0);
 
   clearTimeout(this.debounceTimer);
 
@@ -164,7 +163,7 @@ submitAdd() {
 
   const payload = {
     ...this.addForm.getRawValue(),
-    bookId: this.bookId, // VEOMA BITNO
+    bookId: this.bookId,
   };
 
   this.addLoading.set(true);
@@ -176,7 +175,7 @@ submitAdd() {
       this.successMessage.set("Uspjesno ste dodali novu publikaciju");
 
       this.showAddModal.set(false);
-      this.fetch(); // refresh
+      this.fetch();
 
        setTimeout(() => this.successMessage.set(''), 3000);
     },
@@ -187,29 +186,29 @@ submitAdd() {
   });
 }
 
-nextPage() {
-  if (this.page < this.totalPages - 1) {
-    this.page++;
+  nextPage() {
+    if (this.page() + 1 < this.totalPages()) {
+      this.page.set(this.page() + 1);
+      this.fetch();
+    }
+  }
+
+  prevPage() {
+    if (this.page() > 0) {
+      this.page.set(this.page() - 1);
+      this.fetch();
+    }
+  }
+
+  refresh() {
+    this.page.set(0);
     this.fetch();
   }
-}
 
-prevPage() {
-  if (this.page > 0) {
-    this.page--;
+  onSizeChange(value: number) {
+    this.size.set(Number(value));
+    this.page.set(0);
     this.fetch();
   }
-}
-
-refresh() {
-  this.page = 0;
-  this.fetch();
-}
-
-onSizeChange(value: number) {
-  this.size = Number(value);
-  this.page = 0; // 🔥 reset stranice
-  this.fetch();
-}
 
 }
