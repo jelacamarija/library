@@ -37,25 +37,21 @@ export class BookService {
 }
 
   updateDescription(id: number, description: string) {
-    return this.http.put<BookDto>('/api/books/' + id + '/description', { description });
-}
-
-  updateCopies(id: number, copiesToAdd: number) {
-    return this.http.put<BookDto>('/api/books/' + id + '/copies', { copiesToAdd });
+    return this.http.patch<BookDto>('/api/books/' + id + '/description', { description });
   }
 
   getById(id: number) {
-  return this.http.get<BookDto>('/api/books/' + id);
-}
+    return this.http.get<BookDto>('/api/books/' + id);
+  }
 
-getAvailablePublications(bookId: number, page = 0, size = 10) {
-  return this.http.get<PageDto<PublicationDto>>(
-    `/api/publications/book/${bookId}/available?page=${page}&size=${size}`
-  );
-}
+  getAvailablePublications(bookId: number, page = 0, size = 10) {
+    return this.http.get<PageDto<PublicationDto>>(
+      `/api/publications/book/${bookId}/available?page=${page}&size=${size}`
+    );
+  }
 
-reserveByPublication(publicationId: number) {
-  return this.http.post(`/api/reservations/create/${publicationId}`, {});
-}
+  reserveByPublication(publicationId: number) {
+    return this.http.post(`/api/reservations/create/${publicationId}`, {});
+  }
 
 }

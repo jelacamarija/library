@@ -2,15 +2,14 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Autori</h1>
-      <p class="text-sm text-gray-600">Pregled svih autora.</p>
+      <p class="text-sm text-gray-600">Pregled svih autora</p>
     </div>
 
-    <button
-      (click)="openAdd()"
-      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
-      <span class="text-lg">＋</span>
-      <span>Dodaj autora</span>
-    </button>
+      <button
+        (click)="openAdd()"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
+        Dodaj autora
+      </button>
   </div>
 
   <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
@@ -43,6 +42,28 @@
         Detalji
         </button>
     </div>
+  </div>
+</div>
+
+<div class="mt-6 flex items-center justify-between text-sm text-gray-600">
+  <div class="text-sm text-gray-600">
+    Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+    • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="prevPage()"
+     [disabled]="loading() || page()===0">
+      Prethodna
+    </button>
+    <button
+     class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+     (click)="nextPage()"
+     [disabled]="loading() || page()+1>=totalPages()">
+       Sledeća
+    </button>
   </div>
 </div>
 
@@ -107,7 +128,7 @@
         Popunite obavezna polja ispravno.
       </div>
       <div>
-        <label class="block text-sm text-gray-700 mb-1">Ime autora *</label>
+        <label class="block text-sm text-gray-700 mb-1">Ime autora</label>
         <input
           type="text"
           formControlName="name"
@@ -170,7 +191,7 @@
         Biografija mora imati najmanje 3 karaktera.
       </div>
       <div>
-        <label class="block text-sm text-gray-700 mb-1">Biografija *</label>
+        <label class="block text-sm text-gray-700 mb-1">Biografija</label>
         <textarea
           formControlName="biography"
           rows="5"

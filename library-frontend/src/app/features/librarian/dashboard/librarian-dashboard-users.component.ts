@@ -13,7 +13,10 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
 
     <!-- HEADER -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-      <h1 class="text-2xl font-bold">Korisnici</h1>
+      <div>
+        <h1 class="text-2xl font-bold">Korisnici</h1>
+        <p class="text-sm text-gray-600">Pregled svih korisnika</p>
+      </div>
 
       <div class="flex items-center gap-2">
         <button class="px-4 py-2 rounded-xl border" (click)="reload()" [disabled]="loading()">
@@ -46,7 +49,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
         class="flex-1 border rounded-xl px-4 py-2"
         [value]="query()"
         (input)="onQueryChange($any($event.target).value)"
-        placeholder="Pretraga po članskoj karti..."
+        placeholder="Pretraži po broju članske karte (npr. CL0000123)"
       />
       <button *ngIf="query()" class="px-4 py-2 border rounded-xl" (click)="clearQuery()">
         Obriši
@@ -130,24 +133,31 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
         </table>
       </div>
 
-      <!-- FOOTER -->
-      <div class="flex justify-between items-center px-4 py-3 border-t bg-gray-50 text-sm">
-        <div>
-          Ukupno: <b>{{ totalElements() }}</b> |
-          Stranica <b>{{ page()+1 }}</b> / {{ totalPages() }}
-        </div>
+        <!-- FOOTER -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
+          <div class="text-sm text-gray-600">
+            Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+            • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
+          </div>
 
-        <div class="flex gap-2">
-          <button class="px-3 py-2 border rounded"
-                  (click)="prevPage()"
-                  [disabled]="page()===0">Prethodna</button>
-
-          <button class="px-3 py-2 border rounded"
-                  (click)="nextPage()"
-                  [disabled]="page()+1>=totalPages()">Sledeća</button>
+          <div class="flex items-center gap-2">
+            <button
+              class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+              (click)="prevPage()"
+              [disabled]="loading() || page()===0"
+            >
+              Prethodna
+            </button>
+            <button
+              class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
+              (click)="nextPage()"
+              [disabled]="loading() || page()+1>=totalPages()"
+            >
+              Sledeća
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
     <!-- MODAL -->
     <div *ngIf="editOpen()" class="fixed inset-0 z-50">

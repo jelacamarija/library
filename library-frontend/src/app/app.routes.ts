@@ -132,12 +132,6 @@ export const routes: Routes = [
       .then(m => m.LibrarianInstancesComponent),
 },
           {
-            path: 'search',
-            loadComponent: () =>
-              import('./features/librarian/books/librarian-search.component')
-                .then(m => m.LibrarianSearchComponent),
-          },
-          {
             path: 'authors',
             loadComponent: () =>
               import('./features/librarian/authors/librarian-authors.component')

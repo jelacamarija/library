@@ -13,7 +13,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
         <div>
           <h1 class="text-2xl font-bold">Iznajmljivanja</h1>
-          <p class="text-sm text-gray-600">Pregled svih iznajmljivanja korisnika.</p>
+          <p class="text-sm text-gray-600">Pregled svih iznajmljivanja korisnika</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -69,13 +69,13 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50 text-gray-700">
               <tr>
-                <th class="text-left font-semibold px-4 py-3">Ime i prezime</th>
-                <th class="text-left font-semibold px-4 py-3">Broj clanske karte</th>
-                <th class="text-left font-semibold px-4 py-3">Naslov</th>
-                <th class="text-left font-semibold px-4 py-3">Autor</th>
-                <th class="text-left font-semibold px-4 py-3">Inventarski broj</th>
+                <th class="px-4 py-3 text-left">Ime i prezime</th>
+                <th class="px-4 py-3 text-left">Broj clanske karte</th>
+                <th class="px-4 py-3 text-left">Naslov</th>
+                <th class="px-4 py-3 text-left">Autor</th>
+                <th class="px-4 py-3 text-left">Inventarski broj</th>
 
-                <th class="text-left font-semibold px-4 py-3">
+                <th class="px-4 py-3 text-left">
                   <button type="button" class="hover:underline" (click)="toggleSort('dueDate')">
                     Rok vraćanja
                     <span class="ml-1 text-xs text-gray-500" *ngIf="sortField()==='dueDate'">
@@ -84,10 +84,10 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
                   </button>
                 </th>
 
-                <th class="text-left font-semibold px-4 py-3">Vraćena</th>
-                <th class="text-left font-semibold px-4 py-3">Datum vraćanja</th>
-                <th class="text-left font-semibold px-4 py-3">Status</th>
-                <th class="text-right font-semibold px-4 py-3"></th>
+                <th class="px-4 py-3 text-left">Vraćena</th>
+                <th class="px-4 py-3 text-left">Datum vraćanja</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-right"></th>
               </tr>
             </thead>
 

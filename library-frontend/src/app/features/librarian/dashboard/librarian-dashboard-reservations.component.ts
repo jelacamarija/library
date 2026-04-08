@@ -14,7 +14,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Rezervacije</h1>
-        <p class="text-sm text-gray-600">Pregled svih rezervacija korisnika.</p>
+        <p class="text-sm text-gray-600">Pregled svih rezervacija korisnika</p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -137,14 +137,11 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
         </table>
       </div>
 
-      <!-- FOOTER PAGINATION -->
+        <!-- FOOTER -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
-            Ukupno: 
-            <span class="font-medium text-gray-900">{{ totalElements() }}</span>
-            • Stranica 
-            <span class="font-medium text-gray-900">{{ page()+1 }}</span> 
-            / {{ totalPages() }}
+            Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
+            • Stranica <span class="font-medium text-gray-900">{{ page()+1 }}</span> / {{ totalPages() }}
           </div>
 
           <div class="flex items-center gap-2">
@@ -155,7 +152,6 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
             >
               Prethodna
             </button>
-
             <button
               class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-white disabled:opacity-50"
               (click)="nextPage()"
@@ -165,6 +161,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
             </button>
           </div>
         </div>
+      </div>
 
     <!-- DETAILS MODAL -->
     <div *ngIf="detailsModalOpen()" class="fixed inset-0 z-50">

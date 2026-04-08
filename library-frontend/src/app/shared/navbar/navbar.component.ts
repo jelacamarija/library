@@ -69,7 +69,6 @@ export class NavbarComponent {
 
     return [
       { label: 'Knjige', path: '/librarian/books' },
-      { label: 'Pretraga', path: '/librarian/search' },
       { label: 'Autori', path: '/librarian/authors' },
       { label: 'Dashboard', path: '/librarian/dashboard' },
     ];

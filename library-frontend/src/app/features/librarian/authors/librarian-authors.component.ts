@@ -65,7 +65,12 @@ export class LibrarianAuthorsComponent {
   });
 
   constructor() {
-    effect(() => this.fetch());
+    effect(() => {
+      this.page();
+      this.size();
+      this.query();
+      this.fetch();
+    });
   }
 
   fetch() {
