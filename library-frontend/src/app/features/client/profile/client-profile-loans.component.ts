@@ -15,12 +15,12 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
         </span>
       </div>
 
-      <!-- Loading -->
+     
       <div *ngIf="loading" class="text-gray-600">
         Učitavanje...
       </div>
 
-      <!-- Error -->
+      
       <div
         *ngIf="error"
         class="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-700"
@@ -28,7 +28,7 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
         Ne mogu da učitam iznajmljivanja. Pokušaj ponovo.
       </div>
 
-      <!-- Empty -->
+     
       <div
         *ngIf="!loading && !error && items.length === 0"
         class="bg-gray-50 border rounded-lg p-4 text-sm text-gray-700"
@@ -36,7 +36,7 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
         Trenutno nemaš iznajmljivanja.
       </div>
 
-      <!-- Table -->
+      
       <div
         *ngIf="!loading && !error && items.length"
         class="bg-white border rounded-lg overflow-auto"
@@ -68,7 +68,7 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
               </td>
 
               <td class="p-3 text-gray-700">
-                <!-- Rok vraćanja prikazujemo samo ako je ACTIVE -->
+                
                 <span *ngIf="isActive(l) || isExpired(l); else dash">
                   {{ formatDate(l.dueDate) }}
                 </span>
@@ -82,7 +82,7 @@ import { LoanService, LoanResponseDto } from '../../../core/services/loan.servic
               </td>
 
               <td class="p-3 text-gray-700">
-                <!-- Ako je RETURNED, pokaži datum vraćanja (ako ga ima), inače — -->
+               
                 <span *ngIf="isReturned(l); else notReturned">
                   {{ formatDate(l.returnedAt) }}
                 </span>

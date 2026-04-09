@@ -12,7 +12,7 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
 
     <div *ngIf="!loading && user" class="space-y-6">
       
-      <!-- HEADER -->
+     
       <div class="flex items-center gap-4">
         <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-semibold">
           {{ initials }}
@@ -24,7 +24,7 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
         </div>
       </div>
 
-      <!-- INFO GRID -->
+     
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <div class="border rounded-lg p-4">
@@ -49,12 +49,12 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
 
       </div>
 
-      <!-- MEMBERSHIP -->
+      
       <div class="border rounded-lg p-4">
 
         <p class="text-sm text-gray-500 mb-1">Status članarine</p>
 
-        <!-- PORUKA -->
+        
         <p
           class="text-sm font-medium"
           [ngClass]="{
@@ -66,12 +66,12 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
           {{ getMembershipMessage() }}
         </p>
 
-        <!-- DATUM -->
+        
         <div *ngIf="user.membershipEndDate && user.membershipStatus !== 'PENDING'" class="mt-2 text-sm text-gray-600">
           Važi do: {{ formatDateEU(user.membershipEndDate) }}
         </div>
 
-        <!-- PLAĆANJE -->
+      
         <button
           *ngIf="user.membershipStatus === 'PENDING' || user.membershipStatus === 'EXPIRED'"
           (click)="renewMembership()"
@@ -80,7 +80,7 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
           Plati članarinu
         </button>
 
-        <!-- OBNOVA -->
+      
         <button
           *ngIf="isCanceledAndExpired()"
           (click)="renewMembership()"
@@ -89,7 +89,6 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
           Obnovi članarinu
         </button>
 
-        <!-- 🔴 OTKAZIVANJE (samo ako je ACTIVE) -->
 <button
   *ngIf="user.membershipStatus === 'ACTIVE'"
   (click)="cancelMembership()"
@@ -199,7 +198,7 @@ export class ClientProfileInfoComponent implements OnInit {
       });
   }
 
-  // 🟡 proveri da li je canceled + istekla
+  
   isCanceledAndExpired(): boolean {
     if (!this.user || !this.user.membershipEndDate) return false;
 
@@ -219,7 +218,7 @@ export class ClientProfileInfoComponent implements OnInit {
       next: (res) => {
         alert(res);
 
-        // 🔥 refresh profila
+       
         this.ngOnInit();
       },
       error: (err) => {

@@ -10,7 +10,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
   template: `
   <div class="mx-auto max-w-7xl px-4 py-6">
 
-    <!-- HEADER -->
+    
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Rezervacije</h1>
@@ -58,12 +58,12 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
       </button>
     </div>
 
-    <!-- ERROR -->
+   
     <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
       {{ error() }}
     </div>
 
-    <!-- TABLE -->
+    
     <div class="bg-white border rounded-2xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
@@ -137,7 +137,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
         </table>
       </div>
 
-        <!-- FOOTER -->
+       
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
             Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
@@ -163,7 +163,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
         </div>
       </div>
 
-    <!-- DETAILS MODAL -->
+   
     <div *ngIf="detailsModalOpen()" class="fixed inset-0 z-50">
       <div class="absolute inset-0 bg-black/40" (click)="closeDetailsModal()"></div>
 
@@ -186,7 +186,7 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
           <div><b>Datum rezervacije:</b> {{ s.reservedAt | date:'dd.MM.yyyy' }}</div>
           <div><b>Datum isteka:</b> {{ s.expiresAt | date:'dd.MM.yyyy' }}</div>
 
-          <!-- STATUS BADGE -->
+          
           <div>
             <span
               class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold border"

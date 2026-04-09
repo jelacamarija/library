@@ -236,7 +236,7 @@ submitLoan() {
 
   const payload = {
   userId: user.userID,
-  instanceId: instance.instanceID, // 🔥 OVO!
+  instanceId: instance.instanceID,
 };
 
   this.loanService.createLoan(payload).subscribe({

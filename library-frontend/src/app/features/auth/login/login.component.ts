@@ -57,7 +57,7 @@ export class LoginComponent {
   const msg = raw.toLowerCase();
   const status = err?.status;
 
-  //nalog nije verifikovan
+ 
   if (status === 403 || msg.includes('verifik') || msg.includes('nije verifik')) {
     return {
       type: 'error',
@@ -66,7 +66,7 @@ export class LoginComponent {
     };
   }
 
-  //nalog nije aktiviran
+ 
   if (status === 403 && (msg.includes('nije aktiviran') || msg.includes('postavite lozinku') || msg.includes('set-password'))) {
     return {
       type: 'error',
@@ -75,7 +75,7 @@ export class LoginComponent {
     };
   }
 
-  // pogrešni podaci
+
   if (status === 401 || msg.includes('pogrešan email') || msg.includes('pogresan email')) {
     return {
       type: 'error',
@@ -84,7 +84,7 @@ export class LoginComponent {
     };
   }
 
-  // pogrešna lozinka
+  
   if (status === 409 && (msg.includes('pogrešna lozinka') || msg.includes('pogresna lozinka'))) {
     return {
       type: 'error',

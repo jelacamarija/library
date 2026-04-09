@@ -64,13 +64,13 @@ export class LibrarianBooksComponent {
     this.page.set(this.page() + 1);
   }
 
-  // ADD MODAL
+  
   showAddModal = signal(false);
   addError = signal('');
   addLoading = signal(false);
   addSuccess = signal('');
 
-  // CONFIRM MODAL
+  
   showConfirm = signal(false);
   confirmTitle = signal('Potvrda');
   confirmMessage = signal('');

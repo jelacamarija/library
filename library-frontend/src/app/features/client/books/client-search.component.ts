@@ -170,7 +170,7 @@ Imate 3 dana da je preuzmete.`
 
   const msg = raw.toLowerCase();
 
-  // 🔒 članarina
+  
   if (
     msg.includes('clanar') ||
     msg.includes('članar') ||
@@ -183,7 +183,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // 📚 već ima rezervaciju za isti NASLOV
+  
   if (msg.includes('već imate rezervaciju')) {
     return {
       title: 'Već imate rezervaciju',
@@ -191,7 +191,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // 📖 već ima loan za isti NASLOV
+  
   if (
     msg.includes('već imate ovu knjigu') ||
     (msg.includes('već ima') && (msg.includes('iznajmlj') || msg.includes('loan')))
@@ -202,7 +202,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // ❌ nema dostupnih primjeraka
+  
   if (
     msg.includes('nema dostupnih') ||
     msg.includes('nije dostupan') ||
@@ -214,7 +214,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // ⚡ race condition (neko je brži bio)
+
   if (
     msg.includes('više nije dostupan') ||
     msg.includes('already reserved') ||
@@ -226,7 +226,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // ⏳ rezervacija istekla u međuvremenu
+  
   if (
     msg.includes('istekla') ||
     msg.includes('expired')
@@ -237,7 +237,6 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // 🚫 korisnik nije verifikovan
   if (
     msg.includes('nije verifikovan') ||
     msg.includes('not verified')
@@ -248,7 +247,6 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // 🚫 publikacija ne postoji (edge, ali moguće)
   if (
     msg.includes('publikacija ne postoji') ||
     msg.includes('not found')
@@ -259,7 +257,7 @@ Imate 3 dana da je preuzmete.`
     };
   }
 
-  // ⚠ fallback
+ 
   return {
     title: 'Greška',
     text: raw,

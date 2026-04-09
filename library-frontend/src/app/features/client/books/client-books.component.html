@@ -3,31 +3,31 @@
 
   <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition">
 
-    <!-- GORNJI DIO -->
+    
     <div>
-      <!-- NASLOV -->
+      
       <h2 class="text-xl font-bold text-gray-900">
         {{ b.title }}
       </h2>
 
-      <!-- AUTORI -->
+      
       <p class="text-base text-gray-700 mt-1">
         {{ b.authors.join(', ') }}
       </p>
 
-      <!-- KATEGORIJA -->
+      
       <p class="text-sm text-gray-600 mt-3">
         <span class="font-medium">Kategorija:</span> {{ b.category }}
       </p>
 
-      <!-- OPIS -->
+      
       <p class="text-sm text-gray-700 mt-2 line-clamp-3">
         <span class="font-medium">Kratak opis:</span>
         {{ b.description }}
       </p>
     </div>
 
-    <!-- DUGME -->
+    
     <button
       (click)="openDetails(b)"
       class="mt-5 w-full px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
@@ -38,7 +38,7 @@
   </div>
 
 </div>
-<!-- DETAILS MODAL -->
+
 
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
@@ -60,7 +60,7 @@
 
     
 
-    <!-- PUBLIKACIJE -->
+    
     <div class="mt-6">
       <h3 class="font-semibold mb-2">Publikacije</h3>
 

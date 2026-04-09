@@ -11,7 +11,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
   template: `
   <div class="mx-auto max-w-7xl px-4 py-6">
 
-    <!-- HEADER -->
+  
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Korisnici</h1>
@@ -43,7 +43,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
       </div>
     </div>
 
-    <!-- SEARCH -->
+    
     <div class="mb-4 flex gap-2">
       <input
         class="flex-1 border rounded-xl px-4 py-2"
@@ -56,12 +56,12 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
       </button>
     </div>
 
-    <!-- ERROR -->
+   
     <div *ngIf="error()" class="mb-4 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl">
       {{ error() }}
     </div>
 
-    <!-- TABLE -->
+    
     <div class="bg-white border rounded-2xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
@@ -92,7 +92,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
               <td class="px-4 py-3">{{ u.phoneNumber || '—' }}</td>
               <td class="px-4 py-3">{{ u.membershipNumber || '—' }}</td>
 
-              <!-- STATUS -->
+              
               <td class="px-4 py-3">
                 <span class="px-2 py-1 rounded-full text-xs border"
                   [ngClass]="getMembershipClass(u.membershipStatus)">
@@ -100,7 +100,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
                 </span>
               </td>
 
-              <!-- VERIFIKOVAN -->
+             
               <td class="px-4 py-3">
                 <span class="px-2 py-1 rounded-full text-xs border"
                   [ngClass]="u.isVerified ? green : yellow">
@@ -133,7 +133,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
         </table>
       </div>
 
-        <!-- FOOTER -->
+      
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
             Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
@@ -159,7 +159,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
         </div>
       </div>
 
-    <!-- MODAL -->
+    
     <div *ngIf="editOpen()" class="fixed inset-0 z-50">
       <div class="absolute inset-0 bg-black/40" (click)="closeEditModal()"></div>
 
@@ -201,7 +201,7 @@ import { LibrarianUsersService, ClientRow } from '../../../core/services/librari
       </div>
     </div>
 
-    <!-- CONFIRM MODAL -->
+   
     <div
       *ngIf="confirmOpen()"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"

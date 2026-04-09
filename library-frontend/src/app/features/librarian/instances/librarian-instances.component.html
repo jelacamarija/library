@@ -26,7 +26,7 @@
       Dodaj primjerak
     </button>
 
-    <!-- SIZE -->
+    
     <select
       class="border px-3 py-2 rounded-xl"
       (change)="size.set($any($event.target).value); fetch()"
@@ -40,12 +40,12 @@
 </div>
 
 
-  <!-- LOADING -->
+  
   <div *ngIf="isLoading()" class="text-gray-600">
     Učitavanje...
   </div>
 
-  <!-- ERROR -->
+
   <div *ngIf="isError()" class="p-4 bg-red-50 text-red-700 rounded-xl">
     Greška pri učitavanju.
   </div>
@@ -60,7 +60,7 @@
 </div>
 
 
-  <!-- TABELA -->
+  
   <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden mt-2">
 
     <table class="w-full text-sm">
@@ -244,7 +244,7 @@
       </span>
     </p>
 
-    <!-- USER INPUT -->
+   
     <input
       class="w-full border px-3 py-2 rounded-xl"
       placeholder="Broj članske karte"
@@ -252,7 +252,7 @@
       (input)="onUserQueryChange($any($event.target).value)"
     />
 
-    <!-- DROPDOWN -->
+    
     <div *ngIf="userDropdownOpen()" class="mt-2 border rounded-xl bg-white shadow">
 
       <button
@@ -271,13 +271,13 @@
 
     </div>
 
-    <!-- SELECTED -->
+    
     <div *ngIf="selectedUser()" class="text-sm mt-2 text-gray-600">
       Izabrano:
       <b>{{ selectedUser()?.membershipNumber }}</b>
     </div>
 
-    <!-- ACTIONS -->
+   
     <div class="mt-6 flex gap-3">
       <button
         (click)="closeLoanModal()"

@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-6xl px-4 py-6">
   <h1 class="text-2xl font-bold mb-4">Pretraga</h1>
 
-  <!-- SEARCH BAR -->
+  
   <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
     <input
       type="text"
@@ -20,20 +20,19 @@
     </button>
   </div>
 
-  <!-- LOADING -->
+  
   <div *ngIf="isLoading()" class="text-gray-600">Učitavanje...</div>
 
-  <!-- ERROR -->
   <div *ngIf="isError()" class="p-4 rounded bg-red-50 text-red-700">
     {{ errorMessage() }}
   </div>
 
-  <!-- NO RESULTS -->
+  
   <div *ngIf="noResults()" class="p-4 rounded bg-yellow-50 text-yellow-800">
     Nemamo to u ponudi.
   </div>
 
-  <!-- ISTI GRID KAO BOOKS -->
+ 
   <div *ngIf="!isLoading() && !isError() && !noResults()" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
     <div *ngFor="let b of books()" class="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between hover:shadow-lg transition">
@@ -69,7 +68,7 @@
   </div>
 </div>
 
-<!-- DETAILS MODAL -->
+
 <div *ngIf="showDetailsModal()" class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-black/40" (click)="closeDetails()"></div>
 
@@ -88,7 +87,7 @@
       <button (click)="closeDetails()">✕</button>
     </div>
 
-    <!-- PUBLIKACIJE -->
+    
     <div class="mt-6">
       <h3 class="font-semibold mb-2">Publikacije</h3>
 

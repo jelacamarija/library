@@ -21,7 +21,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <!-- SEARCH -->
+         
           <div class="relative">
             <input
               type="text"
@@ -41,7 +41,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
             </button>
           </div>
 
-          <!-- FILTER -->
+         
           <select
             class="border rounded-xl px-3 py-2 bg-white"
             [value]="statusFilter"
@@ -56,10 +56,10 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
         </div>
       </div>
 
-      <!-- Loading -->
+      
       <div *ngIf="loading" class="text-gray-600">Učitavanje...</div>
 
-      <!-- Error -->
+      
       <div
         *ngIf="error"
         class="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-700"
@@ -67,7 +67,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
         Ne mogu da učitam rezervacije. Pokušaj ponovo.
       </div>
 
-      <!-- Empty -->
+    
       <div
         *ngIf="!loading && !error && filteredItems.length === 0"
         class="bg-gray-50 border rounded-lg p-4 text-sm text-gray-700"
@@ -75,7 +75,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
         Nema rezultata za izabrani filter/pretragu.
       </div>
 
-      <!-- Table -->
+     
       <div
         *ngIf="!loading && !error && filteredItems.length"
         class="bg-white border rounded-lg overflow-auto"
@@ -133,7 +133,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
         </table>
       </div>
 
-      <!-- CONFIRM CANCEL MODAL -->
+     
       <div
         *ngIf="confirmOpen"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"

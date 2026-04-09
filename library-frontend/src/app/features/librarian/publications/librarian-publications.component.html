@@ -15,7 +15,6 @@
 
   <div class="flex items-center gap-3">
 
-  <!-- OSVJEŽI -->
   <button
     (click)="refresh()"
     class="px-4 py-2 rounded-xl border hover:bg-gray-50"
@@ -23,7 +22,7 @@
     Osvježi
   </button>
 
-  <!-- DODAJ -->
+  
   <button
     (click)="openAdd()"
     class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
@@ -31,7 +30,7 @@
     Dodaj publikaciju
   </button>
 
-  <!-- SIZE -->
+  
   <select
     class="border px-3 py-2 rounded-xl"
     (change)="onSizeChange($any($event.target).value)"
@@ -44,12 +43,11 @@
 </div>
 
 </div>
-  <!-- LOADING -->
+  
   <div *ngIf="isLoading()" class="text-gray-600">
     Učitavanje...
   </div>
 
-  <!-- ERROR -->
   <div *ngIf="isError()" class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
     {{ errorMessage() }}
   </div>
@@ -72,7 +70,7 @@
  
 </div>
 
-  <!-- TABELA -->
+  
   <div *ngIf="!isLoading() && !isError()" class="bg-white rounded-2xl shadow overflow-hidden">
 
     <table class="w-full text-sm">
@@ -124,7 +122,7 @@
       </tbody>
     </table>
 
-    <!-- PRAZNO -->
+    
     <div *ngIf="publications().length === 0" class="p-6 text-center text-gray-500">
       Nema dostupnih publikacija.
     </div>

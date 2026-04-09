@@ -11,7 +11,7 @@ import { LibrarianUsersService, LibrarianRow } from '../../../core/services/libr
   template: `
   <div class="mx-auto max-w-7xl px-4 py-6">
 
-    <!-- HEADER -->
+  
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Bibliotekari</h1>
@@ -47,7 +47,7 @@ import { LibrarianUsersService, LibrarianRow } from '../../../core/services/libr
       </div>
     </div>
 
-    <!-- SEARCH -->
+    
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
       <input
         type="text"
@@ -65,12 +65,12 @@ import { LibrarianUsersService, LibrarianRow } from '../../../core/services/libr
       </button>
     </div>
 
-    <!-- ERROR -->
+   
     <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
       {{ error() }}
     </div>
 
-    <!-- TABLE -->
+   
     <div class="bg-white border rounded-2xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
@@ -131,7 +131,7 @@ import { LibrarianUsersService, LibrarianRow } from '../../../core/services/libr
         </table>
       </div>
 
-        <!-- FOOTER -->
+      
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
             Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
@@ -157,7 +157,7 @@ import { LibrarianUsersService, LibrarianRow } from '../../../core/services/libr
         </div>
       </div>
 
-    <!-- MODAL -->
+    
     <div *ngIf="editOpen()" class="fixed inset-0 z-50">
       <div class="absolute inset-0 bg-black/40" (click)="closeEditModal()"></div>
 

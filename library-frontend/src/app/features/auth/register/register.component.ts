@@ -60,7 +60,6 @@ export class RegisterComponent {
     const msg = raw.toLowerCase();
     const status = err?.status;
 
-    //email već postoji 
     if (status === 409 && (msg.includes('vec postoji') || msg.includes('već postoji') || msg.includes('postoji'))) {
       return {
         type: 'error',
@@ -69,7 +68,7 @@ export class RegisterComponent {
       };
     }
 
-    //validaciona greška 
+     
     if (status === 400) {
       return {
         type: 'error',

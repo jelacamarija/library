@@ -22,7 +22,7 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
       (ngSubmit)="submit()"
       class="bg-white border rounded-2xl p-6 space-y-4"
     >
-      <!-- NAME -->
+      
       <div>
         <label class="block text-sm text-gray-700 mb-1">Ime i prezime</label>
         <input
@@ -35,7 +35,7 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
         </div>
       </div>
 
-      <!-- EMAIL -->
+      
       <div>
         <label class="block text-sm text-gray-700 mb-1">Email</label>
         <input
@@ -54,7 +54,7 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
         </div>
       </div>
 
-      <!-- PHONE -->
+      
       <div>
         <label class="block text-sm text-gray-700 mb-1">Broj telefona</label>
         <input
@@ -83,7 +83,7 @@ import { LibrarianUsersService } from '../../../core/services/librarian-users.se
     </form>
   </div>
 
-  <!-- MODAL -->
+  
   <div
     *ngIf="modalOpen()"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"

@@ -9,7 +9,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
   imports: [CommonModule, DatePipe],
   template: `
     <div class="mx-auto max-w-7xl px-4 py-6">
-      <!-- HEADER -->
+     
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
         <div>
           <h1 class="text-2xl font-bold">Iznajmljivanja</h1>
@@ -40,7 +40,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
         </div>
       </div>
 
-      <!-- SEARCH -->
+   
       <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
         <input
           type="text"
@@ -58,12 +58,12 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
         </button>
       </div>
 
-      <!-- ERROR -->
+     
       <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
         {{ error() }}
       </div>
 
-      <!-- TABLE CARD -->
+      
       <div class="bg-white border rounded-2xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
@@ -161,7 +161,7 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
           </table>
         </div>
 
-        <!-- FOOTER -->
+        
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t bg-gray-50">
           <div class="text-sm text-gray-600">
             Ukupno: <span class="font-medium text-gray-900">{{ totalElements() }}</span>
@@ -187,7 +187,6 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
         </div>
       </div>
 
-      <!-- CONFIRM MODAL -->
       <div *ngIf="returnModalOpen()" class="fixed inset-0 z-50">
         <div class="absolute inset-0 bg-black/40" (click)="closeReturnModal()"></div>
 
