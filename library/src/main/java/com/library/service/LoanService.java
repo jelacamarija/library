@@ -74,13 +74,13 @@ public class LoanService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 🔍 rezervacija za ovaj instance
+
         Reservation reservation = reservationRepository
                 .findTopByUserAndBookInstanceAndStatusOrderByReservedAtDesc(
                         user, instance, ReservationStatus.PENDING
                 ).orElse(null);
 
-        // ⏰ ako je istekla → očisti
+
         if (reservation != null && reservation.getExpiresAt().toInstant()
                 .isBefore(now.atZone(ZoneId.systemDefault()).toInstant())) {
 
@@ -89,7 +89,7 @@ public class LoanService {
             reservation = null;
         }
 
-        // 🔥 rezervacija za isti naslov ali DRUGI primjerak
+
         if (reservation == null) {
             boolean hasOtherReservation =
                     reservationRepository.existsByUserAndBookInstance_Publication_BookAndStatusAndBookInstanceNot(
@@ -101,14 +101,14 @@ public class LoanService {
             }
         }
 
-        // ✅ ako postoji rezervacija za ovaj instance → aktiviraj
+
         if (reservation != null) {
             reservation.setStatus(ReservationStatus.FULFILLED);
             reservation.setUsed(true);
             reservationRepository.save(reservation);
         }
 
-        // 📕 set status
+
         instance.setStatus(BookStatus.LOANED);
 
         LocalDateTime dueDate = now.plusDays(loanDurationDays);

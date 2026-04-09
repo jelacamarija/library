@@ -30,7 +30,7 @@ public class PayPalService {
     @Value("${paypal.base.url}")
     private String baseUrl;
 
-    // 🔴 GET ACCESS TOKEN
+
     private String getAccessToken() {
 
         String auth = clientId + ":" + clientSecret;
@@ -53,7 +53,7 @@ public class PayPalService {
         return (String) response.getBody().get("access_token");
     }
 
-    // 🔴 CREATE ORDER
+
     public String createOrder(Long membershipId) {
 
         Membership membership = membershipRepository.findById(membershipId)
@@ -105,7 +105,7 @@ public class PayPalService {
                 .get()
                 .get("href");
 
-        // 🔥 SAVE PAYMENT
+
         Payment payment = Payment.builder()
                 .membership(membership)
                 .amount(membership.getAmount())
@@ -122,7 +122,7 @@ public class PayPalService {
         return approvalUrl;
     }
 
-    // 🔴 GET ORDER DETAILS
+
     private Map getOrderDetails(String orderId, String token) {
 
         HttpHeaders headers = new HttpHeaders();
@@ -140,7 +140,7 @@ public class PayPalService {
         return response.getBody();
     }
 
-    // 🔴 CAPTURE ORDER (ISPRAVLJENO)
+
     public Payment captureOrder(String orderId) {
 
         Payment payment = paymentRepository.findByPaypalOrderId(orderId)
@@ -148,7 +148,7 @@ public class PayPalService {
 
         String token = getAccessToken();
 
-        // 🔥 PROVJERA STATUSA
+
         Map order = getOrderDetails(orderId, token);
         String status = (String) order.get("status");
 
@@ -159,7 +159,7 @@ public class PayPalService {
         }
 
         try {
-            // 🔥 CAPTURE
+
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -182,7 +182,7 @@ public class PayPalService {
                 payment.setPaymentStatus(PaymentStatus.COMPLETED);
                 payment.setPaidAt(LocalDateTime.now());
 
-                // 🔥 capture ID
+
                 Map purchaseUnit =
                         (Map) ((List) response.getBody().get("purchase_units")).get(0);
 
@@ -194,7 +194,7 @@ public class PayPalService {
 
                 payment.setPaypalCaptureId((String) capture.get("id"));
 
-                // 🔥 ACTIVATE MEMBERSHIP
+
                 Membership membership = payment.getMembership();
 
                 membership.setStatus(MembershipStatus.ACTIVE);
@@ -209,7 +209,7 @@ public class PayPalService {
 
         } catch (Exception e) {
 
-            // 🔥 SANDBOX FALLBACK (jako bitno)
+
             System.out.println("CAPTURE ERROR: " + e.getMessage());
 
             payment.setPaymentStatus(PaymentStatus.COMPLETED);
@@ -226,7 +226,7 @@ public class PayPalService {
         return paymentRepository.save(payment);
     }
 
-    // 🔴 CANCEL
+
     public Payment cancelOrder(String orderId) {
 
         Payment payment = paymentRepository.findByPaypalOrderId(orderId)

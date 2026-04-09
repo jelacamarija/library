@@ -34,7 +34,7 @@ public class ReservationService {
     @Transactional
     public ReservationResponseDto createReservation(Long publicationId, Long userId) {
 
-        // 1. USER
+
         Client client = clientRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Korisnik ne postoji"));
 
@@ -42,7 +42,7 @@ public class ReservationService {
             throw new RuntimeException("Korisnik nije verifikovan");
         }
 
-        // 2. MEMBERSHIP VALIDACIJA
+
         Membership membership = membershipRepository
                 .findTopByClient_UserIDOrderByEndDateDesc(client.getUserID())
                 .orElseThrow(() -> new RuntimeException("Nemate aktivnu članarinu"));
@@ -53,13 +53,13 @@ public class ReservationService {
             throw new RuntimeException("Morate imati aktivnu članarinu");
         }
 
-        // 3. PUBLICATION
+
         Publication publication = publicationRepository.findById(publicationId)
                 .orElseThrow(() -> new RuntimeException("Publikacija ne postoji"));
 
         Long bookId = publication.getBook().getBookID();
 
-        // 4. CHECK: VEĆ IMA REZERVACIJU (po BOOK)
+
         boolean alreadyReserved =
                 reservationRepository.existsByUser_UserIDAndBookInstance_Publication_Book_BookIDAndStatus(
                         userId,
@@ -71,7 +71,7 @@ public class ReservationService {
             throw new RuntimeException("Već imate rezervaciju za ovu knjigu");
         }
 
-        // 5. CHECK: VEĆ IMA LOAN (po BOOK)
+
         boolean alreadyLoaned =
                 loanRepository.existsByUser_UserIDAndBookInstance_Publication_Book_BookIDAndStatus(
                         userId,
@@ -83,17 +83,17 @@ public class ReservationService {
             throw new RuntimeException("Već imate ovu knjigu iznajmljenu");
         }
 
-        // 6. NAĐI AVAILABLE BOOK INSTANCE (NAJBITNIJE 🔥)
+
         BookInstance instance = bookInstanceRepository
                 .findFirstByPublication_PublicationIDAndStatus(publicationId, BookStatus.AVAILABLE)
                 .orElseThrow(() -> new RuntimeException("Nema dostupnih primjeraka"));
 
-        // 🔒 7. RACE CONDITION PROTECTION
+
         if (instance.getStatus() != BookStatus.AVAILABLE) {
             throw new RuntimeException("Primjerak više nije dostupan");
         }
 
-        // 8. KREIRAJ REZERVACIJU
+
         Reservation reservation = Reservation.builder()
                 .user(client)
                 .bookInstance(instance)
@@ -103,10 +103,10 @@ public class ReservationService {
                 .used(false)
                 .build();
 
-        // 9. PROMIJENI STATUS INSTANCE
+
         instance.setStatus(BookStatus.RESERVED);
 
-        // 10. SAVE
+
         reservationRepository.save(reservation);
         bookInstanceRepository.save(instance);
 

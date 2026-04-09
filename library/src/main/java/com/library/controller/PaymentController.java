@@ -13,19 +13,19 @@ public class PaymentController {
 
     private final PayPalService payPalService;
 
-    // 🔴 CREATE ORDER
+
     @PostMapping("/create/{membershipId}")
     public String create(@PathVariable Long membershipId) {
         return payPalService.createOrder(membershipId);
     }
 
-    // 🔴 SUCCESS
+
     @GetMapping("/success")
     public PaymentResponseDto success(@RequestParam("token") String token) {
         return PaymentMapper.toDto(payPalService.captureOrder(token));
     }
 
-    // 🔴 CANCEL
+
     @GetMapping("/cancel")
     public PaymentResponseDto cancel(@RequestParam("token") String token) {
         return PaymentMapper.toDto(payPalService.cancelOrder(token));
