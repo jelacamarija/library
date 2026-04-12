@@ -98,7 +98,7 @@ public class ReservationService {
                 .user(client)
                 .bookInstance(instance)
                 .reservedAt(new Date())
-                .expiresAt(new Date(System.currentTimeMillis() + 3L*2460*60*1000)) // 48h
+                .expiresAt(new Date(System.currentTimeMillis() + 3L*2460*60*1000))
                 .status(ReservationStatus.PENDING)
                 .used(false)
                 .build();

@@ -2,6 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { LibrarianReservationsService, ReservationRow } from '../../../core/services/librarian-reservations.service';
+import { BookInstanceService } from '../../../core/services/book-instance.service';
 
 @Component({
   selector: 'app-admin-reservations',
@@ -39,7 +40,6 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
       </div>
     </div>
 
-    <!-- SEARCH -->
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
       <input
         type="text"
@@ -62,46 +62,54 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
     <div *ngIf="error()" class="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
       {{ error() }}
     </div>
-
-    
     <div class="bg-white border rounded-2xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50 text-gray-700">
             <tr>
               <th class="px-4 py-3 text-left">Korisnik</th>
-              <th class="px-4 py-3 text-left">Broj članske karte</th>
-              <th class="px-4 py-3 text-left">Naslov</th>
-              <th class="px-4 py-3 text-left">Autor</th>
+              <th class="px-4 py-3 text-left">Knjiga</th>
               <th class="px-4 py-3 text-left">ISBN</th>
+              <th class="px-4 py-3 text-left">
+                <button type="button" class="hover:underline" (click)="toggleSort('expiresAt')">
+                  Datum isteka
+                  <span class="ml-1 text-xs text-gray-500" *ngIf="sortField() === 'expiresAt'">
+                    {{ sortDir() === 'desc' ? '↓' : '↑' }}
+                  </span>
+                </button>
+              </th>
               <th class="px-4 py-3 text-left">Status</th>
               <th class="px-4 py-3 text-right"></th>
             </tr>
           </thead>
-
           <tbody>
-
             <tr *ngIf="loading()">
               <td colspan="7" class="px-4 py-6">Učitavanje...</td>
             </tr>
-
             <tr *ngIf="!loading() && rows().length === 0">
               <td colspan="7" class="px-4 py-6">Nema rezervacija.</td>
             </tr>
-
             <tr *ngFor="let r of rows()" class="hover:bg-gray-50/60">
               <td class="px-4 py-3">
-                <div class="font-medium text-gray-900">{{ r.userName || ($any(r).name) || ($any(r).user?.name) || '—' }}
-                  </div>
+                <div class="font-medium text-gray-900">
+                  {{ r.userName }}
+                </div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  {{ r.membershipNumber || '—' }}
+                </div>
               </td>
               <td class="px-4 py-3">
-                <span class="font-medium">{{ r.membershipNumber || '—' }}</span>
+                <div class="font-semibold text-gray-900">
+                  {{ r.bookTitle }}
+                </div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  {{ r.bookAuthor }}
+                </div>
               </td>
-              <td class="px-4 py-3">
-                <div class="font-medium text-gray-900">{{ r.bookTitle || '—' }}</div> 
-              </td>
-              <td class="px-4 py-3">{{ r.bookAuthor }}</td>
               <td class="px-4 py-3">{{ r.isbn || '—' }}</td>
+              <td class="px-4 py-3 text-gray-800">
+                {{ r.expiresAt ? (r.expiresAt | date:'dd.MM.yyyy') : '—' }}
+              </td>
               <td class="px-4 py-3">
                 <span
                   class="px-2 py-1 rounded-full text-xs border"
@@ -110,18 +118,13 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
                   {{ statusLabel(r.status) }}
                 </span>
               </td>
-
               <td class="px-4 py-3 text-right space-x-2">
-
-                <!-- DETALJI -->
                 <button
                   class="px-3 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
                   (click)="openDetailsModal(r)"
                 >
                   Detalji
                 </button>
-                
-                <!-- AKTIVIRAJ -->
                 <button
                   class="px-3 py-2 rounded-xl text-white"
                   [ngClass]="canActivate(r) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300'"
@@ -130,7 +133,16 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
                 >
                   Aktiviraj
                 </button>
-
+                <button
+                  class="px-3 py-2 rounded-xl border"
+                  [ngClass]="canChangeInstanceStatus(r) 
+                  ? 'hover:bg-gray-50 border-gray-300' 
+                  : 'border-gray-200 text-gray-400 shadow-inner'"
+                  [disabled]="!canChangeInstanceStatus(r)"
+                  (click)="openStatusModal(r)"
+                >
+                  Status primerka
+                </button>
               </td>
             </tr>
           </tbody>
@@ -213,11 +225,54 @@ import { LibrarianReservationsService, ReservationRow } from '../../../core/serv
     </div>
 
   </div>
+
+  <div *ngIf="statusModalOpen()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+      <h3 class="text-lg font-semibold mb-4">
+        Izmena statusa primjerka
+      </h3>
+
+      <p class="text-sm text-gray-600 mb-4">
+        Odaberite novi status:
+      </p>
+
+      <div class="space-y-3">
+
+        <button
+          (click)="confirmStatusChange('DAMAGED')"
+          class="w-full px-4 py-2 rounded-xl bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+        >
+          Označi kao oštećena
+        </button>
+
+        <button
+          (click)="confirmStatusChange('LOST')"
+          class="w-full px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200"
+        >
+          Označi kao izgubljena
+        </button>
+
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button
+          (click)="closeStatusModal()"
+          class="px-4 py-2 border rounded-xl"
+        >
+          Otkaži
+        </button>
+      </div>
+
+    </div>
+  </div>
   `
 })
 export class LibrarianDashboardReservationsComponent {
 
   private api = inject(LibrarianReservationsService);
+  private instanceService = inject(BookInstanceService);
 
   rows = signal<ReservationRow[]>([]);
   loading = signal(false);
@@ -233,7 +288,7 @@ export class LibrarianDashboardReservationsComponent {
   detailsModalOpen = signal(false);
   detailsSelected = signal<ReservationRow | null>(null);
 
-  sortField = signal<'reservedAt' | 'expiresAt'>('reservedAt');
+  sortField = signal<'reservedAt' | 'expiresAt'>('expiresAt');
   sortDir = signal<'asc' | 'desc'>('desc');
 
   private sortParam = computed(() => 
@@ -308,7 +363,15 @@ export class LibrarianDashboardReservationsComponent {
     this.page.set(Math.min(this.totalPages() - 1, this.page() + 1));
   }
 
-  toggleSort(field: any) {}
+  toggleSort(field: 'reservedAt' | 'expiresAt') {
+    if (this.sortField() === field) {
+      this.sortDir.set(this.sortDir() === 'desc' ? 'asc' : 'desc');
+    } else {
+      this.sortField.set(field);
+      this.sortDir.set('desc');
+    }
+    this.page.set(0);
+  }
 
   openDetailsModal(r: ReservationRow) {
     this.detailsSelected.set(r);
@@ -343,4 +406,36 @@ export class LibrarianDashboardReservationsComponent {
     if (s === 'CANCELED') return 'bg-red-50 text-red-700';
     return '';
   }
+
+  canChangeInstanceStatus(r: ReservationRow) {
+    return r.status === 'PENDING';
+  }
+
+  statusModalOpen = signal(false);
+  selectedReservation = signal<ReservationRow | null>(null);
+
+  openStatusModal(r: ReservationRow) {
+    this.selectedReservation.set(r);
+    this.statusModalOpen.set(true);
+  }
+
+  closeStatusModal() {
+    this.statusModalOpen.set(false);
+  }
+
+  confirmStatusChange(status: string) {
+    const r = this.selectedReservation();
+    if (!r) return;
+
+    this.instanceService.updateStatus(r.instanceID, status).subscribe({
+      next: () => {
+        this.statusModalOpen.set(false);
+        this.fetch(); // refresh tabela
+      },
+      error: (err) => {
+        alert(err?.error?.message || 'Greška');
+      }
+    });
+  }
+
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ public class ReservationsScheduler {
     private final ReservationRepository reservationRepository;
     private final BookInstanceRepository bookInstanceRepository;
 
+    @Transactional
     @Scheduled(cron = "0 0 * * * *")
     public void expireReservations() {
 
@@ -34,11 +36,14 @@ public class ReservationsScheduler {
         for (Reservation reservation : expired) {
             reservation.setStatus(ReservationStatus.EXPIRED);
             BookInstance instance = reservation.getBookInstance();
-            instance.setStatus(BookStatus.AVAILABLE);
-            bookInstanceRepository.save(instance);
+            if (instance != null && instance.getStatus() == BookStatus.RESERVED) {
+                instance.setStatus(BookStatus.AVAILABLE);
+                bookInstanceRepository.save(instance);
+            }
             reservationRepository.save(reservation);
             log.info("Rezervacija #" + reservation.getReservationID() + " je istekla.");
         }
         log.info("Automatski proces isteka rezervacija završen. Ukupno: {}", expired.size());
     }
+
 }

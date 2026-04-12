@@ -26,6 +26,7 @@ public class ReservationMapper {
                                 .collect(Collectors.joining(", "))
                 )
                 .isbn(r.getBookInstance().getPublication().getIsbn())
+                .instanceID(r.getBookInstance().getInstanceID())
                 .inventoryNumber(r.getBookInstance().getInventoryNumber())
                 .location(r.getBookInstance().getLocation())
                 .reservedAt(r.getReservedAt())

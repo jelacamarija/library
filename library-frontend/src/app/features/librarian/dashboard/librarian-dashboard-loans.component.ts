@@ -69,10 +69,8 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50 text-gray-700">
               <tr>
-                <th class="px-4 py-3 text-left">Ime i prezime</th>
-                <th class="px-4 py-3 text-left">Broj clanske karte</th>
-                <th class="px-4 py-3 text-left">Naslov</th>
-                <th class="px-4 py-3 text-left">Autor</th>
+                <th class="px-4 py-3 text-left">Korisnik</th>
+                <th class="px-4 py-3 text-left">Knjiga</th>
                 <th class="px-4 py-3 text-left">Inventarski broj</th>
 
                 <th class="px-4 py-3 text-left">
@@ -94,25 +92,30 @@ import { LibrarianLoansService, LoanRow } from '../../../core/services/librarian
             <tbody class="divide-y">
 
               <tr *ngIf="loading()">
-                <td colspan="10" class="px-4 py-6 text-gray-600">Učitavanje...</td>
+                <td colspan="8" class="px-4 py-6 text-gray-600">Učitavanje...</td>
               </tr>
 
               <tr *ngIf="!loading() && rows().length === 0">
-                <td colspan="10" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
+                <td colspan="8" class="px-4 py-6 text-gray-600">Nema iznajmljivanja.</td>
               </tr>
 
               <tr *ngFor="let l of rows()" class="hover:bg-gray-50/60">
                 <td class="px-4 py-3">
-                  <div class="font-medium text-gray-900">{{ l.userName || ($any(l).name) || ($any(l).user?.name) || '—' }}
+                  <div class="font-medium text-gray-900">
+                    {{ l.userName }}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-0.5">
+                    {{ l.membershipNumber || '—' }}
                   </div>
                 </td>
-                <td class="px-4 py-3 text-gray-800">
-                  <span class="font-medium">{{ l.membershipNumber || '—' }}</span>
-                </td>
                 <td class="px-4 py-3">
-                  <div class="font-medium text-gray-900">{{ l.bookTitle }}</div>
+                  <div class="font-medium text-gray-900">
+                    {{ l.bookTitle }}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-0.5">
+                    {{ l.bookAuthor }}
+                  </div>
                 </td>
-                <td class="px-4 py-3 text-gray-800">{{ l.bookAuthor }}</td>
                 <td class="px-4 py-3 text-gray-800">
                   {{ l.inventoryNumber || '—' }}
                 </td>

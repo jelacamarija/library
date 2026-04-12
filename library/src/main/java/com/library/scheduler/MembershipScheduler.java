@@ -6,6 +6,7 @@ import com.library.repository.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,7 +17,8 @@ public class MembershipScheduler {
 
     private final MembershipRepository membershipRepository;
 
-    @Scheduled(cron = "0 0 0 * * *") // svaki dan u ponoć
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
     public void expireMemberships() {
 
         List<Membership> activeMemberships =

@@ -24,6 +24,7 @@ public class ReservationResponseDto {
     private String bookAuthor;
 
     private String isbn;
+    private Long instanceID;
     private String inventoryNumber;
     private String location;
 

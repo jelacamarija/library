@@ -14,6 +14,7 @@ export interface ReservationRow {
   bookAuthor: string;
 
   isbn?: string;
+  instanceID: number;
   inventoryNumber?: string;
   location?: string;
 
