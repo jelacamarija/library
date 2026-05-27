@@ -1,0 +1,169 @@
+<!-- receipt-create.component.html -->
+
+<div class="p-6">
+
+  <div
+    class="bg-white rounded-2xl shadow p-6 max-w-5xl mx-auto"
+  >
+
+    <h2 class="text-2xl font-bold mb-6">
+      Nova prijemnica
+    </h2>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="space-y-6"
+    >
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block mb-2 font-medium">
+            Dobavljač
+          </label>
+
+          <input
+            type="text"
+            formControlName="supplier"
+            class="w-full border rounded-xl p-3"
+          />
+        </div>
+
+        <div>
+          <label class="block mb-2 font-medium">
+            Napomena
+          </label>
+
+          <input
+            type="text"
+            formControlName="note"
+            class="w-full border rounded-xl p-3"
+          />
+        </div>
+
+      </div>
+
+      <div formArrayName="items">
+
+        <div
+          *ngFor="let item of items.controls; let i = index"
+          [formGroupName]="i"
+          class="border rounded-2xl p-4 mb-4"
+        >
+
+          <div
+            class="grid grid-cols-1 md:grid-cols-4 gap-4"
+          >
+
+            <div>
+              <label class="block mb-2 font-medium">
+                Publikacija
+              </label>
+
+              <select
+                formControlName="publicationId"
+                class="w-full border rounded-xl p-3"
+              >
+
+                <option [ngValue]="null">
+                  Izaberi publikaciju
+                </option>
+
+                <option
+                  *ngFor="let p of publications()"
+                  [value]="p.publicationID"
+                >
+                  {{ p.bookTitle }}
+                  -
+                  {{ p.isbn }}
+                </option>
+
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-2 font-medium">
+                Količina
+              </label>
+
+              <input
+                type="number"
+                formControlName="quantity"
+                class="w-full border rounded-xl p-3"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 font-medium">
+                Lokacija
+              </label>
+
+              <input
+                type="text"
+                formControlName="location"
+                class="w-full border rounded-xl p-3"
+              />
+            </div>
+
+            <div class="flex items-end">
+
+              <button
+                type="button"
+                (click)="removeItem(i)"
+                class="bg-red-500 text-white px-4 py-3 rounded-xl w-full"
+              >
+                Ukloni
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="flex gap-3">
+
+        <button
+          type="button"
+          (click)="addItem()"
+          class="bg-blue-500 text-white px-5 py-3 rounded-xl"
+        >
+          + Dodaj stavku
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="bg-green-600 text-white px-5 py-3 rounded-xl"
+        >
+          {{
+            loading()
+              ? 'Čuvanje...'
+              : 'Sačuvaj prijemnicu'
+          }}
+        </button>
+
+      </div>
+
+      <div
+        *ngIf="successMessage()"
+        class="bg-green-100 text-green-700 p-4 rounded-xl"
+      >
+        {{ successMessage() }}
+      </div>
+
+      <div
+        *ngIf="errorMessage()"
+        class="bg-red-100 text-red-700 p-4 rounded-xl"
+      >
+        {{ errorMessage() }}
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

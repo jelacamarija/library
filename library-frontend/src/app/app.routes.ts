@@ -3,6 +3,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
 import { landingGuard } from './core/guards/landing.guard';
 import { roleGuard, roleChildGuard } from './core/guards/role.guard';
+import { LibrarianReceiptsComponent } from './features/librarian/receipts/librarian-receipts.component';
 
 export const routes: Routes = [
   { path: '', canActivate: [landingGuard], children: [] },
@@ -120,22 +121,28 @@ export const routes: Routes = [
                 .then(m => m.LibrarianBooksComponent),
           },
           {
-  path: 'publications/:bookId',
-  loadComponent: () =>
-    import('./features/librarian/publications/librarian-publications.component')
-      .then(m => m.LibrarianPublicationsComponent),
-},
-{
-  path: 'instances/:publicationID',
-  loadComponent: () =>
-    import('./features/librarian/instances/librarian-instances.component')
-      .then(m => m.LibrarianInstancesComponent),
-},
+            path: 'publications/:bookId',
+            loadComponent: () =>
+              import('./features/librarian/publications/librarian-publications.component')
+                .then(m => m.LibrarianPublicationsComponent),
+          },
+          {
+            path: 'instances/:publicationID',
+            loadComponent: () =>
+              import('./features/librarian/instances/librarian-instances.component')
+                .then(m => m.LibrarianInstancesComponent),
+          },
           {
             path: 'authors',
             loadComponent: () =>
               import('./features/librarian/authors/librarian-authors.component')
                 .then(m => m.LibrarianAuthorsComponent),
+          },
+          {
+                path: 'receipts',
+                loadComponent: () =>
+                  import('./features/librarian/receipts/librarian-receipts.component')
+                    .then(m => m.LibrarianReceiptsComponent),
           },
           {
             path: 'dashboard',
@@ -181,8 +188,6 @@ export const routes: Routes = [
                     .then(m => m.LibrarianDashboardLoansComponent),
               },
               
-
-
             ],
           },
           { path: '', redirectTo: 'books', pathMatch: 'full' },

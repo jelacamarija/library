@@ -70,6 +70,7 @@ export class NavbarComponent {
     return [
       { label: 'Knjige', path: '/librarian/books' },
       { label: 'Autori', path: '/librarian/authors' },
+      { label: 'Prijemnice', path: '/librarian/receipts' },
       { label: 'Dashboard', path: '/librarian/dashboard' },
     ];
   });
