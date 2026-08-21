@@ -169,6 +169,34 @@ type StatusFilter = 'ALL' | 'PENDING' | 'FULFILLED' | 'CANCELED' | 'EXPIRED';
           </div>
         </div>
       </div>
+
+      <!-- GREŠKA PRI OTKAZIVANJU REZERVACIJE -->
+<div
+  *ngIf="cancelErrorOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+>
+  <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+    <h3 class="text-xl font-semibold text-red-600 mb-3">
+      Greška
+    </h3>
+
+    <p class="text-gray-700">
+      Došlo je do greške prilikom otkazivanja rezervacije.
+    </p>
+
+    <div class="mt-6 flex justify-end">
+      <button
+        type="button"
+        (click)="cancelErrorOpen = false"
+        class="px-6 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+      >
+        OK
+      </button>
+    </div>
+
+  </div>
+</div>
     </div>
   `,
 })
@@ -186,6 +214,7 @@ export class ClientProfileReservationsComponent implements OnInit {
   confirmOpen = false;
   selectedReservation: ReservationResponseDto | null = null;
   cancelLoading = false;
+  cancelErrorOpen = false;
 
   ngOnInit(): void {
     this.service.getMyReservations().subscribe({
@@ -253,25 +282,15 @@ export class ClientProfileReservationsComponent implements OnInit {
     this.cancelLoading = false;
   }
 
-  confirmCancel(): void {
-    if (!this.selectedReservation) return;
+confirmCancel(): void {
+  if (!this.selectedReservation) return;
 
-    this.cancelLoading = true;
+  // Zatvaramo prozor za potvrdu
+  this.confirmOpen = false;
 
-    this.service.cancelReservation(this.selectedReservation.reservationID).subscribe({
-      next: (updated) => {
-        const id = updated.reservationID;
-        this.items = this.items.map(x => x.reservationID === id ? updated : x);
-
-        this.closeConfirm();
-        this.cd.detectChanges();
-      },
-      error: () => {
-        this.cancelLoading = false;
-        alert('Ne mogu da otkažem rezervaciju. Pokušaj ponovo.');
-      },
-    });
-  }
+  // Prikazujemo grešku radi screenshota za diplomski
+  this.cancelErrorOpen = true;
+}
 
   formatDate(value?: string | null): string {
     if (!value) return '—';

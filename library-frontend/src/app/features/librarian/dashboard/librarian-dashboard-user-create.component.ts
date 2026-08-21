@@ -140,40 +140,18 @@ export class LibrarianDashboardUserCreateComponent {
     phoneNumber: [''],
   });
 
-  submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.loading.set(true);
-
-    const payload = {
-      ...this.form.getRawValue(),
-      phoneNumber: this.form.value.phoneNumber || null
-    };
-
-    this.api.createUser(payload).subscribe({
-      next: (msg) => {
-        this.loading.set(false);
-
-        this.openModal(
-          'success',
-          'Uspešno',
-          msg || 'Korisnik kreiran. Poslat mejl za postavljanje lozinke.'
-        );
-
-        setTimeout(() => {
-          this.router.navigateByUrl('/librarian/dashboard/users');
-        }, 1500);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        const parsed = this.parseCreateUserError(err);
-        this.openModal('error', parsed.title, parsed.text);
-      },
-    });
+submit(): void {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
   }
+
+  this.openModal(
+    'error',
+    'Greška',
+    'Došlo je do greške prilikom kreiranja korisničkog naloga.'
+  );
+}
 
   back(): void {
     this.router.navigateByUrl('/librarian/dashboard/users');
@@ -194,32 +172,37 @@ export class LibrarianDashboardUserCreateComponent {
   }
 
   private parseCreateUserError(err: any): { title: string; text: string } {
-    const raw =
-      (err?.error?.message ??
-        err?.error?.error ??
-        (typeof err?.error === 'string' ? err.error : null) ??
-        'Neuspešno kreiranje korisnika.'
-      ).toString();
+  const raw =
+    (
+      err?.error?.message ??
+      err?.error?.error ??
+      (typeof err?.error === 'string' ? err.error : null) ??
+      'Neuspešno kreiranje korisnika.'
+    ).toString();
 
-    const msg = raw.toLowerCase();
+  const msg = raw.toLowerCase();
 
-    if (err?.status === 409 || msg.includes('vec postoji') || msg.includes('već postoji')) {
-      return {
-        title: 'Email je zauzet',
-        text: 'Korisnik sa ovim emailom već postoji. Unesite drugi email.',
-      };
-    }
-
-    if (err?.status === 400) {
-      return {
-        title: 'Neispravni podaci',
-        text: 'Proverite unete podatke.',
-      };
-    }
-
+  // Samo ako backend stvarno kaže da korisnik postoji
+  if (
+    msg.includes('korisnik sa ovim mejlom već postoji') ||
+    msg.includes('korisnik sa ovim mejlom vec postoji')
+  ) {
     return {
-      title: 'Greška',
-      text: raw,
+      title: 'Email je zauzet',
+      text: 'Korisnik sa ovim emailom već postoji. Unesite drugi email.',
     };
   }
+
+  if (err?.status === 400) {
+    return {
+      title: 'Neispravni podaci',
+      text: raw
+    };
+  }
+
+  return {
+    title: 'Greška',
+    text: raw
+  };
+}
 }

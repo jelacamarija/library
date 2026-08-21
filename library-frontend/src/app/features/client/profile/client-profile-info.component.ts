@@ -71,6 +71,8 @@ import { AuthService, ClientProfileDto } from '../../../core/services/auth.servi
           Važi do: {{ formatDateEU(user.membershipEndDate) }}
         </div>
 
+        
+
       
         <button
           *ngIf="user.membershipStatus === 'PENDING' || user.membershipStatus === 'EXPIRED'"
@@ -111,6 +113,7 @@ export class ClientProfileInfoComponent implements OnInit {
   initials = '';
   loading = true;
   errorMsg = '';
+
 
   ngOnInit(): void {
     this.auth.getMyProfile().subscribe({
@@ -184,19 +187,19 @@ export class ClientProfileInfoComponent implements OnInit {
   }
 
 
-  renewMembership() {
-    if (!this.user?.membershipID) return;
+ renewMembership() {
+  if (!this.user?.membershipID) return;
 
-    this.auth.createPaypalOrder(this.user.membershipID)
-      .subscribe({
-        next: (approvalUrl) => {
-          window.location.href = approvalUrl;
-        },
-        error: (err) => {
-          console.log('PAY ERROR', err);
-        }
-      });
-  }
+  this.auth.createPaypalOrder(this.user.membershipID)
+    .subscribe({
+      next: (approvalUrl) => {
+        window.location.href = approvalUrl;
+      },
+      error: (err) => {
+        console.log('PAY ERROR', err);
+      }
+    });
+}
 
   
   isCanceledAndExpired(): boolean {

@@ -128,11 +128,9 @@ export class SetPasswordComponent {
     this.http.post('/api/register/set-password', { code: this.code, password }, { responseType: 'text' })
       .subscribe({
         next: (msg) => {
-          this.loading.set(false);
-          this.success.set(msg || 'Lozinka postavljena.');
-
-          setTimeout(() => this.router.navigateByUrl('/login'), 1000);
-        },
+  this.loading.set(false);
+  this.success.set(msg || 'Lozinka je uspešno postavljena. Nalog je aktiviran.');
+},
         error: (err) => {
           this.loading.set(false);
           this.error.set(this.parseError(err));
@@ -140,14 +138,14 @@ export class SetPasswordComponent {
       });
   }
 
-  private parseError(err: any): string {
-    const msg = (err?.error?.message ?? err?.error ?? '').toString().toLowerCase();
+private parseError(err: any): string { 
+  const msg = (err?.error?.message ?? err?.error ?? '').toString().toLowerCase(); 
 
-    if (msg.includes('istekao')) return 'Link je istekao. Zatražite novi.';
-    if (msg.includes('invalid') || msg.includes('ne postoji')) return 'Link nije validan.';
+  if (msg.includes('istekao')) return 'Link je istekao. Zatražite novi.'; 
+  if (msg.includes('invalid') || msg.includes('ne postoji')) return 'Link nije validan.'; 
 
-    return err?.error?.message ?? err?.error ?? 'Greška pri postavljanju lozinke.';
-  }
+  return err?.error?.message ?? err?.error ?? 'Greška pri postavljanju lozinke.'; 
+}
 
   goToLogin(): void {
     this.router.navigateByUrl('/login');
