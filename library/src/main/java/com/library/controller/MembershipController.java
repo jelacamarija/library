@@ -14,16 +14,6 @@ public class MembershipController {
 
     private final MembershipService membershipService;
 
-    @PostMapping("/cash")
-    public String activateMembershipCash(
-            @RequestBody MembershipCashPaymentDto dto,
-            HttpServletRequest request
-    ) {
-        requireLibrarian(request);
-
-        return membershipService.activateMembershipCash(dto.getMembershipNumber());
-    }
-
     @PatchMapping("/cancel/{membershipId}")
     public String cancelMembership(@PathVariable Long membershipId) {
         return membershipService.cancelMembership(membershipId);
@@ -39,5 +29,18 @@ public class MembershipController {
         if (!"LIBRARIAN".equalsIgnoreCase(role)) {
             throw new RuntimeException("Zabranjen pristup");
         }
+    }
+
+
+
+
+    @PostMapping("/cash")
+    public String activateMembershipCash(
+            @RequestBody MembershipCashPaymentDto dto,
+            HttpServletRequest request
+    ) {
+        requireLibrarian(request);
+
+        return membershipService.activateMembershipCash(dto.getMembershipNumber());
     }
 }

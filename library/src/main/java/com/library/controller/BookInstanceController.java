@@ -1,5 +1,4 @@
 package com.library.controller;
-
 import com.library.dto.*;
 import com.library.entity.BookStatus;
 import com.library.service.BookInstanceService;
@@ -7,14 +6,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/book-instances")
 @RequiredArgsConstructor
 public class BookInstanceController {
 
     private final BookInstanceService bookInstanceService;
-
 
     @PostMapping
     public BookInstanceResponseDto create(@RequestBody BookInstanceCreateDto dto,
@@ -29,19 +26,16 @@ public class BookInstanceController {
         return bookInstanceService.create(dto);
     }
 
-
     @GetMapping("/{id}")
     public BookInstanceResponseDto getById(@PathVariable Long id) {
         return bookInstanceService.getById(id);
     }
-
 
     @GetMapping
     public Page<BookInstanceResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
         return bookInstanceService.getAll(page, size);
     }
-
 
     @GetMapping("/publication/{publicationId}")
     public Page<BookInstanceResponseDto> searchInstances(
@@ -57,7 +51,7 @@ public class BookInstanceController {
 
     @PatchMapping("/{id}/location")
     public BookInstanceResponseDto updateLocation(@PathVariable Long id,
-                                                  @RequestBody BookInstanceUpdateLocationDto dto,
+                                                 @RequestBody BookInstanceUpdateLocationDto dto,
                                                   HttpServletRequest request) {
 
         String role = (String) request.getAttribute("userRole");

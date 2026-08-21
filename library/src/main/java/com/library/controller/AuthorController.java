@@ -1,6 +1,4 @@
 package com.library.controller;
-
-
 import com.library.dto.AuthorCreateDto;
 import com.library.dto.AuthorResponseDto;
 import com.library.dto.AuthorUpdateDto;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthorController {
 
     private final AuthorService authorService;
-
     private void checkLibrarian(HttpServletRequest request){
         String role=(String) request.getAttribute("userRole");
 
@@ -26,8 +23,7 @@ public class AuthorController {
     }
 
     @PostMapping
-    public AuthorResponseDto create(@RequestBody AuthorCreateDto dto,
-                                    HttpServletRequest request) {
+    public AuthorResponseDto create(@RequestBody AuthorCreateDto dto, HttpServletRequest request) {
         checkLibrarian(request);
         return authorService.createAuthor(dto);
     }
@@ -41,8 +37,7 @@ public class AuthorController {
     }
 
     @GetMapping("/{id}")
-    public AuthorResponseDto getById(@PathVariable Long id,
-                                     HttpServletRequest request) {
+    public AuthorResponseDto getById(@PathVariable Long id, HttpServletRequest request) {
         checkLibrarian(request);
         return authorService.getById(id);
     }

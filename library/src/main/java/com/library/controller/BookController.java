@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 public class BookController {
 
     private final BookService bookService;
-
     private void checkLibrarian(HttpServletRequest request) {
         String role = (String) request.getAttribute("userRole");
 
@@ -25,20 +24,11 @@ public class BookController {
         }
     }
 
-
     @PostMapping("/create")
     public BookResponseDto create(@RequestBody BookCreateDto dto,
                                   HttpServletRequest request) {
         checkLibrarian(request);
         return bookService.createBook(dto);
-    }
-
-
-
-    @GetMapping("/{id}")
-    public BookResponseDto getBookById(@PathVariable Long id) {
-
-        return bookService.getById(id);
     }
 
     @PatchMapping("/{id}/description")
@@ -47,14 +37,6 @@ public class BookController {
                                              HttpServletRequest request) {
         checkLibrarian(request);
         return bookService.updateDescription(id, dto);
-    }
-
-
-    @GetMapping("/all")
-    public Page<BookResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size) {
-
-        return bookService.getAll(page, size);
     }
 
     @GetMapping("/search")
@@ -66,7 +48,6 @@ public class BookController {
         return bookService.search(query, page, size);
     }
 
-
     @GetMapping("/available")
     public Page<BookUserDto> getAvailableBooksForUser(
             @RequestParam(defaultValue = "0") int page,
@@ -74,4 +55,18 @@ public class BookController {
 
         return bookService.getAvailableBooksForUser(page, size);
     }
+
+    @GetMapping("/{id}")
+    public BookResponseDto getBookById(@PathVariable Long id) {
+
+        return bookService.getById(id);
+    }
+
+    @GetMapping("/all")
+    public Page<BookResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+
+        return bookService.getAll(page, size);
+    }
+
 }

@@ -1,5 +1,4 @@
 package com.library.controller;
-
 import com.library.dto.PublicationCreateDto;
 import com.library.dto.PublicationResponseDto;
 import com.library.entity.Publication;
@@ -9,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/publications")
 @RequiredArgsConstructor

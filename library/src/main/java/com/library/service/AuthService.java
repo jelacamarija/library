@@ -1,5 +1,4 @@
 package com.library.service;
-
 import com.library.dto.*;
 import com.library.entity.*;
 import com.library.mapper.RegisterMapper;
@@ -19,16 +18,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
     private final UserRepository userRepository;
     private final MembershipRepository membershipRepository;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
-
     private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
     @Value("${app.frontend.base.url:http://localhost:4200}")
@@ -177,8 +173,8 @@ public class AuthService {
                     .build();
     }
 
- @Transactional
-public String createUserByLibrarian(LibrarianCreateUserDto dto) {
+    @Transactional
+    public String createUserByLibrarian(LibrarianCreateUserDto dto) {
             if (userRepository.existsByEmail(dto.getEmail())) {
                 throw new RuntimeException("Korisnik sa ovim mejlom već postoji.");
             }
@@ -217,8 +213,8 @@ public String createUserByLibrarian(LibrarianCreateUserDto dto) {
         }
 
 
-@Transactional
-public String setPasswordAndVerify(SetPasswordDto dto) {
+    @Transactional
+    public String setPasswordAndVerify(SetPasswordDto dto) {
             User user = userRepository.findByVerifyCode(dto.getCode())
                     .orElseThrow(() -> new RuntimeException("Nevažeći kod."));
 
