@@ -285,11 +285,44 @@ export class ClientProfileReservationsComponent implements OnInit {
 confirmCancel(): void {
   if (!this.selectedReservation) return;
 
-  // Zatvaramo prozor za potvrdu
-  this.confirmOpen = false;
+  const reservationId = this.selectedReservation.reservationID;
 
-  // Prikazujemo grešku radi screenshota za diplomski
-  this.cancelErrorOpen = true;
+  if (!reservationId) {
+    this.confirmOpen = false;
+    this.cancelErrorOpen = true;
+    return;
+  }
+
+  this.cancelLoading = true;
+
+  this.service.cancelReservation(reservationId).subscribe({
+    next: (updatedReservation) => {
+
+      // Ažuriramo rezervaciju u tabeli
+      this.items = this.items.map(r =>
+        r.reservationID === updatedReservation.reservationID
+          ? updatedReservation
+          : r
+      );
+
+      this.confirmOpen = false;
+      this.selectedReservation = null;
+      this.cancelLoading = false;
+
+      this.cd.detectChanges();
+    },
+
+    error: (err) => {
+      console.error('Greška pri otkazivanju rezervacije:', err);
+
+      this.confirmOpen = false;
+      this.selectedReservation = null;
+      this.cancelLoading = false;
+      this.cancelErrorOpen = true;
+
+      this.cd.detectChanges();
+    }
+  });
 }
 
   formatDate(value?: string | null): string {
