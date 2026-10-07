@@ -28,10 +28,8 @@ public class LoanService {
     private final ReservationRepository reservationRepository;
     private final MembershipRepository membershipRepository;
     private final BookInstanceRepository bookInstanceRepository;
-
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
-
     @Transactional
     public LoanResponseDto createLoan(LoanCreateDto dto) {
 
@@ -126,7 +124,6 @@ public class LoanService {
 
         return LoanMapper.toDto(loan);
     }
-
     public LoanResponseDto returnBook(Long loanID) {
 
         Loan loan = loanRepository.findById(loanID)
@@ -144,7 +141,6 @@ public class LoanService {
         loanRepository.save(loan);
         return LoanMapper.toDto(loan);
     }
-
     public Page<LoanResponseDto> getAllLoans(int page, int size, String sort) {
         String[] sortParts = sort.split(",");
         String sortField = sortParts[0];
@@ -156,7 +152,6 @@ public class LoanService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         return loanRepository.findAll(pageable).map(LoanMapper::toDto);
     }
-
     public Page<LoanResponseDto> searchLoansByUserName(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return loanRepository
@@ -165,13 +160,11 @@ public class LoanService {
                 )
                 .map(LoanMapper::toDto);
     }
-
     public Page<LoanResponseDto> getActiveLoans(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return loanRepository.findByStatus(LoanStatus.ACTIVE, pageable)
                 .map(LoanMapper::toDto);
     }
-
     public List<LoanResponseDto> getMyLoans(HttpServletRequest request) {
 
         Long userId = (Long) request.getAttribute("userId");
@@ -188,7 +181,6 @@ public class LoanService {
                 .map(LoanMapper::toDto)
                 .toList();
     }
-
     public Page<LoanResponseDto> searchLoansByMembershipNumber(int page, int size, String sort, String q) {
 
         if (q == null || q.trim().isEmpty()) return Page.empty();

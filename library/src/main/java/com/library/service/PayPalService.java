@@ -23,13 +23,10 @@ public class PayPalService {
 
     @Value("${paypal.client.id}")
     private String clientId;
-
     @Value("${paypal.client.secret}")
     private String clientSecret;
-
     @Value("${paypal.base.url}")
     private String baseUrl;
-
 
     private String getAccessToken() {
 
@@ -52,8 +49,6 @@ public class PayPalService {
 
         return (String) response.getBody().get("access_token");
     }
-
-
     public String createOrder(Long membershipId) {
 
         Membership membership = membershipRepository.findById(membershipId)
@@ -121,8 +116,6 @@ public class PayPalService {
 
         return approvalUrl;
     }
-
-
     private Map getOrderDetails(String orderId, String token) {
 
         HttpHeaders headers = new HttpHeaders();
@@ -139,8 +132,6 @@ public class PayPalService {
 
         return response.getBody();
     }
-
-
     public Payment captureOrder(String orderId) {
 
         Payment payment = paymentRepository.findByPaypalOrderId(orderId)
@@ -225,8 +216,6 @@ public class PayPalService {
 
         return paymentRepository.save(payment);
     }
-
-
     public Payment cancelOrder(String orderId) {
 
         Payment payment = paymentRepository.findByPaypalOrderId(orderId)

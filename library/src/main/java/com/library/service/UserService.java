@@ -31,7 +31,6 @@ public class UserService {
     private final ClientRepository clientRepository;
     private final MembershipRepository membershipRepository;
     private final LibrarianRepository librarianRepository;
-
     public ClientProfileDto getMyProfile(Long userID) {
         Client client=clientRepository.findById(userID).orElseThrow(
                 () -> new RuntimeException("Klijent nije pronađen")
@@ -42,7 +41,6 @@ public class UserService {
         return ClientMapper.toProfileDto(client, membership);
 
     }
-
     public Page<ClientListDto> getAllClients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return clientRepository.findAll(pageable)
@@ -54,7 +52,6 @@ public class UserService {
                 });
 
     }
-
     public Page<ClientListDto> searchClientsByMembership(String q, int page, int size) {
 
         Pageable pageable = PageRequest.of(
@@ -72,7 +69,6 @@ public class UserService {
                     return ClientMapper.toListDto(client, membership);
                 });
     }
-
     public ClientListDto findClientByExactMembership(String membershipNumber) {
 
         Client client = clientRepository.findByMembershipNumber(membershipNumber)
@@ -86,8 +82,6 @@ public class UserService {
 
         return ClientMapper.toListDto(client, membership);
     }
-
-
     @Transactional
     public ClientListDto updateUserPhone(Long userId, String phoneNumber) {
 
@@ -103,7 +97,6 @@ public class UserService {
 
         return ClientMapper.toListDto(client, membership);
     }
-
     public Page<LibrarianListDto> getAllLibrarians(int page, int size) {
 
         Pageable pageable = PageRequest.of(
@@ -115,7 +108,6 @@ public class UserService {
         return librarianRepository.findAll(pageable)
                 .map(LibrarianMapper::toListDto);
     }
-
     public Page<LibrarianListDto> searchLibrariansByEmployeeCode(String q, int page, int size) {
 
         Pageable pageable = PageRequest.of(
@@ -128,7 +120,6 @@ public class UserService {
                 .findByEmployeeCodeContainingIgnoreCase(q, pageable)
                 .map(LibrarianMapper::toListDto);
     }
-
     @Transactional
     public LibrarianListDto updateLibrarianPhone(Long userId, String phoneNumber) {
 

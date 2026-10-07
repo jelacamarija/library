@@ -23,6 +23,39 @@ public class MembershipService {
     @Value("${library.membership.duration-days}")
     private int membershipDurationDays;
 
+
+    @Transactional
+    public String cancelMembership(Long membershipId) {
+
+        Membership membership = membershipRepository.findById(membershipId)
+                .orElseThrow(() -> new RuntimeException("Membership not found"));
+
+        if (membership.getStatus() != MembershipStatus.ACTIVE) {
+            throw new RuntimeException("Samo aktivna članarina može biti otkazana.");
+        }
+
+        membership.setStatus(MembershipStatus.CANCELED);
+
+
+        membershipRepository.save(membership);
+
+        return "Članarina je uspešno otkazana.";
+    }
+
+
+    public boolean hasActiveMembership(Client client) {
+
+        return membershipRepository
+                .findFirstByClientOrderByCreatedAtDesc(client)
+                .map(m -> m.getStatus() == MembershipStatus.ACTIVE
+                        && m.getEndDate() != null
+                        && !m.getEndDate().isBefore(LocalDate.now()))
+                .orElse(false);
+    }
+
+
+
+
     //placanje kesom
     @Transactional
     public String activateMembershipCash(String membershipNumber) {
@@ -79,33 +112,4 @@ public class MembershipService {
         return "Članarina uspešno aktivirana.";
     }
 
-
-    @Transactional
-    public String cancelMembership(Long membershipId) {
-
-        Membership membership = membershipRepository.findById(membershipId)
-                .orElseThrow(() -> new RuntimeException("Membership not found"));
-
-        if (membership.getStatus() != MembershipStatus.ACTIVE) {
-            throw new RuntimeException("Samo aktivna članarina može biti otkazana.");
-        }
-
-        membership.setStatus(MembershipStatus.CANCELED);
-
-
-        membershipRepository.save(membership);
-
-        return "Članarina je uspešno otkazana.";
-    }
-
-
-    public boolean hasActiveMembership(Client client) {
-
-        return membershipRepository
-                .findFirstByClientOrderByCreatedAtDesc(client)
-                .map(m -> m.getStatus() == MembershipStatus.ACTIVE
-                        && m.getEndDate() != null
-                        && !m.getEndDate().isBefore(LocalDate.now()))
-                .orElse(false);
-    }
 }

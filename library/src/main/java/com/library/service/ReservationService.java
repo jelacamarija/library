@@ -27,10 +27,8 @@ public class ReservationService {
     private final MembershipRepository membershipRepository;
     private final BookInstanceRepository bookInstanceRepository;
     private final PublicationRepository publicationRepository;
-
     @Value("${library.loan.duration-days}")
     private int loanDurationDays;
-
     @Transactional
     public ReservationResponseDto createReservation(Long publicationId, Long userId) {
 
@@ -98,7 +96,7 @@ public class ReservationService {
                 .user(client)
                 .bookInstance(instance)
                 .reservedAt(new Date())
-                .expiresAt(new Date(System.currentTimeMillis() + 3L*2460*60*1000))
+                .expiresAt(new Date(System.currentTimeMillis() + 3L*24*60*60*1000))
                 .status(ReservationStatus.PENDING)
                 .used(false)
                 .build();
@@ -112,7 +110,6 @@ public class ReservationService {
 
         return ReservationMapper.toDto(reservation);
     }
-
     public List<ReservationResponseDto> getReservationsForUser(Long userID) {
 
         return reservationRepository.findByUserIdWithInstance(userID)
@@ -120,7 +117,6 @@ public class ReservationService {
                 .map(ReservationMapper::toDto)
                 .toList();
     }
-
     public Page<ReservationResponseDto> getAllReservations(int page, int size, String sort) {
 
         String[] sortParts = sort.split(",");
@@ -136,7 +132,6 @@ public class ReservationService {
         return reservationRepository.findAll(pageable)
                 .map(ReservationMapper::toDto);
     }
-
     public Page<ReservationResponseDto> getReservationsForUserLibrarian(
             Long userID, int page, int size) {
 
@@ -145,7 +140,6 @@ public class ReservationService {
         return reservationRepository.findByUser_UserID(userID, pageable)
                 .map(ReservationMapper::toDto);
     }
-
     @Transactional
     public ReservationResponseDto fulfillReservation(ReservationActiveDto dto) {
 
@@ -192,7 +186,6 @@ public class ReservationService {
 
         return ReservationMapper.toDto(reservation);
     }
-
     @Transactional
     public ReservationResponseDto cancelReservation(Long userID, Long reservationID) {
 
@@ -213,7 +206,6 @@ public class ReservationService {
 
         return ReservationMapper.toDto(reservation);
     }
-
     public Page<ReservationResponseDto> searchReservationsByMembership(
             String q, int page, int size, String sort) {
 

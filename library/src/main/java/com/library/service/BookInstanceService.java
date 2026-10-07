@@ -31,8 +31,6 @@ public class BookInstanceService {
         instance.setInventoryNumber(inventoryNumber);
         return BookInstanceMapper.toDto(bookInstanceRepository.save(instance));
     }
-
-
     public BookInstanceResponseDto getById(Long id) {
 
         BookInstance instance = bookInstanceRepository.findById(id)
@@ -40,8 +38,6 @@ public class BookInstanceService {
 
         return BookInstanceMapper.toDto(instance);
     }
-
-
     public Page<BookInstanceResponseDto> getAll(int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -49,8 +45,6 @@ public class BookInstanceService {
         return bookInstanceRepository.findAll(pageable)
                 .map(BookInstanceMapper::toDto);
     }
-
-
     public Page<BookInstanceResponseDto> search(Long publicationId,
                                                           String q,
                                                           BookStatus status,
@@ -66,7 +60,6 @@ public class BookInstanceService {
         return result.map(BookInstanceMapper::toDto);
     }
 
-
     public BookInstanceResponseDto updateLocation(Long id, BookInstanceUpdateLocationDto dto) {
 
         BookInstance instance = bookInstanceRepository.findById(id)
@@ -80,8 +73,6 @@ public class BookInstanceService {
 
         return BookInstanceMapper.toDto(bookInstanceRepository.save(instance));
     }
-
-    //pretraga primjeraka po inventarnom broju
     public BookInstanceResponseDto getByInventoryNumber(String inventoryNumber) {
 
         BookInstance instance = bookInstanceRepository.findByInventoryNumber(inventoryNumber)
@@ -89,8 +80,6 @@ public class BookInstanceService {
 
         return BookInstanceMapper.toDto(instance);
     }
-
-    //broj dostupnih primjeraka za odredjenu knjigu
     public long countAvailableByBook(Long bookId) {
 
         if(!bookRepository.existsById(bookId)){
@@ -99,9 +88,6 @@ public class BookInstanceService {
         return bookInstanceRepository
                 .countByPublication_Book_BookIDAndStatus(bookId, BookStatus.AVAILABLE);
     }
-
-
-    //promjena statusa u damged ili lost
     public BookInstanceResponseDto markAsDamagedOrLost(Long id, String status) {
 
         BookInstance instance = bookInstanceRepository.findById(id)
@@ -137,7 +123,6 @@ public class BookInstanceService {
         instance.setStatus(newStatus);
         return BookInstanceMapper.toDto(bookInstanceRepository.save(instance));
     }
-
     public Page<BookInstanceUserDto> getAvailableInstancesForUser(Long bookId, int page, int size) {
 
         if (!bookRepository.existsById(bookId)) {
@@ -150,7 +135,6 @@ public class BookInstanceService {
                 .findByPublication_Book_BookIDAndStatus(bookId, BookStatus.AVAILABLE, pageable)
                 .map(BookInstanceMapper::toUserDto);
     }
-
     private String generateInventoryNumber(Publication publication) {
 
         long count = bookInstanceRepository
@@ -158,6 +142,5 @@ public class BookInstanceService {
 
         return "INV-" + publication.getIsbn() + "-" + String.format("%03d", count + 1);
     }
-
 
 }

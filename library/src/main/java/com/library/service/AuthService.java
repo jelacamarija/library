@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -26,16 +27,12 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
-
     @Value("${app.frontend.base.url:http://localhost:4200}")
     private String frontendBaseUrl;
-
     @Value("${library.membership.amount}")
     private BigDecimal membershipAmount;
-
     @Value("${library.membership.duration-days}")
     private int membershipDurationDays;
-
     @Transactional
     public String registerLibrarian(RegisterRequestDto dto) {
 
@@ -63,7 +60,6 @@ public class AuthService {
 
         return "Registracija bibliotekara uspešna. Proverite email.";
     }
-
     @Transactional
     public String registerClient(RegisterRequestDto dto, String appBaseUrl){
 
@@ -99,15 +95,12 @@ public class AuthService {
         return "Registracija uspesna! Proverite mejl da potvrdite nalog!";
 
     }
-
     private String generateMembershipNumber(Long userID) {
         return "CL" + String.format("%06d", userID);
     }
-
     private String generateEmployeeCode(Long userID) {
         return "LIB" + String.format("%05d", userID);
     }
-
     @Transactional
     public  String verifyRegistration(String code) {
         User user = userRepository.findByVerifyCode(code)
@@ -141,7 +134,6 @@ public class AuthService {
             return "Vas nalog je verifikovan! Mozete se prijaviti.";
 
     }
-
     public LoginResponseDto loginUser(LoginRequestDto request){
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new ResponseStatusException(
@@ -172,7 +164,6 @@ public class AuthService {
                     .role(role)
                     .build();
     }
-
     @Transactional
     public String createUserByLibrarian(LibrarianCreateUserDto dto) {
             if (userRepository.existsByEmail(dto.getEmail())) {
@@ -211,8 +202,6 @@ public class AuthService {
 
             return "Korisnik kreiran. Poslat mejl za postavljanje lozinke.";
         }
-
-
     @Transactional
     public String setPasswordAndVerify(SetPasswordDto dto) {
             User user = userRepository.findByVerifyCode(dto.getCode())
@@ -240,7 +229,6 @@ public class AuthService {
 
             return "Lozinka postavljena. Nalog je aktiviran.";
         }
-
     @Transactional
     public String createLibrarianByLibrarian(LibrarianCreateUserDto dto) {
 
@@ -269,8 +257,6 @@ public class AuthService {
 
         return "Bibliotekar kreiran. Poslat mejl za postavljanje lozinke.";
     }
-
-
     private String resolveRole(User user) {
         if (user instanceof Client) {
             return "CLIENT";
